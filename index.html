@@ -48,6 +48,44 @@
     .backup-card{margin-top:16px}.backup-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.backup-head h3{margin:4px 0 6px;font-size:24px}.backup-head p{margin:0;color:var(--muted);font-size:12px;max-width:720px}.backup-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.backup-actions button{border-radius:11px;padding:12px 16px;font-size:11px;font-weight:900}.backup-primary{border:0;background:linear-gradient(135deg,var(--gold),#e6a634);color:#09101b}.backup-secondary{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff}.backup-status{margin-top:12px;padding:11px 13px;border:1px solid rgba(69,230,208,.14);border-radius:11px;background:rgba(69,230,208,.045);color:var(--muted);font-size:10px}.backup-status b{color:var(--cyan)}
     @media(max-width:620px){.journal-summary{grid-template-columns:1fr 1fr}.journal-list{overflow-x:auto}.journal-row{grid-template-columns:1.1fr .6fr .7fr .8fr .8fr 1.45fr auto;min-width:900px}.journal-row .journal-extra{display:block}.backup-head{display:block}.backup-actions{display:grid}.backup-actions button{width:100%}}
     @media(max-width:620px){body{padding-bottom:env(safe-area-inset-bottom)}.nav{height:68px}.brand{gap:9px;font-size:14px}.brandmark{width:36px;height:36px;border-radius:11px}.brand small{font-size:7px}.navlinks{left:12px;right:12px;top:calc(76px + env(safe-area-inset-top))}.install-app{padding:8px 10px;font-size:10px}.field input,.field select,.search,.coin-select,.chart-range,.scanner-controls select,.backtest-controls select,.batch-controls select{min-height:44px}.btn,.scanner-button,.calc-actions button,.backup-actions button{min-height:46px}.toast{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));text-align:center}.section{scroll-margin-top:76px}}
+    /* Mobile compact v36 */
+    @media(max-width:620px){
+      body{font-size:14px;line-height:1.45}
+      .wrap{width:calc(100% - 16px)}
+      .section{padding:44px 0}
+      .hero{padding:42px 0 36px}
+      .hero h1{font-size:40px;line-height:1}
+      .hero p{font-size:15px}
+      .section-title{margin-bottom:22px}
+      .section-title h2{font-size:32px}
+      .section-title p{font-size:13px}
+      .card{padding:16px;border-radius:17px}
+      .btn,.scanner-button,.calc-actions button,.backup-actions button{min-height:40px;padding:10px 13px;border-radius:11px;font-size:12px}
+      .field input,.field select,.search,.coin-select,.chart-range,.scanner-controls select,.backtest-controls select,.batch-controls select{min-height:40px;padding-top:9px;padding-bottom:9px;font-size:13px}
+      .nav{height:62px}.brand{font-size:13px}.brandmark{width:33px;height:33px}.menu{width:38px;height:38px;font-size:19px}
+      .navlinks{top:calc(70px + env(safe-area-inset-top))}
+      .install-app{padding:7px 9px;font-size:9px}
+      .chart-card{border-radius:15px}
+      .chart-toolbar{padding:13px 12px;gap:10px}
+      .chart-toolbar h3{font-size:16px}
+      .chart-controls{gap:7px}
+      .coin-select{width:100%;min-width:0}
+      .tabs{width:100%;scrollbar-width:none}
+      .tabs::-webkit-scrollbar{display:none}
+      .tab{padding:7px 10px;font-size:11px;flex:0 0 auto}
+      .chart-range,.chart-latest{padding:7px 9px;font-size:10px}
+      .indicator-panel{gap:6px;padding:8px}
+      .indicator-toggle{padding:5px 7px;font-size:9px}
+      .ohlc-legend{font-size:9px}
+      .main-chart{height:430px;padding:4px 0}
+      .main-chart canvas{touch-action:pan-y}
+      .rsi-chart{height:112px;padding:0 0 6px}
+      .scenario-card{padding:13px}
+      .trade-scenario-grid{gap:9px}
+      .form-grid,.demo-form{gap:9px}
+      .toast{font-size:12px;padding:11px 13px}
+    }
+
   </style>
 </head>
 <body>
@@ -346,7 +384,7 @@
     }
     function candleChart(canvas,data,timeframe='5M'){
       const all=normalizeCandles(data,timeframe);if(all.length<2)return;
-      const dpr=devicePixelRatio||1,rect=canvas.getBoundingClientRect();canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;const c=canvas.getContext('2d');c.scale(dpr,dpr);const w=rect.width,h=rect.height,pad={left:66,right:78,top:18,bottom:38},defaultVisible=w<600?60:90,viewCount=Math.max(20,Math.min(all.length,Number(canvas._viewCount)||defaultVisible)),maxOffset=Math.max(0,all.length-viewCount),viewOffset=Math.max(0,Math.min(maxOffset,Number(canvas._viewOffset)||0)),end=Math.max(2,all.length-viewOffset),start=Math.max(0,end-viewCount),candles=all.slice(start,end),plotW=w-pad.left-pad.right,fullPlotH=h-pad.top-pad.bottom;canvas._viewCount=viewCount;canvas._viewOffset=viewOffset;
+      const dpr=devicePixelRatio||1,rect=canvas.getBoundingClientRect();canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;const c=canvas.getContext('2d');c.scale(dpr,dpr);const w=rect.width,h=rect.height,compact=w<520,pad={left:compact?48:66,right:compact?64:78,top:18,bottom:38},defaultVisible=compact?40:(w<600?60:90),viewCount=Math.max(20,Math.min(all.length,Number(canvas._viewCount)||defaultVisible)),maxOffset=Math.max(0,all.length-viewCount),viewOffset=Math.max(0,Math.min(maxOffset,Number(canvas._viewOffset)||0)),end=Math.max(2,all.length-viewOffset),start=Math.max(0,end-viewCount),candles=all.slice(start,end),plotW=w-pad.left-pad.right,fullPlotH=h-pad.top-pad.bottom;canvas._viewCount=viewCount;canvas._viewOffset=viewOffset;
       const volumeOn=$('#volumeToggle').checked,priceBottom=volumeOn?pad.top+fullPlotH*.75:h-pad.bottom,priceH=priceBottom-pad.top,volumeTop=priceBottom+14,volumeBottom=h-pad.bottom;
       const closes=all.map(item=>item.close),emaSets=[{id:'ema20Toggle',period:20,color:'#f7c75d'},{id:'ema50Toggle',period:50,color:'#35a7ff'},{id:'ema200Toggle',period:200,color:'#b16cff'}].filter(item=>$(`#${item.id}`).checked).map(item=>({...item,values:ema(closes,item.period).slice(start)}));
       const livePrice=chartPriceSymbol===selectedSymbol&&Number.isFinite(currentChartPrice)&&currentChartPrice>0?currentChartPrice:candles.at(-1).close,tradePlan=latestTradePlans[timeframe],visiblePlan=tradePlan&&tradePlan.direction!=='WAIT'?tradePlan:null,scaleValues=candles.flatMap(item=>[item.high,item.low]);scaleValues.push(livePrice);if(visiblePlan)scaleValues.push(visiblePlan.entryLow,visiblePlan.entryHigh,visiblePlan.stop,visiblePlan.tp1,visiblePlan.tp2);emaSets.forEach(set=>scaleValues.push(...set.values));const rawMin=Math.min(...scaleValues),rawMax=Math.max(...scaleValues),rawRange=rawMax-rawMin||rawMax*.02||1,min=rawMin-rawRange*.05,max=rawMax+rawRange*.05,range=max-min||1;
@@ -643,3 +681,4 @@
   </script>
 </body>
 </html>
+
