@@ -48,7 +48,7 @@
     .backup-card{margin-top:16px}.backup-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.backup-head h3{margin:4px 0 6px;font-size:24px}.backup-head p{margin:0;color:var(--muted);font-size:12px;max-width:720px}.backup-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.backup-actions button{border-radius:11px;padding:12px 16px;font-size:11px;font-weight:900}.backup-primary{border:0;background:linear-gradient(135deg,var(--gold),#e6a634);color:#09101b}.backup-secondary{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff}.backup-status{margin-top:12px;padding:11px 13px;border:1px solid rgba(69,230,208,.14);border-radius:11px;background:rgba(69,230,208,.045);color:var(--muted);font-size:10px}.backup-status b{color:var(--cyan)}
     @media(max-width:620px){.journal-summary{grid-template-columns:1fr 1fr}.journal-list{overflow-x:auto}.journal-row{grid-template-columns:1.1fr .6fr .7fr .8fr .8fr 1.45fr auto;min-width:900px}.journal-row .journal-extra{display:block}.backup-head{display:block}.backup-actions{display:grid}.backup-actions button{width:100%}}
     @media(max-width:620px){body{padding-bottom:env(safe-area-inset-bottom)}.nav{height:68px}.brand{gap:9px;font-size:14px}.brandmark{width:36px;height:36px;border-radius:11px}.brand small{font-size:7px}.navlinks{left:12px;right:12px;top:calc(76px + env(safe-area-inset-top))}.install-app{padding:8px 10px;font-size:10px}.field input,.field select,.search,.coin-select,.chart-range,.scanner-controls select,.backtest-controls select,.batch-controls select{min-height:44px}.btn,.scanner-button,.calc-actions button,.backup-actions button{min-height:46px}.toast{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));text-align:center}.section{scroll-margin-top:76px}}
-    /* Mobile compact v37 */
+    /* Mobile compact v38 */
     @media(max-width:620px){
       body{font-size:14px;line-height:1.45}
       .wrap{width:calc(100% - 16px)}
@@ -86,6 +86,31 @@
       .toast{font-size:12px;padding:11px 13px}
     }
 
+  
+    /* Mobile quick dock v38 */
+    .mobile-dock{display:none}
+    @media(max-width:620px){
+      body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+      #market,#analytics,#marketScanner,#portfolio{scroll-margin-top:76px}
+      .mobile-dock{
+        position:fixed;z-index:70;left:8px;right:8px;
+        bottom:calc(8px + env(safe-area-inset-bottom));
+        display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;
+        padding:6px;border:1px solid rgba(255,255,255,.11);border-radius:18px;
+        background:rgba(7,11,20,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+        box-shadow:0 16px 38px rgba(0,0,0,.42)
+      }
+      .mobile-dock a{
+        min-width:0;min-height:48px;padding:5px 2px;border-radius:12px;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+        color:#8f9bae;text-decoration:none;transition:.18s ease
+      }
+      .mobile-dock a:active{transform:scale(.96)}
+      .mobile-dock a.active{color:var(--cyan);background:rgba(69,230,208,.12)}
+      .mobile-dock svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .mobile-dock span{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:9px;font-weight:800;line-height:1;white-space:nowrap}
+      .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
+    }
   </style>
 </head>
 <body>
@@ -264,6 +289,20 @@
   </main>
 
   <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB</div><span>Образовательный проект · Не финансовая рекомендация</span></div></footer>
+  <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
+    <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
+    </a>
+    <a href="#analytics" data-dock-target="analytics" aria-label="График">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M3 8h4M12 3v14m-2-4h4m5-5v13m-2-9h4"/></svg><span>График</span>
+    </a>
+    <a href="#marketScanner" data-dock-target="marketScanner" aria-label="Сканер">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4M11 7v4l3 2"/></svg><span>Сканер</span>
+    </a>
+    <a href="#portfolio" data-dock-target="portfolio" aria-label="Портфель">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h14a2 2 0 0 1 2 2v10H4a2 2 0 0 1-2-2V7a3 3 0 0 1 3-3h12"/><path d="M15 12h5v4h-5a2 2 0 0 1 0-4Z"/></svg><span>Портфель</span>
+    </a>
+  </nav>
   <div class="toast" id="toast">Готово</div>
 
   <script>
@@ -645,6 +684,28 @@
       if(window.matchMedia('(display-mode: standalone)').matches)installButton.hidden=true;
       if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
     }
+    function setupMobileDock(){
+      const dock=$('#mobileDock');
+      if(!dock)return;
+      const links=[...dock.querySelectorAll('[data-dock-target]')];
+      const ids=links.map(link=>link.dataset.dockTarget);
+      const setActive=id=>links.forEach(link=>{
+        const active=link.dataset.dockTarget===id;
+        link.classList.toggle('active',active);
+        if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+      });
+      links.forEach(link=>link.addEventListener('click',()=>setActive(link.dataset.dockTarget)));
+      const sections=ids.map(id=>document.getElementById(id)).filter(Boolean);
+      if('IntersectionObserver' in window){
+        const observer=new IntersectionObserver(entries=>{
+          const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+          if(visible)setActive(visible.target.id);
+        },{rootMargin:'-22% 0px -62% 0px',threshold:[0,.08,.2,.4]});
+        sections.forEach(section=>observer.observe(section));
+      }
+      const current=location.hash.slice(1);
+      setActive(ids.includes(current)?current:'market');
+    }
     function setupMobileMenu(){
       const menu=$('#menu'),nav=$('#navlinks');
       const close=()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='☰'};
@@ -655,7 +716,7 @@
       window.addEventListener('resize',()=>{if(innerWidth>900)close()});
     }
     function init(){
-      setupAppInstall();setupMobileMenu();
+      setupAppInstall();setupMobileMenu();setupMobileDock();
       $('#alertStrength').value=alertSettings.strength;$('#alertStrengthRange').value=alertSettings.strength;$('#alertDirection').value=alertSettings.direction;$('#alertScope').value=alertSettings.scope;$('#alertCooldown').value=String(alertSettings.cooldown);$('#alertSound').checked=alertSettings.sound;renderAlertHistory();renderPriceAlerts();updateAlertUI();
       renderSparks();renderMarket();buildTicker();$('#portfolioCoin').innerHTML=coins.map(c=>`<option value="${c.symbol}">${c.symbol} — ${c.name}</option>`).join('');renderPortfolio();renderTradeJournal();renderDemoJournal();loadAllPairs();loadTradeScenarios();
       requestAnimationFrame(()=>{lineChart($('#heroChart'),heroSeries,'#45e6d0');setFrame('5M')});loadMarket();loadKlines('1H','hero');loadKlines('5M');connectStream();connectChartStream();checkPriceAlerts();checkTradeJournalPrices();setInterval(checkTradeJournalPrices,15000);setInterval(()=>{loadMarket();loadKlines($('#timeTabs .active')?.dataset.time||'5M');loadTradeScenarios();checkPriceAlerts()},60000);setInterval(scanFavoriteAlerts,300000);setInterval(()=>{if(scannerAutoStarted)runMarketScanner()},300000);
@@ -681,5 +742,6 @@
   </script>
 </body>
 </html>
+
 
 
