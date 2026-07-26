@@ -114,6 +114,8 @@
       .mobile-dock span{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:9px;font-weight:800;line-height:1;white-space:nowrap}
       .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
     }
+    /* Статистика демо-сигналов */
+    .demo-insights{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.demo-insight{padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:linear-gradient(135deg,rgba(53,167,255,.06),rgba(69,230,208,.025))}.demo-insight span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.demo-insight b{display:block;font-size:15px;margin-top:5px}.demo-insight small{display:block;color:var(--muted);font-size:10px;margin-top:3px}@media(max-width:900px){.demo-insights{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -262,6 +264,7 @@
             <button class="scanner-button" id="addDemoTrade">Добавить сигнал</button>
           </div>
           <div class="demo-summary" id="demoSummary"></div>
+          <div class="demo-insights" id="demoInsights"></div>
           <div class="demo-list" id="demoList"></div>
           <div class="demo-rule">Правило этапа: только класс A, без реального ордера и без изменения результата задним числом. Решение о реальной торговле принимаем только после 30–50 завершённых наблюдений.</div>
         </div>
@@ -750,8 +753,15 @@
     function demoStatistics(){
       const closed=demoJournal.filter(item=>item.status==='CLOSED'),wins=closed.filter(item=>item.resultR>0),losses=closed.filter(item=>item.resultR<0),net=closed.reduce((sum,item)=>sum+item.resultR,0);let equity=0,peak=0,maxDrawdown=0;[...closed].sort((a,b)=>new Date(a.closedAt)-new Date(b.closedAt)).forEach(item=>{equity+=item.resultR;peak=Math.max(peak,equity);maxDrawdown=Math.max(maxDrawdown,peak-equity)});const grossWin=wins.reduce((sum,item)=>sum+item.resultR,0),grossLoss=Math.abs(losses.reduce((sum,item)=>sum+item.resultR,0));return{closed:closed.length,open:demoJournal.length-closed.length,winRate:closed.length?wins.length/closed.length*100:0,net,maxDrawdown,profitFactor:grossLoss?grossWin/grossLoss:grossWin?Infinity:0}
     }
+    function demoInsight(items){
+      if(!items.length)return null;const net=items.reduce((sum,item)=>sum+(+item.resultR||0),0),wins=items.filter(item=>+item.resultR>0).length;return{count:items.length,net,winRate:wins/items.length*100}
+    }
+    function bestDemoGroup(closed,key){
+      const groups={};closed.forEach(item=>{const name=item[key];if(!name)return;(groups[name]||(groups[name]=[])).push(item)});return Object.entries(groups).map(([name,items])=>({name,...demoInsight(items)})).filter(item=>item.count>=2).sort((a,b)=>b.net-a.net||b.winRate-a.winRate||b.count-a.count)[0]||null
+    }
     function renderDemoJournal(){
-      const stats=demoStatistics(),values=[[demoJournal.length,'Всего сигналов'],[stats.open,'Открыто'],[stats.closed,'Завершено'],[stats.closed?stats.winRate.toFixed(1)+'%':'—','Win Rate'],[`${stats.net>=0?'+':''}${stats.net.toFixed(2)}R`,'Результат'],[`−${stats.maxDrawdown.toFixed(2)}R · PF ${Number.isFinite(stats.profitFactor)?stats.profitFactor.toFixed(2):'∞'}`,'Просадка / PF']];$('#demoSummary').innerHTML=values.map(([value,label],index)=>`<div class="backtest-stat"><span>${label}</span><b class="${index===4?(stats.net>=0?'positive':'negative'):''}">${value}</b></div>`).join('');
+      const stats=demoStatistics(),closed=demoJournal.filter(item=>item.status==='CLOSED'),bestCoin=bestDemoGroup(closed,'symbol'),bestFrame=bestDemoGroup(closed,'timeframe'),longStats=demoInsight(closed.filter(item=>item.direction==='LONG')),shortStats=demoInsight(closed.filter(item=>item.direction==='SHORT')),bestDirection=[{name:'LONG',...(longStats||{count:0,net:0,winRate:0})},{name:'SHORT',...(shortStats||{count:0,net:0,winRate:0})}].filter(item=>item.count>=2).sort((a,b)=>b.net-a.net||b.winRate-a.winRate)[0]||null,values=[[demoJournal.length,'Всего сигналов'],[stats.open,'Открыто'],[stats.closed,'Завершено'],[stats.closed?stats.winRate.toFixed(1)+'%':'—','Win Rate'],[`${stats.net>=0?'+':''}${stats.net.toFixed(2)}R`,'Результат'],[`−${stats.maxDrawdown.toFixed(2)}R · PF ${Number.isFinite(stats.profitFactor)?stats.profitFactor.toFixed(2):'∞'}`,'Просадка / PF']];$('#demoSummary').innerHTML=values.map(([value,label],index)=>`<div class="backtest-stat"><span>${label}</span><b class="${index===4?(stats.net>=0?'positive':'negative'):''}">${value}</b></div>`).join('');
+      const insightCard=(label,item,suffix='')=>item?`<div class="demo-insight"><span>${label}</span><b class="${item.net>=0?'positive':'negative'}">${item.name}${suffix}</b><small>${item.count} заверш. · ${item.net>=0?'+':''}${item.net.toFixed(2)}R · WR ${item.winRate.toFixed(0)}%</small></div>`:`<div class="demo-insight"><span>${label}</span><b>Собираем данные</b><small>Нужно минимум 2 завершённых сигнала для сравнения.</small></div>`;$('#demoInsights').innerHTML=insightCard('Лучшая монета',bestCoin,' / USDT')+insightCard('Лучший таймфрейм',bestFrame)+insightCard('Лучшее направление',bestDirection);
       $('#demoList').innerHTML=demoJournal.length?demoJournal.map(item=>`<div class="demo-row"><div><b>${item.symbol}/USDT · ${item.timeframe}</b><small>${new Date(item.createdAt).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</small></div><b class="${item.direction==='LONG'?'positive':'negative'}">${item.direction}<small>${item.strength}% · A</small></b><span>Вход <b>${scenarioPrice(item.entry)}</b></span><span>Stop <b class="negative">${scenarioPrice(item.stop)}</b></span><span>TP <b class="positive">${scenarioPrice(item.target)}</b></span><b class="demo-status ${item.status==='OPEN'?'':item.resultR>=0?'positive':'negative'}">${item.status==='OPEN'?'OPEN':`${item.resultR>=0?'+':''}${item.resultR.toFixed(2)}R`}</b><div class="demo-actions">${item.status==='OPEN'?`<button class="demo-win" data-demo-action="tp" data-id="${item.id}">TP</button><button class="demo-loss" data-demo-action="stop" data-id="${item.id}">Stop</button><input class="demo-r-input" data-r-id="${item.id}" type="number" step="0.01" placeholder="R"><button data-demo-action="manual" data-id="${item.id}">Закрыть</button>`:`<small>${new Date(item.closedAt).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</small>`}</div><button class="demo-delete" data-demo-action="delete" data-id="${item.id}" aria-label="Удалить">✕</button></div>`).join(''):'<div class="journal-empty">Демо-журнал пуст. Добавьте первый сигнал класса A.</div>'
     }
     function addDemoTrade(){
