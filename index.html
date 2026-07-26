@@ -49,6 +49,8 @@
     .backup-card{margin-top:16px}.backup-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}.backup-head h3{margin:4px 0 6px;font-size:24px}.backup-head p{margin:0;color:var(--muted);font-size:12px;max-width:720px}.backup-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.backup-actions button{border-radius:11px;padding:12px 16px;font-size:11px;font-weight:900}.backup-primary{border:0;background:linear-gradient(135deg,var(--gold),#e6a634);color:#09101b}.backup-secondary{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff}.backup-status{margin-top:12px;padding:11px 13px;border:1px solid rgba(69,230,208,.14);border-radius:11px;background:rgba(69,230,208,.045);color:var(--muted);font-size:10px}.backup-status b{color:var(--cyan)}
     @media(max-width:620px){.journal-summary{grid-template-columns:1fr 1fr}.journal-list{overflow-x:auto}.journal-row{grid-template-columns:1.1fr .6fr .7fr .8fr .8fr 1.45fr auto;min-width:900px}.journal-row .journal-extra{display:block}.backup-head{display:block}.backup-actions{display:grid}.backup-actions button{width:100%}}
     @media(max-width:620px){body{padding-bottom:env(safe-area-inset-bottom)}.nav{height:68px}.brand{gap:9px;font-size:14px}.brandmark{width:36px;height:36px;border-radius:11px}.brand small{font-size:7px}.navlinks{left:12px;right:12px;top:calc(76px + env(safe-area-inset-top))}.install-app{padding:8px 10px;font-size:10px}.field input,.field select,.search,.coin-select,.chart-range,.scanner-controls select,.backtest-controls select,.batch-controls select{min-height:44px}.btn,.scanner-button,.calc-actions button,.backup-actions button{min-height:46px}.toast{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));text-align:center}.section{scroll-margin-top:76px}}
+    /* Надёжное открытие разделов по ссылке, включая установленное приложение */
+    html{scroll-behavior:auto}
     /* Mobile compact v38 */
     @media(max-width:620px){
       body{font-size:14px;line-height:1.45}
@@ -365,6 +367,23 @@
     if(!Array.isArray(priceAlerts))priceAlerts=[];
     let favoriteScanBusy=false,scannerBusy=false,scannerResults=[],scannerAutoStarted=false,allUsdtSymbols=[],scannerLiquidity={},backtestBusy=false,batchBacktestBusy=false;
     const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+    if('scrollRestoration' in history)history.scrollRestoration='manual';
+    function scrollToHashTarget(behavior='auto'){
+      const id=decodeURIComponent(location.hash.replace(/^#/,'')).trim();
+      if(!id)return;
+      const target=document.getElementById(id);
+      if(!target)return;
+      const header=document.querySelector('.topbar');
+      const offset=(header?.getBoundingClientRect().height||0)+10;
+      const top=Math.max(0,target.getBoundingClientRect().top+window.scrollY-offset);
+      window.scrollTo({top,behavior});
+    }
+    function scheduleHashScroll(behavior='auto'){
+      if(!location.hash)return;
+      [0,120,350,800,1500].forEach(delay=>setTimeout(()=>scrollToHashTarget(delay?'auto':behavior),delay));
+    }
+    window.addEventListener('hashchange',()=>scheduleHashScroll('smooth'));
+    window.addEventListener('pageshow',()=>scheduleHashScroll('auto'));
     const fmt=value=>{const n=Number(value);return Number.isFinite(n)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Math.abs(n)<1?6:Math.abs(n)<10?4:2}).format(n):'—'};
     const compact=value=>{const n=Number(value);return Number.isFinite(n)?new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(n):'—'};
     const academyLessons=[
@@ -812,6 +831,7 @@
       $('#downloadBackup').onclick=downloadSiteBackup;$('#restoreBackup').onclick=()=>$('#backupFileInput').click();$('#backupFileInput').onchange=e=>restoreSiteBackup(e.target.files[0]);$('#exportJournalCsv').onclick=exportJournalsCsv;
       $('#addAsset').onclick=()=>{const symbol=$('#portfolioCoin').value,amount=+$('#portfolioAmount').value,avgPrice=+$('#portfolioBuyPrice').value;if(!amount||amount<=0)return toast('Введите количество монет');if(!avgPrice||avgPrice<=0)return toast('Введите среднюю цену покупки');const old=portfolio.find(p=>p.symbol===symbol);if(old){const previousAmount=+old.amount||0,previousPrice=+old.avgPrice||avgPrice,totalAmount=previousAmount+amount;old.avgPrice=(previousAmount*previousPrice+amount*avgPrice)/totalAmount;old.amount=totalAmount}else portfolio.push({symbol,amount,avgPrice});$('#portfolioAmount').value='';$('#portfolioBuyPrice').value='';savePortfolio();renderPortfolio();toast(`${symbol} добавлен · средняя цена пересчитана`)};
       window.addEventListener('resize',()=>{lineChart($('#heroChart'),heroSeries,'#45e6d0');setFrame($('#timeTabs .active')?.dataset.time||'5M')});
+      scheduleHashScroll('auto');
     }
     init();
   </script>
