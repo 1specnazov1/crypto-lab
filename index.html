@@ -172,7 +172,7 @@
     <section class="section" id="aiAdvisor">
       <div class="wrap">
         <div class="card ai-advisor">
-          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.2</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
+          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.3</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
           <div class="ai-advisor-form"><textarea id="aiQuestion" maxlength="4000" placeholder="Например: Что должно подтвердить LONG по BTC на текущем таймфрейме?"></textarea><button class="btn ai-send" id="aiSend" type="button">Спросить AI</button></div>
           <div class="ai-prompts" id="aiPrompts"><button class="ai-prompt" type="button" data-ai-prompt="Что подтверждает сценарий LONG по выбранной монете и таймфрейму?">Проверить LONG</button><button class="ai-prompt" type="button" data-ai-prompt="Какие риски и что отменит текущий сценарий?">Риски сценария</button><button class="ai-prompt" type="button" data-ai-prompt="Какой торговый план проверить на графике перед входом?">План перед входом</button></div>
           <div class="ai-answer" id="aiAnswer" data-state="idle" aria-live="polite">Задайте вопрос — AI даст структуру анализа и напомнит, что обязательно проверить на графике.</div>
@@ -338,7 +338,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 1.0</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.3 / v64</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -963,332 +963,21 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v62 — AI history patch */
+    /* CRYPTO LAB v64 — strict AI format + safe confidence */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
-
-      function aiHistoryEscape(value){
-        return String(value ?? '').replace(/[&<>"']/g, char => ({
-          '&':'&amp;',
-          '<':'&lt;',
-          '>':'&gt;',
-          '"':'&quot;',
-          "'":'&#39;'
-        }[char]));
-      }
-
-      function aiHistoryDate(time){
-        try {
-          return new Intl.DateTimeFormat('ru-RU', {
-            day:'2-digit',
-            month:'2-digit',
-            hour:'2-digit',
-            minute:'2-digit'
-          }).format(new Date(time));
-        } catch(e) {
-          return '—';
-        }
-      }
-
-      function loadAiHistory(){
-        try {
-          const data = JSON.parse(localStorage.getItem(AI_HISTORY_KEY) || '[]');
-          return Array.isArray(data) ? data : [];
-        } catch(e) {
-          return [];
-        }
-      }
-
-      function saveAiHistory(item){
-        const history = loadAiHistory();
-        const next = [item, ...history].slice(0, AI_HISTORY_LIMIT);
-        try {
-          localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(next));
-        } catch(e) {}
-        renderAiHistory();
-      }
-
-      function clearAiHistory(){
-        try {
-          localStorage.removeItem(AI_HISTORY_KEY);
-        } catch(e) {}
-        renderAiHistory();
-        if (typeof toast === 'function') toast('История AI-разборов очищена');
-      }
-
-      function ensureAiHistoryUI(){
-        if (document.getElementById('aiHistoryBox')) return;
-
-        const style = document.createElement('style');
-        style.textContent = `
-          .ai-history-box{
-            margin-top:14px;
-            padding:14px;
-            border:1px solid rgba(69,230,208,.18);
-            border-radius:14px;
-            background:rgba(255,255,255,.018);
-          }
-          .ai-history-top{
-            display:flex;
-            justify-content:space-between;
-            gap:12px;
-            align-items:flex-end;
-            margin-bottom:10px;
-          }
-          .ai-history-top h4{
-            margin:0;
-            font-size:14px;
-          }
-          .ai-history-top p{
-            margin:3px 0 0;
-            color:var(--muted);
-            font-size:10px;
-          }
-          .ai-history-clear{
-            border:1px solid var(--line);
-            background:rgba(255,255,255,.035);
-            color:#fff;
-            border-radius:9px;
-            padding:7px 10px;
-            font-size:10px;
-            font-weight:800;
-          }
-          .ai-history-list{
-            display:grid;
-            gap:8px;
-          }
-          .ai-history-empty{
-            padding:14px;
-            text-align:center;
-            color:var(--muted);
-            border:1px dashed var(--line);
-            border-radius:11px;
-            font-size:11px;
-          }
-          .ai-history-item{
-            display:grid;
-            grid-template-columns:1fr auto;
-            gap:12px;
-            align-items:center;
-            padding:11px 12px;
-            border:1px solid var(--line);
-            border-radius:12px;
-            background:rgba(3,10,17,.35);
-            font-size:11px;
-          }
-          .ai-history-item b{
-            display:block;
-            color:#fff;
-            margin-bottom:4px;
-          }
-          .ai-history-item small{
-            display:block;
-            color:var(--muted);
-          }
-          .ai-history-open{
-            border:1px solid rgba(69,230,208,.28);
-            background:rgba(69,230,208,.08);
-            color:var(--cyan);
-            border-radius:9px;
-            padding:7px 10px;
-            font-size:10px;
-            font-weight:850;
-            white-space:nowrap;
-          }
-          @media(max-width:620px){
-            .ai-history-top{display:block}
-            .ai-history-clear{margin-top:9px}
-            .ai-history-item{grid-template-columns:1fr}
-            .ai-history-open{width:100%}
-          }
-        `;
-        document.head.appendChild(style);
-
-        const disclaimer = document.querySelector('.ai-disclaimer');
-        if (!disclaimer) return;
-
-        const box = document.createElement('div');
-        box.className = 'ai-history-box';
-        box.id = 'aiHistoryBox';
-        box.innerHTML = `
-          <div class="ai-history-top">
-            <div>
-              <h4>История AI-разборов</h4>
-              <p>Последние 12 ответов: монета, таймфрейм, вопрос и время.</p>
-            </div>
-            <button class="ai-history-clear" id="clearAiHistoryBtn" type="button">Очистить историю</button>
-          </div>
-          <div class="ai-history-list" id="aiHistoryList"></div>
-        `;
-        disclaimer.insertAdjacentElement('afterend', box);
-      }
-
-      function renderAiHistory(){
-        ensureAiHistoryUI();
-
-        const list = document.getElementById('aiHistoryList');
-        if (!list) return;
-
-        const history = loadAiHistory();
-
-        if (!history.length) {
-          list.innerHTML = '<div class="ai-history-empty">AI-разборов пока нет. Задайте вопрос — он появится здесь.</div>';
-          return;
-        }
-
-        list.innerHTML = history.map(item => `
-          <div class="ai-history-item">
-            <div>
-              <b>${aiHistoryEscape(item.symbol || 'BTC')} · ${aiHistoryEscape(item.timeframe || '5M')} · ${aiHistoryDate(item.createdAt)}</b>
-              <small>${aiHistoryEscape(item.question || 'Без вопроса')}</small>
-            </div>
-            <button class="ai-history-open" type="button" data-ai-history-id="${aiHistoryEscape(item.id)}">Открыть</button>
-          </div>
-        `).join('');
-      }
-
-      function getAiMeta(context){
-        const text = String(context || '');
-        const symbolMatch = text.match(/Выбранный актив:\s*([A-Z0-9]+)\/USDT/i);
-        const timeframeMatch = text.match(/Таймфрейм:\s*([A-Z0-9]+)/i);
-
-        return {
-          symbol: symbolMatch ? symbolMatch[1] : (typeof selectedSymbol !== 'undefined' ? selectedSymbol : 'BTC'),
-          timeframe: timeframeMatch ? timeframeMatch[1] : (document.querySelector('#timeTabs .tab.active')?.dataset.time || '5M')
-        };
-      }
-
-      async function askAiAdvisorWithHistory(){
-        const input = document.getElementById('aiQuestion');
-        const button = document.getElementById('aiSend');
-        const message = input ? input.value.trim() : '';
-
-        if (!message) {
-          if (typeof toast === 'function') toast('Введите вопрос для AI-ассистента');
-          return;
-        }
-
-        if (typeof AI_CONFIG === 'undefined' || !AI_CONFIG.publishableKey) {
-          if (typeof setAiAnswer === 'function') setAiAnswer('AI-ассистент ещё не настроен.', 'error');
-          return;
-        }
-
-        button.disabled = true;
-        button.textContent = 'AI думает…';
-
-        if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI анализирует выбранный рынок…', 'loading');
-        }
-
-        try {
-          const marketContext = typeof buildAiMarketContext === 'function' ? buildAiMarketContext() : '';
-
-          const response = await fetch(AI_CONFIG.endpoint, {
-            method:'POST',
-            headers:{
-              Authorization:`Bearer ${AI_CONFIG.publishableKey}`,
-              apikey:AI_CONFIG.publishableKey,
-              'Content-Type':'application/json'
-            },
-            body:JSON.stringify({
-              message,
-              marketContext
-            })
-          });
-
-          const payload = await response.json().catch(() => ({}));
-
-          if (!response.ok || !payload.answer) {
-            throw new Error(payload.error || 'AI временно недоступен. Попробуйте немного позже.');
-          }
-
-          if (typeof setAiAnswer === 'function') {
-            setAiAnswer(payload.answer, 'ready');
-          }
-
-          const meta = getAiMeta(marketContext);
-
-          saveAiHistory({
-            id:String(Date.now()),
-            createdAt:Date.now(),
-            symbol:meta.symbol,
-            timeframe:meta.timeframe,
-            question:message,
-            answer:payload.answer
-          });
-
-        } catch(error) {
-          if (typeof setAiAnswer === 'function') {
-            setAiAnswer(error?.message || 'Не удалось получить ответ AI. Попробуйте ещё раз.', 'error');
-          }
-        } finally {
-          button.disabled = false;
-          button.textContent = 'Спросить AI';
-        }
-      }
-
-      function openAiHistoryItem(id){
-        const item = loadAiHistory().find(row => row.id === id);
-        if (!item) return;
-
-        const input = document.getElementById('aiQuestion');
-        if (input) input.value = item.question || '';
-
-        if (typeof setAiAnswer === 'function') {
-          setAiAnswer(item.answer || 'Ответ не найден.', 'ready');
-        }
-
-        document.getElementById('aiAdvisor')?.scrollIntoView({
-          behavior:'smooth',
-          block:'start'
-        });
-      }
-
-      document.addEventListener('click', event => {
-        const clearBtn = event.target.closest('#clearAiHistoryBtn');
-        if (clearBtn) {
-          clearAiHistory();
-          return;
-        }
-
-        const openBtn = event.target.closest('[data-ai-history-id]');
-        if (!openBtn) return;
-
-        openAiHistoryItem(openBtn.dataset.aiHistoryId);
-      });
-
-      function bindAiHistory(){
-        renderAiHistory();
-
-        const button = document.getElementById('aiSend');
-        if (button) button.onclick = askAiAdvisorWithHistory;
-
-        const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.aiHistoryEnterBound) {
-          input.dataset.aiHistoryEnterBound = '1';
-          input.addEventListener('keydown', event => {
-            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-              event.preventDefault();
-              event.stopImmediatePropagation();
-              askAiAdvisorWithHistory();
-            }
-          }, true);
-        }
-      }
-
-      bindAiHistory();
-      setTimeout(bindAiHistory, 500);
-      setTimeout(bindAiHistory, 1200);
-    })();
-  </script>
-
-
-  <script>
-    /* CRYPTO LAB v63 — strict AI analysis format */
-    (function(){
-      const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
-      const AI_HISTORY_LIMIT = 12;
+      const SECTION_TITLES = [
+        'Решение',
+        'Контекст рынка',
+        'Зона входа',
+        'Stop Loss',
+        'Take Profit',
+        'Что подтверждает сценарий',
+        'Что отменяет сценарий',
+        'Риск',
+        'Итог'
+      ];
 
       function safeText(value){
         return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -1331,7 +1020,124 @@
         renderHistory();
       }
 
+      function clearHistory(){
+        try {
+          localStorage.removeItem(AI_HISTORY_KEY);
+        } catch(e) {}
+        renderHistory();
+        if (typeof toast === 'function') toast('История AI-разборов очищена');
+      }
+
+      function ensureHistoryUI(){
+        if (!document.getElementById('aiHistoryBox')) {
+          const style = document.createElement('style');
+          style.textContent = `
+            .ai-history-box{
+              margin-top:14px;
+              padding:14px;
+              border:1px solid rgba(69,230,208,.18);
+              border-radius:14px;
+              background:rgba(255,255,255,.018);
+            }
+            .ai-history-top{
+              display:flex;
+              justify-content:space-between;
+              gap:12px;
+              align-items:flex-end;
+              margin-bottom:10px;
+            }
+            .ai-history-top h4{
+              margin:0;
+              font-size:14px;
+            }
+            .ai-history-top p{
+              margin:3px 0 0;
+              color:var(--muted);
+              font-size:10px;
+            }
+            .ai-history-clear{
+              border:1px solid var(--line);
+              background:rgba(255,255,255,.035);
+              color:#fff;
+              border-radius:9px;
+              padding:7px 10px;
+              font-size:10px;
+              font-weight:800;
+            }
+            .ai-history-list{
+              display:grid;
+              gap:8px;
+            }
+            .ai-history-empty{
+              padding:14px;
+              text-align:center;
+              color:var(--muted);
+              border:1px dashed var(--line);
+              border-radius:11px;
+              font-size:11px;
+            }
+            .ai-history-item{
+              display:grid;
+              grid-template-columns:1fr auto;
+              gap:12px;
+              align-items:center;
+              padding:11px 12px;
+              border:1px solid var(--line);
+              border-radius:12px;
+              background:rgba(3,10,17,.35);
+              font-size:11px;
+            }
+            .ai-history-item b{
+              display:block;
+              color:#fff;
+              margin-bottom:4px;
+            }
+            .ai-history-item small{
+              display:block;
+              color:var(--muted);
+            }
+            .ai-history-open{
+              border:1px solid rgba(69,230,208,.28);
+              background:rgba(69,230,208,.08);
+              color:var(--cyan);
+              border-radius:9px;
+              padding:7px 10px;
+              font-size:10px;
+              font-weight:850;
+              white-space:nowrap;
+            }
+            @media(max-width:620px){
+              .ai-history-top{display:block}
+              .ai-history-clear{margin-top:9px}
+              .ai-history-item{grid-template-columns:1fr}
+              .ai-history-open{width:100%}
+            }
+          `;
+          document.head.appendChild(style);
+
+          const disclaimer = document.querySelector('.ai-disclaimer');
+          if (!disclaimer) return;
+
+          const box = document.createElement('div');
+          box.className = 'ai-history-box';
+          box.id = 'aiHistoryBox';
+          box.innerHTML = `
+            <div class="ai-history-top">
+              <div>
+                <h4>История AI-разборов</h4>
+                <p>Последние 12 ответов: монета, таймфрейм, вопрос и время.</p>
+              </div>
+              <button class="ai-history-clear" id="clearAiHistoryBtn" type="button">Очистить историю</button>
+            </div>
+            <div class="ai-history-list" id="aiHistoryList"></div>
+          `;
+          disclaimer.insertAdjacentElement('afterend', box);
+        }
+      }
+
       function renderHistory(){
+        ensureHistoryUI();
+
         const list = document.getElementById('aiHistoryList');
         if (!list) return;
 
@@ -1353,6 +1159,23 @@
         `).join('');
       }
 
+      function openHistoryItem(id){
+        const item = loadHistory().find(row => row.id === id);
+        if (!item) return;
+
+        const input = document.getElementById('aiQuestion');
+        if (input) input.value = item.question || '';
+
+        if (typeof setAiAnswer === 'function') {
+          setAiAnswer(normalizeStrictAnswer(item.answer || 'Ответ не найден.'), 'ready');
+        }
+
+        document.getElementById('aiAdvisor')?.scrollIntoView({
+          behavior:'smooth',
+          block:'start'
+        });
+      }
+
       function metaFromContext(context){
         const text = String(context || '');
         const symbolMatch = text.match(/Выбранный актив:\s*([A-Z0-9]+)\/USDT/i);
@@ -1364,17 +1187,78 @@
         };
       }
 
+      function normalizeSectionHeadings(answer){
+        let text = String(answer || '').replace(/\r\n/g, '\n');
+
+        SECTION_TITLES.forEach((title, index) => {
+          const number = index + 1;
+          const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const patterns = [
+            new RegExp(`^\\s*#{1,4}\\s*${number}[\\.)]\\s*${escaped}\\s*$`, 'gmi'),
+            new RegExp(`^\\s*${number}[\\.)]\\s*${escaped}\\s*$`, 'gmi'),
+            new RegExp(`^\\s*Раздел\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'gmi')
+          ];
+
+          patterns.forEach(pattern => {
+            text = text.replace(pattern, `${number} — ${title}`);
+          });
+        });
+
+        return text;
+      }
+
+      function extractDecision(answer){
+        const text = String(answer || '');
+        const direct = text.match(/LONG\s*\/\s*SHORT\s*\/\s*WAIT\s*:\s*(LONG|SHORT|WAIT)/i);
+        if (direct) return direct[1].toUpperCase();
+
+        const simple = text.match(/(?:Решение|Действие)\s*:\s*(LONG|SHORT|WAIT)/i);
+        if (simple) return simple[1].toUpperCase();
+
+        return '';
+      }
+
+      function normalizeConfidence(answer){
+        let text = String(answer || '');
+        const decision = extractDecision(text);
+        const cap = decision === 'WAIT' ? 70 : 85;
+
+        text = text.replace(/Уверенность\s*:\s*(\d{1,3})\s*%[^\n]*/gi, (full, value) => {
+          const confidence = Math.max(1, Math.min(Number(value) || 0, cap));
+          if (decision === 'WAIT') return `Уверенность: ${confidence}% (WAIT, без гарантии)`;
+          return `Уверенность: ${confidence}% (без гарантии)`;
+        });
+
+        text = text.replace(/\b100\s*%\b/g, `${cap}%`);
+        text = text.replace(/стопроцентн\w+/gi, 'максимально вероятный по текущим данным');
+        text = text.replace(/точно\s+(входить|покупать|продавать)/gi, 'входить только после подтверждения');
+        text = text.replace(/открывай\s+сделку/gi, 'рассматривать только после подтверждения');
+
+        return text;
+      }
+
+      function normalizeStrictAnswer(answer){
+        let text = normalizeSectionHeadings(answer);
+        text = normalizeConfidence(text);
+        return text.trim();
+      }
+
       function buildStrictAiPrompt(userQuestion, marketContext){
         return `
 Ты — AI-аналитик CRYPTO LAB. Ответ должен быть коротким, строгим и одинаковым по структуре.
 
 ВАЖНО:
-— Это не финансовая рекомендация.
-— Не пиши "точно входить" или "открывай сделку".
+— Это аналитическая информация, не финансовая рекомендация.
+— Не пиши "точно входить", "открывай сделку", "гарантированно" или "100%".
+— Уверенность никогда не может быть 100%.
+— Если решение WAIT, уверенность максимум 70%.
+— Если решение LONG или SHORT, уверенность максимум 85%.
 — Если данных недостаточно, решение должно быть WAIT.
 — Не выдумывай уровни, если их нет в контексте.
 — Используй только данные из контекста CRYPTO LAB и вопрос пользователя.
 — Пиши по-русски.
+— Не используй Markdown-нумерацию вида "1." или "2.".
+— Заголовки разделов пиши только через тире: "1 — Решение", "2 — Контекст рынка" и так далее.
 
 КОНТЕКСТ CRYPTO LAB:
 ${marketContext}
@@ -1384,45 +1268,45 @@ ${userQuestion}
 
 ОТВЕТЬ СТРОГО В ТАКОМ ФОРМАТЕ:
 
-1. Решение
+1 — Решение
 LONG / SHORT / WAIT: ...
 Уверенность: ...%
 
-2. Контекст рынка
+2 — Контекст рынка
 Актив: ...
 Таймфрейм: ...
 Текущая цена: ...
 Общее состояние: ...
 
-3. Зона входа
+3 — Зона входа
 Вход: ...
 Условие входа: ...
 
-4. Stop Loss
+4 — Stop Loss
 Stop Loss: ...
 Почему там: ...
 
-5. Take Profit
+5 — Take Profit
 TP1: ...
 TP2: ...
 TP3: ...
 
-6. Что подтверждает сценарий
+6 — Что подтверждает сценарий
 — ...
 — ...
 — ...
 
-7. Что отменяет сценарий
+7 — Что отменяет сценарий
 — ...
 — ...
 — ...
 
-8. Риск
+8 — Риск
 Риск/прибыль: ...
 Главный риск: ...
 Риск на сделку: не более заданного пользователем лимита.
 
-9. Итог
+9 — Итог
 Короткий вывод: ...
 Действие: входить только после подтверждения / ждать / не входить.
         `.trim();
@@ -1451,7 +1335,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит строгий торговый разбор…', 'loading');
+          setAiAnswer('AI готовит строгий торговый разбор v64…', 'loading');
         }
 
         try {
@@ -1474,8 +1358,10 @@ TP3: ...
             throw new Error(payload.error || 'AI временно недоступен. Попробуйте немного позже.');
           }
 
+          const normalizedAnswer = normalizeStrictAnswer(payload.answer);
+
           if (typeof setAiAnswer === 'function') {
-            setAiAnswer(payload.answer, 'ready');
+            setAiAnswer(normalizedAnswer, 'ready');
           }
 
           saveHistory({
@@ -1484,8 +1370,8 @@ TP3: ...
             symbol:meta.symbol,
             timeframe:meta.timeframe,
             question:userQuestion,
-            answer:payload.answer,
-            mode:'strict-v63'
+            answer:normalizedAnswer,
+            mode:'strict-v64'
           });
 
         } catch(error) {
@@ -1499,25 +1385,52 @@ TP3: ...
       }
 
       function bindStrictAi(){
+        ensureHistoryUI();
+        renderHistory();
+
         const button = document.getElementById('aiSend');
         if (button) button.onclick = askStrictAi;
 
-        const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReady) {
-          prompts.dataset.strictPromptsReady = '1';
-          prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай строгий AI-разбор по выбранной монете: решение LONG/SHORT/WAIT, уверенность, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария и итог.">Строгий разбор</button>
-          `);
+        const input = document.getElementById('aiQuestion');
+        if (input && !input.dataset.strictV64EnterBound) {
+          input.dataset.strictV64EnterBound = '1';
+          input.addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              askStrictAi();
+            }
+          }, true);
         }
 
-        renderHistory();
+        const prompts = document.getElementById('aiPrompts');
+        if (prompts && !prompts.dataset.strictPromptsReadyV64) {
+          prompts.dataset.strictPromptsReadyV64 = '1';
+          prompts.insertAdjacentHTML('beforeend', `
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай строгий AI-разбор по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, риск и итог.">Строгий разбор v64</button>
+          `);
+        }
       }
+
+      document.addEventListener('click', event => {
+        const clearBtn = event.target.closest('#clearAiHistoryBtn');
+        if (clearBtn) {
+          clearHistory();
+          return;
+        }
+
+        const openBtn = event.target.closest('[data-ai-history-id]');
+        if (!openBtn) return;
+
+        openHistoryItem(openBtn.dataset.aiHistoryId);
+      });
 
       bindStrictAi();
       setTimeout(bindStrictAi, 500);
       setTimeout(bindStrictAi, 1200);
     })();
   </script>
+
 
 </body>
 </html>
