@@ -338,7 +338,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v67</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v68</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -427,10 +427,99 @@
     const fmt=value=>{const n=Number(value);return Number.isFinite(n)?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Math.abs(n)<1?6:Math.abs(n)<10?4:2}).format(n):'—'};
     const compact=value=>{const n=Number(value);return Number.isFinite(n)?new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:2}).format(n):'—'};
     function buildAiMarketContext(){
-      const timeframe=$('#timeTabs .tab.active')?.dataset.time||'5M',coin=coins.find(item=>item.symbol===selectedSymbol),price=Number(currentChartPrice)||Number(coin?.price)||0,plan=latestTradePlans[timeframe],bestSignal=scannerAllResults.find(item=>item.quality==='A')||scannerAllResults[0],deposit=Math.max(0,+$('#deposit')?.value||0),risk=Math.min(2,Math.max(0,+$('#risk')?.value||0));
-      const lines=[`Выбранный актив: ${selectedSymbol}/USDT`, `Таймфрейм: ${timeframe}`, price?`Текущая цена Binance: ${price}`:'Текущая цена: ещё загружается', Number.isFinite(+coin?.change)?`Изменение ${selectedSymbol} за 24ч: ${(+coin.change).toFixed(2)}%`:'Изменение за 24ч: нет данных', `Риск в калькуляторе: депозит ${deposit||'не задан'} USDT, ${risk||'не задан'}% на сделку`];
-      if(plan)lines.push(`Сценарий CRYPTO LAB: ${plan.direction||'—'}, вход ${plan.entryLow??plan.entry??'—'}–${plan.entryHigh??plan.entry??'—'}, Stop ${plan.stop??'—'}, TP1 ${plan.tp1??'—'}`);
-      if(bestSignal)lines.push(`Лучший сигнал сканера: ${bestSignal.symbol}/USDT, ${bestSignal.direction}, ${bestSignal.timeframe}, класс ${bestSignal.quality||'—'}, сила ${bestSignal.qualityScore||bestSignal.strength||'—'}%`);
+      const timeframe=$('#timeTabs .tab.active')?.dataset.time||'5M',
+        coin=coins.find(item=>item.symbol===selectedSymbol),
+        candles=normalizeCandles(series[timeframe]||[],timeframe),
+        closes=candles.map(item=>item.close),
+        volumes=candles.map(item=>item.volume),
+        lastCandle=candles.at(-1),
+        price=Number(currentChartPrice)||Number(lastCandle?.close)||Number(coin?.price)||0,
+        deposit=Math.max(0,+$('#deposit')?.value||0),
+        riskPercent=Math.min(2,Math.max(0,+$('#risk')?.value||0)),
+        riskCash=deposit*riskPercent/100,
+        bestSignal=scannerAllResults.find(item=>item.quality==='A')||scannerAllResults[0];
+
+      let calculatedPlan=null;
+      try{
+        if(candles.length>=60) calculatedPlan=buildTradeScenario(candles,timeframe);
+      }catch(e){}
+      const plan=latestTradePlans[timeframe]||calculatedPlan;
+
+      const lastRsi=Number.isFinite(+plan?.rsi)?+plan.rsi:(closes.length?calculateRSI(closes,14).at(-1):NaN);
+      const ema20Value=Number.isFinite(+plan?.ema20)?+plan.ema20:(closes.length?ema(closes,20).at(-1):NaN);
+      const ema50Value=Number.isFinite(+plan?.ema50)?+plan.ema50:(closes.length?ema(closes,50).at(-1):NaN);
+      const ema200Value=Number.isFinite(+plan?.ema200)?+plan.ema200:(closes.length?ema(closes,200).at(-1):NaN);
+      const recent=candles.slice(-40);
+      const support=Number.isFinite(+plan?.support)?+plan.support:(recent.length?Math.min(...recent.map(item=>item.low)):NaN);
+      const resistance=Number.isFinite(+plan?.resistance)?+plan.resistance:(recent.length?Math.max(...recent.map(item=>item.high)):NaN);
+      const atrValue=Number.isFinite(+plan?.atr)?+plan.atr:(candles.length?calculateATR(candles,14).at(-1):NaN);
+      const avgVolumeSample=volumes.slice(-21,-1);
+      const avgVolume=avgVolumeSample.length?avgVolumeSample.reduce((sum,value)=>sum+value,0)/avgVolumeSample.length:NaN;
+      const volumeRatio=Number.isFinite(+plan?.volumeRatio)?+plan.volumeRatio:(lastCandle&&avgVolume?lastCandle.volume/avgVolume:NaN);
+      const momentum=Number.isFinite(+plan?.momentum)?+plan.momentum:(closes.length>10?(closes.at(-1)/closes.at(-11)-1)*100:NaN);
+      const atrPercent=Number.isFinite(+plan?.atrPercent)?+plan.atrPercent:(price&&atrValue?atrValue/price*100:NaN);
+      const activeDirection=plan?.direction||'WAIT';
+      const activeStrength=Number.isFinite(+plan?.strength)?+plan.strength:0;
+      const entryLow=Number.isFinite(+plan?.entryLow)?+plan.entryLow:NaN;
+      const entryHigh=Number.isFinite(+plan?.entryHigh)?+plan.entryHigh:NaN;
+      const entryMid=Number.isFinite(entryLow)&&Number.isFinite(entryHigh)?(entryLow+entryHigh)/2:NaN;
+      const stop=Number.isFinite(+plan?.stop)?+plan.stop:NaN;
+      const tp1=Number.isFinite(+plan?.tp1)?+plan.tp1:NaN;
+      const tp2=Number.isFinite(+plan?.tp2)?+plan.tp2:NaN;
+      const tp3=Number.isFinite(+plan?.tp3)?+plan.tp3:NaN;
+      const riskDistance=Number.isFinite(entryMid)&&Number.isFinite(stop)?Math.abs(entryMid-stop):NaN;
+      const rr1=Number.isFinite(entryMid)&&Number.isFinite(tp1)&&riskDistance?Math.abs(tp1-entryMid)/riskDistance:NaN;
+
+      const p=value=>Number.isFinite(+value)?axisPrice(+value):'нет данных';
+      const pct=value=>Number.isFinite(+value)?`${(+value).toFixed(2)}%`:'нет данных';
+
+      const lines=[
+        'AI context version: CRYPTO LAB 2.5 / v68',
+        `Выбранный актив: ${selectedSymbol}/USDT`,
+        `Таймфрейм: ${timeframe}`,
+        price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
+        Number.isFinite(+coin?.change)?`Изменение ${selectedSymbol} за 24ч: ${(+coin.change).toFixed(2)}%`:'Изменение за 24ч: нет данных',
+        Number.isFinite(+coin?.volume)?`Объём ${selectedSymbol}/USDT за 24ч: ${compact(+coin.volume)} USDT`:'Объём за 24ч: нет данных',
+        lastCandle?`Последняя свеча ${timeframe}: O ${p(lastCandle.open)} / H ${p(lastCandle.high)} / L ${p(lastCandle.low)} / C ${p(lastCandle.close)} / Volume ${compact(lastCandle.volume)}`:'Последняя свеча: нет данных',
+        `EMA 20: ${p(ema20Value)}`,
+        `EMA 50: ${p(ema50Value)}`,
+        `EMA 200: ${p(ema200Value)}`,
+        `RSI 14: ${Number.isFinite(+lastRsi)?(+lastRsi).toFixed(1):'нет данных'}`,
+        `Поддержка S: ${p(support)}`,
+        `Сопротивление R: ${p(resistance)}`,
+        `ATR 14: ${p(atrValue)} (${pct(atrPercent)})`,
+        `Объём к среднему: ${Number.isFinite(+volumeRatio)?(+volumeRatio).toFixed(2)+'x':'нет данных'}`,
+        `Импульс последних 10 свечей: ${pct(momentum)}`,
+        `Структура EMA: ${plan?.trend||'нет данных'}`,
+        `Текущий сценарий CRYPTO LAB: ${activeDirection}`,
+        `Сила сценария: ${activeStrength?activeStrength+'%':'нет данных'}`
+      ];
+
+      if(plan&&activeDirection==='WAIT'){
+        lines.push(`WAIT LONG-триггер: ${p(plan.longTrigger)}`);
+        lines.push(`WAIT SHORT-триггер: ${p(plan.shortTrigger)}`);
+      }
+
+      if(plan&&activeDirection!=='WAIT'){
+        lines.push(`Зона входа: ${p(entryLow)} – ${p(entryHigh)}`);
+        lines.push(`Средний вход: ${p(entryMid)}`);
+        lines.push(`Stop Loss: ${p(stop)}`);
+        lines.push(`TP1: ${p(tp1)}`);
+        lines.push(`TP2: ${p(tp2)}`);
+        lines.push(`TP3: ${p(tp3)}`);
+        lines.push(`Риск до Stop Loss: ${pct(plan.riskPercent)}`);
+        lines.push(`Оценка R:R до TP1: ${Number.isFinite(rr1)?'1:'+rr1.toFixed(2):'нет данных'}`);
+      }
+
+      lines.push(`Риск в калькуляторе: депозит ${deposit||'не задан'} USDT, риск ${riskPercent||'не задан'}%, сумма риска ${riskCash?riskCash.toFixed(2)+' USDT':'не задано'}`);
+
+      if(bestSignal){
+        lines.push(`Лучший сигнал сканера: ${bestSignal.symbol}/USDT, ${bestSignal.direction}, ${bestSignal.timeframe}, класс ${bestSignal.quality||'—'}, сила ${bestSignal.qualityScore||bestSignal.strength||'—'}%`);
+      }else{
+        lines.push('Лучший сигнал сканера: сканер ещё не запускался');
+      }
+
+      lines.push('Правило: это аналитика, не финансовая рекомендация; вход только после подтверждения свечой, объёмом и допустимым риском.');
       return lines.join('\n');
     }
     const escapeAiHtml=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -652,7 +741,7 @@
       let score=0;score+=close>ema20?1:-1;score+=ema20>ema50?1.5:-1.5;score+=ema50>ema200?1.25:-1.25;score+=rsi>=52&&rsi<=70?1:rsi<=48&&rsi>=30?-1:rsi>72?-.25:rsi<28?.25:0;score+=momentum>0?1:-1;if(volumeRatio>1.2)score+=momentum>=0?.75:-.75;
       const direction=score>=3?'LONG':score<=-3?'SHORT':'WAIT',trend=ema20>ema50&&ema50>ema200?'бычий':ema20<ema50&&ema50<ema200?'медвежий':'смешанный',atrPercent=atr/close*100,extension=atr?Math.abs(close-ema20)/atr:0,bullish=direction==='LONG';let strength;
       if(direction==='WAIT')strength=Math.min(58,Math.round(40+Math.abs(score)*4));else{const rsiQuality=bullish?(rsi>=52&&rsi<=66?7:rsi>=48&&rsi<=72?3:rsi>72?-8:-4):(rsi>=34&&rsi<=48?7:rsi>=28&&rsi<=52?3:rsi<28?-8:-4),volumeQuality=volumeRatio>=1.5?6:volumeRatio>=1.1?4:volumeRatio>=.8?1:volumeRatio<.6?-5:-2,trendAligned=bullish?(close>ema20&&ema20>ema50&&ema50>ema200):(close<ema20&&ema20<ema50&&ema50<ema200),trendQuality=trendAligned?7:2,momentumQuality=(bullish&&momentum>0)||(!bullish&&momentum<0)?4:-4,extensionQuality=extension<=1?3:extension<=1.6?0:extension<=2.2?-4:-8,volatilityQuality=atrPercent<=.15?-3:atrPercent>8?-5:atrPercent>5?-2:2;strength=Math.max(55,Math.min(89,Math.round(50+Math.max(0,Math.abs(score)-3)*5+rsiQuality+volumeQuality+trendQuality+momentumQuality+extensionQuality+volatilityQuality)))}
-      const reasons=[`EMA-тренд: <b>${trend}</b>`,`RSI 14: <b>${rsi.toFixed(1)}</b>`,`Объём: <b>${volumeRatio.toFixed(2)}× среднего</b>`,`ATR: <b>${atrPercent.toFixed(2)}%</b>`],metrics={volumeRatio,momentum,trend,extension,atrPercent};
+      const reasons=[`EMA-тренд: <b>${trend}</b>`,`RSI 14: <b>${rsi.toFixed(1)}</b>`,`Объём: <b>${volumeRatio.toFixed(2)}× среднего</b>`,`ATR: <b>${atrPercent.toFixed(2)}%</b>`],metrics={close,ema20,ema50,ema200,lastVolume:last.volume,averageVolume,volumeRatio,momentum,trend,extension,atrPercent};
       if(direction==='WAIT')return {timeframe,direction,strength,support,resistance,rsi,atr,longTrigger:resistance+atr*.15,shortTrigger:support-atr*.15,reasons,score,...metrics};
       const entryLow=direction==='LONG'?close-atr*.35:close-atr*.1,entryHigh=direction==='LONG'?close+atr*.1:close+atr*.35,entry=(entryLow+entryHigh)/2;
       const stopDistance=direction==='LONG'?Math.min(Math.max(atr*1.5,entry-support+atr*.15),atr*3):Math.min(Math.max(atr*1.5,resistance-entry+atr*.15),atr*3),stop=direction==='LONG'?entry-stopDistance:entry+stopDistance,risk=Math.abs(entry-stop),sign=direction==='LONG'?1:-1;
@@ -963,7 +1052,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v67 — strict AI format + guaranteed sections 8–11 */
+    /* CRYPTO LAB v68 — strict AI format + guaranteed sections 8–11 */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1417,7 +1506,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v67…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v68…', 'loading');
         }
 
         try {
@@ -1453,7 +1542,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v67'
+            mode:'strict-v68'
           });
 
         } catch(error) {
@@ -1489,7 +1578,7 @@ TP3: ...
         if (prompts && !prompts.dataset.strictPromptsReadyV67) {
           prompts.dataset.strictPromptsReadyV67 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v67 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v67</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v68 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v68</button>
           `);
         }
       }
