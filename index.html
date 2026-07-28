@@ -123,6 +123,32 @@
     .portfolio-insights{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}.portfolio-insight{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018)}.portfolio-insight span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.portfolio-insight b{display:block;margin-top:5px;font-size:14px}.allocation-list{display:grid;gap:7px;margin-top:11px}.allocation-row{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;font-size:10px}.allocation-row i{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.allocation-row i:after{content:'';display:block;width:var(--allocation);height:100%;background:var(--allocation-color);border-radius:inherit}.portfolio-warning{grid-column:1/-1;padding:10px 12px;border:1px solid rgba(247,199,93,.25);border-radius:11px;background:rgba(247,199,93,.06);color:#d8c99b;font-size:10px}.portfolio-target{margin-top:4px;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.025);color:var(--cyan);padding:4px 6px;font-size:9px;font-weight:800}@media(max-width:620px){.portfolio-insights{grid-template-columns:1fr}}
     /* CRYPTO LAB 2.0 — AI advisor */
     #aiAdvisor{scroll-margin-top:76px}.ai-advisor{margin-top:16px;padding:18px;border:1px solid rgba(69,230,208,.24);border-radius:16px;background:linear-gradient(135deg,rgba(29,58,86,.34),rgba(8,18,31,.96) 48%,rgba(69,230,208,.055));box-shadow:0 16px 36px rgba(0,0,0,.14)}.ai-advisor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.ai-advisor h3{margin:3px 0 0;font-size:21px}.ai-advisor-head p{max-width:430px;margin:0;color:var(--muted);font-size:11px;line-height:1.5;text-align:right}.ai-advisor-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:15px}.ai-advisor textarea{width:100%;min-height:80px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(4,10,18,.58);color:var(--text);font:inherit;font-size:13px;line-height:1.45;outline:none}.ai-advisor textarea:focus{border-color:rgba(69,230,208,.62);box-shadow:0 0 0 3px rgba(69,230,208,.09)}.ai-send{align-self:end;min-height:48px}.ai-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ai-prompt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:#b7c4d6;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.ai-prompt:hover{border-color:rgba(69,230,208,.5);color:var(--cyan)}.ai-answer{min-height:68px;margin-top:13px;padding:13px 14px;border:1px solid rgba(69,230,208,.15);border-radius:12px;background:rgba(3,10,17,.54);color:#dfe8f5;font-size:12px;line-height:1.58}.ai-answer h4{margin:0 0 7px;color:var(--cyan);font-size:13px}.ai-answer p{margin:0 0 9px}.ai-answer ul,.ai-answer ol{margin:0 0 11px;padding-left:19px}.ai-answer li{margin:3px 0}.ai-answer strong{color:#fff}.ai-answer[data-state="idle"]{color:var(--muted);white-space:pre-wrap}.ai-answer[data-state="error"]{border-color:rgba(255,102,125,.35);color:#ffc1cc;white-space:pre-wrap}.ai-disclaimer{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.ai-loading{display:inline-flex;align-items:center;gap:7px;color:var(--cyan)}.ai-loading:before{content:'';width:10px;height:10px;border:2px solid rgba(69,230,208,.25);border-top-color:var(--cyan);border-radius:50%;animation:aiSpin .75s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.ai-advisor-head{display:block}.ai-advisor-head p{text-align:left;margin-top:8px}.ai-advisor-form{grid-template-columns:1fr}.ai-send{width:100%}}
+
+    /* CRYPTO LAB v70 — AI Signal Card */
+    .ai-signal-card{margin-top:13px;padding:15px;border:1px solid rgba(247,199,93,.28);border-radius:15px;background:linear-gradient(135deg,rgba(247,199,93,.105),rgba(53,167,255,.055) 48%,rgba(3,10,17,.7));box-shadow:0 14px 34px rgba(0,0,0,.14)}
+    .ai-signal-card[hidden]{display:none}
+    .ai-signal-card-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
+    .ai-signal-kicker{display:block;color:var(--gold);font-size:9px;font-weight:950;letter-spacing:.14em}
+    .ai-signal-card-head strong{display:block;margin-top:4px;font-size:18px}
+    .ai-signal-decision{text-align:right}
+    .ai-signal-badge{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:7px 12px;border:1px solid rgba(247,199,93,.35);border-radius:999px;background:rgba(247,199,93,.12);color:var(--gold);font-size:12px;font-weight:950;letter-spacing:.08em}
+    .ai-signal-decision small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+    .ai-signal-card[data-direction="LONG"]{border-color:rgba(54,217,139,.32);background:linear-gradient(135deg,rgba(54,217,139,.11),rgba(53,167,255,.05) 48%,rgba(3,10,17,.7))}
+    .ai-signal-card[data-direction="LONG"] .ai-signal-badge{border-color:rgba(54,217,139,.42);background:rgba(54,217,139,.13);color:var(--green)}
+    .ai-signal-card[data-direction="SHORT"]{border-color:rgba(255,102,125,.32);background:linear-gradient(135deg,rgba(255,102,125,.105),rgba(53,167,255,.04) 48%,rgba(3,10,17,.7))}
+    .ai-signal-card[data-direction="SHORT"] .ai-signal-badge{border-color:rgba(255,102,125,.42);background:rgba(255,102,125,.12);color:var(--red)}
+    .ai-signal-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:8px;margin-top:13px}
+    .ai-signal-grid>div{min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:rgba(0,0,0,.17)}
+    .ai-signal-grid span{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+    .ai-signal-grid b{display:block;margin-top:5px;color:#fff;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+    .ai-signal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:11px}
+    .ai-signal-actions button{border-radius:10px;padding:9px 13px;font-size:10px;font-weight:900}
+    .ai-signal-secondary{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff}
+    .ai-signal-primary{border:0;background:linear-gradient(135deg,var(--gold),#e6a634);color:#09101b}
+    .ai-signal-primary:disabled{opacity:.38;cursor:not-allowed}
+    @media(max-width:700px){.ai-signal-card-head{align-items:flex-start}.ai-signal-grid{grid-template-columns:1fr 1fr}.ai-signal-actions{display:grid;grid-template-columns:1fr 1fr}.ai-signal-actions button{width:100%}}
+    @media(max-width:440px){.ai-signal-card-head{display:block}.ai-signal-decision{text-align:left;margin-top:10px}.ai-signal-grid{grid-template-columns:1fr}.ai-signal-actions{grid-template-columns:1fr}}
+
   </style>
 </head>
 <body>
@@ -175,6 +201,28 @@
           <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.5</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
           <div class="ai-advisor-form"><textarea id="aiQuestion" maxlength="4000" placeholder="Например: Что должно подтвердить LONG по BTC на текущем таймфрейме?"></textarea><button class="btn ai-send" id="aiSend" type="button">Спросить AI</button></div>
           <div class="ai-prompts" id="aiPrompts"><button class="ai-prompt" type="button" data-ai-prompt="Что подтверждает сценарий LONG по выбранной монете и таймфрейму?">Проверить LONG</button><button class="ai-prompt" type="button" data-ai-prompt="Какие риски и что отменит текущий сценарий?">Риски сценария</button><button class="ai-prompt" type="button" data-ai-prompt="Какой торговый план проверить на графике перед входом?">План перед входом</button></div>
+          <div class="ai-signal-card" id="aiSignalCard" data-direction="WAIT" hidden>
+            <div class="ai-signal-card-head">
+              <div>
+                <span class="ai-signal-kicker">AI SIGNAL CARD</span>
+                <strong id="aiSignalMarket">BTC / USDT · 5M</strong>
+              </div>
+              <div class="ai-signal-decision">
+                <span class="ai-signal-badge" id="aiSignalDirection">WAIT</span>
+                <small id="aiSignalConfidence">Уверенность —</small>
+              </div>
+            </div>
+            <div class="ai-signal-grid">
+              <div><span>Вход / условие</span><b id="aiSignalEntry">—</b></div>
+              <div><span>Stop Loss</span><b id="aiSignalStop">—</b></div>
+              <div><span>Take Profit 1</span><b id="aiSignalTp1">—</b></div>
+              <div><span>Риск</span><b id="aiSignalRisk">—</b></div>
+            </div>
+            <div class="ai-signal-actions">
+              <button class="ai-signal-secondary" id="aiSignalChartBtn" type="button">На график</button>
+              <button class="ai-signal-primary" id="aiSignalDemoBtn" type="button">В демо-журнал</button>
+            </div>
+          </div>
           <div class="ai-answer" id="aiAnswer" data-state="idle" aria-live="polite">Задайте вопрос — AI даст структуру анализа и напомнит, что обязательно проверить на графике.</div>
           <p class="ai-disclaimer">AI‑ответ — аналитическая информация, не финансовая рекомендация. Решение, размер позиции и Stop Loss всегда проверяйте самостоятельно.</p>
         </div>
@@ -338,7 +386,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v69</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v70</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -492,7 +540,7 @@
         : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.5 / v69',
+        'AI context version: CRYPTO LAB 2.5 / v70',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -1075,7 +1123,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v69 — strict AI format + guaranteed sections 8–11 */
+    /* CRYPTO LAB v70 — AI Signal Card + strict AI format */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1281,9 +1329,14 @@
         const input = document.getElementById('aiQuestion');
         if (input) input.value = item.question || '';
 
+        const normalizedAnswer = normalizeStrictAnswer(item.answer || 'Ответ не найден.');
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer(normalizeStrictAnswer(item.answer || 'Ответ не найден.'), 'ready');
+          setAiAnswer(normalizedAnswer, 'ready');
         }
+        renderAiSignalCard(normalizedAnswer, {
+          symbol:item.symbol || 'BTC',
+          timeframe:item.timeframe || '5M'
+        });
 
         document.getElementById('aiAdvisor')?.scrollIntoView({
           behavior:'smooth',
@@ -1433,6 +1486,125 @@
         return text.trim();
       }
 
+      function sectionBody(answer, number){
+        const text=String(answer||'');
+        const current=new RegExp(`^\\s*${number}\\s*[—-]\\s*[^\\n]+\\n?`,'mi');
+        const match=current.exec(text);
+        if(!match)return '';
+        const start=match.index+match[0].length;
+        const tail=text.slice(start);
+        const next=tail.search(/^\s*(?:1[01]|[1-9])\s*[—-]\s*.+$/mi);
+        return (next>=0?tail.slice(0,next):tail).trim();
+      }
+
+      function fieldFromSection(answer, number, labels){
+        const body=sectionBody(answer,number);
+        for(const label of labels){
+          const match=body.match(new RegExp(`^\\s*${escapeRegExp(label)}\\s*:\\s*(.+)$`,'mi'));
+          if(match&&match[1].trim())return match[1].trim();
+        }
+        return '';
+      }
+
+      function shortSignalValue(value, fallback='—'){
+        const text=String(value||'').replace(/\s+/g,' ').trim();
+        return text ? (text.length>105?text.slice(0,102)+'…':text) : fallback;
+      }
+
+      function numericValueFromText(value){
+        const match=String(value||'').match(/-?\d[\d\s.,]*/);
+        if(!match)return NaN;
+        const cleaned=match[0].replace(/\s/g,'').replace(',','.');
+        const number=Number(cleaned);
+        return Number.isFinite(number)?number:NaN;
+      }
+
+      function signalMetaFromAnswer(answer, fallbackMeta={}){
+        const decision=extractDecision(answer)||'WAIT';
+        const confidenceMatch=String(answer||'').match(/Уверенность\s*:\s*(\d{1,3})\s*%/i);
+        const confidence=confidenceMatch?Math.max(1,Math.min(100,+confidenceMatch[1])):null;
+        const entry=fieldFromSection(answer,3,['Вход','Зона входа']);
+        const stop=fieldFromSection(answer,4,['Stop Loss','Стоп-лосс']);
+        const tp1=fieldFromSection(answer,5,['TP1','Take Profit 1']);
+        const risk=fieldFromSection(answer,10,['Риск/прибыль','Риск на сделку','Главный риск']);
+        return {
+          direction:decision,
+          confidence,
+          symbol:fallbackMeta.symbol||(typeof selectedSymbol!=='undefined'?selectedSymbol:'BTC'),
+          timeframe:fallbackMeta.timeframe||(document.querySelector('#timeTabs .tab.active')?.dataset.time||'5M'),
+          entry:shortSignalValue(entry),
+          stop:shortSignalValue(stop),
+          tp1:shortSignalValue(tp1),
+          risk:shortSignalValue(risk)
+        };
+      }
+
+      function renderAiSignalCard(answer, fallbackMeta={}){
+        const card=document.getElementById('aiSignalCard');
+        if(!card)return;
+        const data=signalMetaFromAnswer(answer,fallbackMeta);
+        card.hidden=false;
+        card.dataset.direction=data.direction;
+        card.dataset.symbol=data.symbol;
+        card.dataset.timeframe=data.timeframe;
+        card.dataset.answer=String(answer||'');
+        document.getElementById('aiSignalMarket').textContent=`${data.symbol} / USDT · ${data.timeframe}`;
+        document.getElementById('aiSignalDirection').textContent=data.direction;
+        document.getElementById('aiSignalConfidence').textContent=data.confidence?`Уверенность ${data.confidence}%`:'Уверенность —';
+        document.getElementById('aiSignalEntry').textContent=data.entry;
+        document.getElementById('aiSignalStop').textContent=data.stop;
+        document.getElementById('aiSignalTp1').textContent=data.tp1;
+        document.getElementById('aiSignalRisk').textContent=data.risk;
+        const demoBtn=document.getElementById('aiSignalDemoBtn');
+        const plan=typeof latestTradePlans!=='undefined'?latestTradePlans[data.timeframe]:null;
+        const canUsePlan=data.direction!=='WAIT'&&plan&&plan.direction===data.direction&&Number.isFinite(+plan.entryLow)&&Number.isFinite(+plan.entryHigh)&&Number.isFinite(+plan.stop)&&Number.isFinite(+plan.tp1);
+        demoBtn.disabled=!canUsePlan;
+        demoBtn.title=canUsePlan?'Перенести текущий подтверждённый план в форму демо-журнала':'Для демо-журнала нужен текущий подтверждённый LONG/SHORT-план';
+      }
+
+      function hideAiSignalCard(){
+        const card=document.getElementById('aiSignalCard');
+        if(card)card.hidden=true;
+      }
+
+      function openSignalOnChart(){
+        document.getElementById('analytics')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+
+      function moveSignalToDemo(){
+        const card=document.getElementById('aiSignalCard');
+        if(!card)return;
+        const symbol=card.dataset.symbol||'BTC';
+        const timeframe=card.dataset.timeframe||'5M';
+        const direction=card.dataset.direction||'WAIT';
+        const plan=typeof latestTradePlans!=='undefined'?latestTradePlans[timeframe]:null;
+        if(direction==='WAIT'||!plan||plan.direction!==direction)return typeof toast==='function'&&toast('Для демо-журнала нужен подтверждённый LONG или SHORT');
+        const coinSelect=document.getElementById('demoCoin');
+        if(coinSelect&&!Array.from(coinSelect.options).some(option=>option.value===symbol)){
+          coinSelect.insertAdjacentHTML('afterbegin',`<option value="${safeText(symbol)}">${safeText(symbol)}</option>`);
+        }
+        if(coinSelect)coinSelect.value=symbol;
+        const frameSelect=document.getElementById('demoFrame');
+        if(frameSelect&&!Array.from(frameSelect.options).some(option=>option.value===timeframe)){
+          frameSelect.insertAdjacentHTML('afterbegin',`<option value="${safeText(timeframe)}">${safeText(timeframe)}</option>`);
+        }
+        if(frameSelect)frameSelect.value=timeframe;
+        const directionSelect=document.getElementById('demoDirection');
+        if(directionSelect)directionSelect.value=direction;
+        const entry=(+plan.entryLow + +plan.entryHigh)/2;
+        const entryInput=document.getElementById('demoEntry');
+        const stopInput=document.getElementById('demoStop');
+        const targetInput=document.getElementById('demoTarget');
+        const strengthInput=document.getElementById('demoStrength');
+        if(entryInput)entryInput.value=Number(entry.toPrecision(10));
+        if(stopInput)stopInput.value=Number((+plan.stop).toPrecision(10));
+        if(targetInput)targetInput.value=Number((+plan.tp1).toPrecision(10));
+        if(strengthInput)strengthInput.value=Math.max(85,Math.min(100,+plan.strength||85));
+        if(typeof renderDemoRiskPreview==='function')renderDemoRiskPreview();
+        document.getElementById('demoJournal')?.scrollIntoView({behavior:'smooth',block:'start'});
+        if(typeof toast==='function')toast(`${symbol} ${timeframe}: план перенесён в демо-форму`);
+      }
+
       function buildStrictAiPrompt(userQuestion, marketContext){
         return `
 Ты — AI-аналитик CRYPTO LAB. Отвечай коротко, строго и одинаково по структуре.
@@ -1538,9 +1710,10 @@ TP3: ...
 
         button.disabled = true;
         button.textContent = 'AI думает…';
+        hideAiSignalCard();
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v69…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v70…', 'loading');
         }
 
         try {
@@ -1568,6 +1741,7 @@ TP3: ...
           if (typeof setAiAnswer === 'function') {
             setAiAnswer(normalizedAnswer, 'ready');
           }
+          renderAiSignalCard(normalizedAnswer, meta);
 
           saveHistory({
             id:String(Date.now()),
@@ -1576,7 +1750,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v69'
+            mode:'strict-v70'
           });
 
         } catch(error) {
@@ -1596,9 +1770,21 @@ TP3: ...
         const button = document.getElementById('aiSend');
         if (button) button.onclick = askStrictAi;
 
+        const chartButton = document.getElementById('aiSignalChartBtn');
+        if (chartButton && !chartButton.dataset.boundV70) {
+          chartButton.dataset.boundV70 = '1';
+          chartButton.addEventListener('click', openSignalOnChart);
+        }
+
+        const demoButton = document.getElementById('aiSignalDemoBtn');
+        if (demoButton && !demoButton.dataset.boundV70) {
+          demoButton.dataset.boundV70 = '1';
+          demoButton.addEventListener('click', moveSignalToDemo);
+        }
+
         const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.strictV67EnterBound) {
-          input.dataset.strictV67EnterBound = '1';
+        if (input && !input.dataset.strictV70EnterBound) {
+          input.dataset.strictV70EnterBound = '1';
           input.addEventListener('keydown', event => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
               event.preventDefault();
@@ -1609,10 +1795,10 @@ TP3: ...
         }
 
         const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReadyV67) {
-          prompts.dataset.strictPromptsReadyV67 = '1';
+        if (prompts && !prompts.dataset.strictPromptsReadyV70) {
+          prompts.dataset.strictPromptsReadyV70 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v69 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v69</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v70 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v70</button>
           `);
         }
       }
