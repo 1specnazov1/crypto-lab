@@ -338,7 +338,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.4 / v65</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v67</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -963,7 +963,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v66 — compact strict AI format + guaranteed ending */
+    /* CRYPTO LAB v67 — strict AI format + guaranteed sections 8–11 */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -980,6 +980,7 @@
         'Риск',
         'Итог'
       ];
+      const REQUIRED_SECTION_NUMBERS = [8,9,10,11];
 
       function safeText(value){
         return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -1189,16 +1190,22 @@
         };
       }
 
+      function escapeRegExp(value){
+        return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
       function normalizeSectionHeadings(answer){
         let text = String(answer || '').replace(/\r\n/g, '\n');
 
         SECTION_TITLES.forEach((title, index) => {
           const number = index + 1;
-          const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const escaped = escapeRegExp(title);
           const patterns = [
             new RegExp(`^\\s*#{1,4}\\s*${number}[\\.)]\\s*${escaped}\\s*$`, 'gmi'),
             new RegExp(`^\\s*${number}[\\.)]\\s*${escaped}\\s*$`, 'gmi'),
-            new RegExp(`^\\s*Раздел\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'gmi')
+            new RegExp(`^\\s*Раздел\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'gmi'),
+            new RegExp(`^\\s*#{1,4}\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'gmi'),
+            new RegExp(`^\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'gmi')
           ];
 
           patterns.forEach(pattern => {
@@ -1239,37 +1246,71 @@
         return text;
       }
 
-      function ensureRequiredEnding(answer){
+      function requiredSectionBlock(number){
+        const title = SECTION_TITLES[number - 1];
+        const blocks = {
+          8: `${number} — ${title}\n— Цена: нет полного подтверждения в контексте.\n— Свеча + объём: ждать закрытую свечу и подтверждение объёмом.\n— EMA/RSI: проверить вручную перед входом.\n— Риск/прибыль и отмена: вход только при понятном Stop Loss.\nВывод LONG: ждать.`,
+          9: `${number} — ${title}\n— Цена: нет полного подтверждения в контексте.\n— Свеча + объём: ждать закрытую свечу и подтверждение объёмом.\n— EMA/RSI: проверить вручную перед входом.\n— Риск/прибыль и отмена: вход только при понятном Stop Loss.\nВывод SHORT: ждать.`,
+          10: `${number} — ${title}\nРиск/прибыль: нет данных в контексте.\nГлавный риск: вход без подтверждения уровня, объёма и Stop Loss.\nРиск на сделку: не более заданного пользователем лимита.`,
+          11: `${number} — ${title}\nКороткий вывод: если нет подтверждённого входа, основной сценарий — ждать.\nДействие: ждать / не входить без подтверждения.`
+        };
+        return blocks[number] || `${number} — ${title}\nНет данных в контексте.`;
+      }
+
+      function hasSection(text, number){
+        const title = SECTION_TITLES[number - 1];
+        const escaped = escapeRegExp(title);
+        return new RegExp(`^\\s*${number}\\s*[—-]\\s*${escaped}\\s*$`, 'mi').test(String(text || ''));
+      }
+
+      function sectionHeadingRegex(){
+        return /^\s*(1[01]|[1-9])\s*[—-]\s*.+$/gmi;
+      }
+
+      function findSectionHeadings(text){
+        const headings = [];
+        const regex = sectionHeadingRegex();
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          headings.push({
+            number:Number(match[1]),
+            index:match.index
+          });
+        }
+        return headings.sort((a,b) => a.index - b.index);
+      }
+
+      function insertMissingSection(text, number){
+        const block = requiredSectionBlock(number);
+        const headings = findSectionHeadings(text);
+        const next = headings.find(item => item.number > number);
+
+        if (next) {
+          const before = text.slice(0, next.index).trimEnd();
+          const after = text.slice(next.index).trimStart();
+          return `${before}\n\n${block}\n\n${after}`.trim();
+        }
+
+        return `${String(text || '').trim()}\n\n${block}`.trim();
+      }
+
+      function ensureRequiredSections(answer){
         let text = String(answer || '').trim();
-
-        if (!/^\s*10\s*[—-]\s*Риск\s*$/gmi.test(text)) {
-          text += `
-
-10 — Риск
-Риск/прибыль: нет данных в контексте.
-Главный риск: вход без подтверждения уровня, объёма и Stop Loss.
-Риск на сделку: не более заданного пользователем лимита.`;
-        }
-
-        if (!/^\s*11\s*[—-]\s*Итог\s*$/gmi.test(text)) {
-          text += `
-
-11 — Итог
-Короткий вывод: если нет подтверждённого входа, основной сценарий — ждать.
-Действие: ждать / не входить без подтверждения.`;
-        }
-
+        REQUIRED_SECTION_NUMBERS.forEach(number => {
+          if (!hasSection(text, number)) {
+            text = insertMissingSection(text, number);
+          }
+        });
         return text;
       }
 
       function normalizeStrictAnswer(answer){
         let text = normalizeSectionHeadings(answer);
         text = normalizeConfidence(text);
-        text = ensureRequiredEnding(text);
+        text = ensureRequiredSections(text);
         return text.trim();
       }
 
-      
       function buildStrictAiPrompt(userQuestion, marketContext){
         return `
 Ты — AI-аналитик CRYPTO LAB. Отвечай коротко, строго и одинаково по структуре.
@@ -1286,7 +1327,8 @@
 — Заголовки только так: "1 — Решение".
 — Ответ должен быть компактным: 1–2 строки в каждом обычном разделе.
 — Чек-листы LONG и SHORT: ровно 4 коротких пункта каждый.
-— Обязательно закончи ответ разделами "10 — Риск" и "11 — Итог".
+— Обязательно включи разделы "8 — Чек-лист LONG", "9 — Чек-лист SHORT", "10 — Риск" и "11 — Итог".
+— Сайт дополнительно проверит эти 4 раздела и вставит отсутствующие блоки автоматически.
 
 КОНТЕКСТ CRYPTO LAB:
 ${marketContext}
@@ -1375,7 +1417,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v66…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v67…', 'loading');
         }
 
         try {
@@ -1411,7 +1453,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v66'
+            mode:'strict-v67'
           });
 
         } catch(error) {
@@ -1432,8 +1474,8 @@ TP3: ...
         if (button) button.onclick = askStrictAi;
 
         const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.strictV66EnterBound) {
-          input.dataset.strictV66EnterBound = '1';
+        if (input && !input.dataset.strictV67EnterBound) {
+          input.dataset.strictV67EnterBound = '1';
           input.addEventListener('keydown', event => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
               event.preventDefault();
@@ -1444,10 +1486,10 @@ TP3: ...
         }
 
         const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReadyV66) {
-          prompts.dataset.strictPromptsReadyV66 = '1';
+        if (prompts && !prompts.dataset.strictPromptsReadyV67) {
+          prompts.dataset.strictPromptsReadyV67 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v66 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, короткий чек-лист LONG, короткий чек-лист SHORT, риск и итог.">Строгий разбор v66</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v67 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v67</button>
           `);
         }
       }
