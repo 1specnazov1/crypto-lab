@@ -124,7 +124,7 @@
     /* CRYPTO LAB 2.0 — AI advisor */
     #aiAdvisor{scroll-margin-top:76px}.ai-advisor{margin-top:16px;padding:18px;border:1px solid rgba(69,230,208,.24);border-radius:16px;background:linear-gradient(135deg,rgba(29,58,86,.34),rgba(8,18,31,.96) 48%,rgba(69,230,208,.055));box-shadow:0 16px 36px rgba(0,0,0,.14)}.ai-advisor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.ai-advisor h3{margin:3px 0 0;font-size:21px}.ai-advisor-head p{max-width:430px;margin:0;color:var(--muted);font-size:11px;line-height:1.5;text-align:right}.ai-advisor-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:15px}.ai-advisor textarea{width:100%;min-height:80px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(4,10,18,.58);color:var(--text);font:inherit;font-size:13px;line-height:1.45;outline:none}.ai-advisor textarea:focus{border-color:rgba(69,230,208,.62);box-shadow:0 0 0 3px rgba(69,230,208,.09)}.ai-send{align-self:end;min-height:48px}.ai-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ai-prompt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:#b7c4d6;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.ai-prompt:hover{border-color:rgba(69,230,208,.5);color:var(--cyan)}.ai-answer{min-height:68px;margin-top:13px;padding:13px 14px;border:1px solid rgba(69,230,208,.15);border-radius:12px;background:rgba(3,10,17,.54);color:#dfe8f5;font-size:12px;line-height:1.58}.ai-answer h4{margin:0 0 7px;color:var(--cyan);font-size:13px}.ai-answer p{margin:0 0 9px}.ai-answer ul,.ai-answer ol{margin:0 0 11px;padding-left:19px}.ai-answer li{margin:3px 0}.ai-answer strong{color:#fff}.ai-answer[data-state="idle"]{color:var(--muted);white-space:pre-wrap}.ai-answer[data-state="error"]{border-color:rgba(255,102,125,.35);color:#ffc1cc;white-space:pre-wrap}.ai-disclaimer{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.ai-loading{display:inline-flex;align-items:center;gap:7px;color:var(--cyan)}.ai-loading:before{content:'';width:10px;height:10px;border:2px solid rgba(69,230,208,.25);border-top-color:var(--cyan);border-radius:50%;animation:aiSpin .75s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.ai-advisor-head{display:block}.ai-advisor-head p{text-align:left;margin-top:8px}.ai-advisor-form{grid-template-columns:1fr}.ai-send{width:100%}}
 
-    /* CRYPTO LAB v74 — active AI Signal Card actions */
+    /* CRYPTO LAB v75 — active AI Signal Card actions */
     .ai-signal-card{margin-top:13px;padding:15px;border:1px solid rgba(247,199,93,.28);border-radius:15px;background:linear-gradient(135deg,rgba(247,199,93,.105),rgba(53,167,255,.055) 48%,rgba(3,10,17,.7));box-shadow:0 14px 34px rgba(0,0,0,.14)}
     .ai-signal-card[hidden]{display:none}
     .ai-signal-card-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
@@ -390,7 +390,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v74</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v75</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -544,7 +544,7 @@
         : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.5 / v74',
+        'AI context version: CRYPTO LAB 2.5 / v75',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -1128,7 +1128,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v74 — Telegram lifecycle tracking + strict AI format */
+    /* CRYPTO LAB v75 — Telegram lifecycle tracking + strict AI format */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1661,7 +1661,7 @@
           target:+plan.tp1,
           strength:+plan.strength,
           quality:'A',
-          source:'AI Signal Card v74',
+          source:'AI Signal Card v75',
           status:'OPEN',
           resultR:null
         });
@@ -1796,7 +1796,7 @@
           rememberTelegramSignal(payload);
           const currentPlan=typeof latestTradePlans!=='undefined'?latestTradePlans[payload.timeframe]:null;
           if(currentPlan&&currentPlan.direction===payload.direction){
-            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v74');
+            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v75');
           }
           if(typeof toast==='function')toast(`${payload.symbol} ${payload.timeframe}: отправлено в Telegram`);
         }catch(error){
@@ -1845,7 +1845,7 @@
         const enabled=telegramAutoEnabled();
         button.classList.toggle('active',enabled);
         button.textContent=enabled?'Telegram AUTO: включен':'Telegram AUTO: выключен';
-        button.title=enabled?'Класс A отправляется автоматически; сайт контролирует вход, TP1 и Stop Loss, пока вкладка открыта':'Нажмите, чтобы включить Telegram AUTO и контроль входа/TP/Stop';
+        button.title=enabled?'Класс A отправляется автоматически; сайт контролирует вход, TP1, TP2, TP3 и Stop Loss, пока вкладка открыта':'Нажмите, чтобы включить Telegram AUTO и контроль полного жизненного цикла сигнала';
       }
 
       function loadTelegramAutoHistory(){
@@ -1925,7 +1925,7 @@
         if(required.some(value=>!Number.isFinite(+value)))return false;
         const fingerprint=trackedSignalFingerprint(plan,payload);
         const items=loadTrackedTelegramSignals();
-        const existing=items.find(item=>item.fingerprint===fingerprint&&['WAITING_ENTRY','ACTIVE'].includes(item.status));
+        const existing=items.find(item=>item.fingerprint===fingerprint&&['WAITING_ENTRY','ACTIVE','ACTIVE_TP1','ACTIVE_TP2'].includes(item.status));
         if(existing)return false;
         const now=new Date().toISOString();
         items.unshift({
@@ -1947,7 +1947,9 @@
           status:'WAITING_ENTRY',
           lastPrice:null,
           entrySent:false,
-          tpSent:false,
+          tp1Sent:false,
+          tp2Sent:false,
+          tp3Sent:false,
           stopSent:false,
           url:`${location.origin}${location.pathname}#marketScanner`
         });
@@ -1961,19 +1963,26 @@
 
       function lifecycleTelegramPayload(item,event,price){
         const market=`${item.symbol}/USDT · ${item.timeframe} · ${item.direction}`;
-        const levels=`Зона входа: ${lifecyclePrice(item.entryLow)} – ${lifecyclePrice(item.entryHigh)}\nStop Loss: ${lifecyclePrice(item.stop)}\nTP1: ${lifecyclePrice(item.tp1)}`;
+        const levels=`Зона входа: ${lifecyclePrice(item.entryLow)} – ${lifecyclePrice(item.entryHigh)}\nStop Loss: ${lifecyclePrice(item.stop)}\nTP1: ${lifecyclePrice(item.tp1)}\nTP2: ${lifecyclePrice(item.tp2)}\nTP3: ${lifecyclePrice(item.tp3)}`;
+        const risk=Math.abs((+item.entry||0)-(+item.stop||0));
+        const targetR=target=>risk?Math.abs((+target||0)-(+item.entry||0))/risk:0;
         let title='',details='';
         if(event==='ENTRY'){
           title='🎯 CRYPTO LAB · ВХОД ДОСТИГНУТ';
-          details=`Цена Binance вошла в расчётную зону.\nТекущая цена: ${lifecyclePrice(price)}\n\n${levels}\n\nКонтроль TP1 и Stop Loss включён.`;
+          details=`Цена Binance вошла в расчётную зону.\nТекущая цена: ${lifecyclePrice(price)}\n\n${levels}\n\nКонтроль TP1, TP2, TP3 и Stop Loss включён.`;
         }else if(event==='TP1'){
           title='✅ CRYPTO LAB · TP1 ДОСТИГНУТ';
-          const risk=Math.abs((+item.entry||0)-(+item.stop||0));
-          const result=risk?Math.abs((+item.tp1||0)-(+item.entry||0))/risk:1;
-          details=`Текущая цена: ${lifecyclePrice(price)}\nTP1: ${lifecyclePrice(item.tp1)}\nРезультат: примерно +${result.toFixed(2)}R\n\nСигнал закрыт по первой цели.`;
+          details=`Текущая цена: ${lifecyclePrice(price)}\nTP1: ${lifecyclePrice(item.tp1)}\nРезультат цели: примерно +${targetR(item.tp1).toFixed(2)}R\n\nСигнал остаётся активным: контроль TP2, TP3 и Stop Loss продолжается.`;
+        }else if(event==='TP2'){
+          title='✅ CRYPTO LAB · TP2 ДОСТИГНУТ';
+          details=`Текущая цена: ${lifecyclePrice(price)}\nTP2: ${lifecyclePrice(item.tp2)}\nРезультат цели: примерно +${targetR(item.tp2).toFixed(2)}R\n\nСигнал остаётся активным: контроль TP3 и Stop Loss продолжается.`;
+        }else if(event==='TP3'){
+          title='🏆 CRYPTO LAB · TP3 ДОСТИГНУТ';
+          details=`Текущая цена: ${lifecyclePrice(price)}\nTP3: ${lifecyclePrice(item.tp3)}\nРезультат цели: примерно +${targetR(item.tp3).toFixed(2)}R\n\nВсе три цели достигнуты. Сигнал завершён.`;
         }else{
           title='🛑 CRYPTO LAB · STOP LOSS';
-          details=`Текущая цена: ${lifecyclePrice(price)}\nStop Loss: ${lifecyclePrice(item.stop)}\nРезультат: −1R\n\nСигнал закрыт по уровню отмены.`;
+          const progress=item.tp2Sent?'после достижения TP2':item.tp1Sent?'после достижения TP1':'до достижения целей';
+          details=`Текущая цена: ${lifecyclePrice(price)}\nStop Loss: ${lifecyclePrice(item.stop)}\nStop сработал ${progress}.\n\nСигнал завершён по уровню отмены.`;
         }
         return {
           text:`${title}\n\n${market}\nСила: ${Number.isFinite(+item.strength)?Math.round(+item.strength)+'%':'—'}\n\n${details}\n\n⚠️ Аналитическая информация, не финансовая рекомендация.`,
@@ -1990,11 +1999,25 @@
           item.entryPrice=price;
           item.status='ACTIVE';
         }else if(event==='TP1'){
-          item.tpSent=true;
+          item.tp1Sent=true;
+          item.tp1HitAt=now;
+          item.tp1Price=price;
+          item.status='ACTIVE_TP1';
+        }else if(event==='TP2'){
+          item.tp1Sent=true;
+          item.tp2Sent=true;
+          item.tp2HitAt=now;
+          item.tp2Price=price;
+          item.status='ACTIVE_TP2';
+        }else if(event==='TP3'){
+          item.tp1Sent=true;
+          item.tp2Sent=true;
+          item.tp3Sent=true;
+          item.tp3HitAt=now;
           item.closedAt=now;
           item.closePrice=price;
-          item.closeType='TP1';
-          item.status='CLOSED_TP1';
+          item.closeType='TP3';
+          item.status='CLOSED_TP3';
         }else{
           item.stopSent=true;
           item.closedAt=now;
@@ -2006,9 +2029,9 @@
 
       let telegramLifecycleBusy=false;
       async function checkTrackedTelegramSignals(){
-        if(telegramLifecycleBusy||!telegramAutoEnabled())return;
+        if(telegramLifecycleBusy)return;
         const items=loadTrackedTelegramSignals();
-        const active=items.filter(item=>['WAITING_ENTRY','ACTIVE'].includes(item.status));
+        const active=items.filter(item=>['WAITING_ENTRY','ACTIVE','ACTIVE_TP1','ACTIVE_TP2'].includes(item.status));
         if(!active.length)return;
         telegramLifecycleBusy=true;
         try{
@@ -2040,17 +2063,23 @@
 
             const isLong=item.direction==='LONG';
             const stopHit=isLong?price<=+item.stop:price>=+item.stop;
-            const tpHit=isLong?price>=+item.tp1:price<=+item.tp1;
+            const targetHit=target=>Number.isFinite(+target)&&(isLong?price>=+target:price<=+target);
             if(stopHit&&!item.stopSent){
               try{
                 await sendTrackedLifecycleEvent(item,'STOP',price);
                 if(typeof toast==='function')toast(`${item.symbol}: Telegram — Stop Loss`);
               }catch(error){console.warn('Telegram STOP:',error)}
-            }else if(tpHit&&!item.tpSent){
+              continue;
+            }
+            const reached=[];
+            if(!item.tp1Sent&&targetHit(item.tp1))reached.push('TP1');
+            if(!item.tp2Sent&&targetHit(item.tp2))reached.push('TP2');
+            if(!item.tp3Sent&&targetHit(item.tp3))reached.push('TP3');
+            for(const event of reached){
               try{
-                await sendTrackedLifecycleEvent(item,'TP1',price);
-                if(typeof toast==='function')toast(`${item.symbol}: Telegram — TP1 достигнут`);
-              }catch(error){console.warn('Telegram TP1:',error)}
+                await sendTrackedLifecycleEvent(item,event,price);
+                if(typeof toast==='function')toast(`${item.symbol}: Telegram — ${event} достигнут`);
+              }catch(error){console.warn(`Telegram ${event}:`,error);break}
             }
           }
           if(changed)saveTrackedTelegramSignals(items);
@@ -2062,8 +2091,8 @@
       }
 
       function startTelegramLifecycleMonitor(){
-        if(window.__cryptoLabTelegramLifecycleV74)return;
-        window.__cryptoLabTelegramLifecycleV74=true;
+        if(window.__cryptoLabTelegramLifecycleV75)return;
+        window.__cryptoLabTelegramLifecycleV75=true;
         setTimeout(checkTrackedTelegramSignals,2500);
         setInterval(checkTrackedTelegramSignals,TELEGRAM_TRACK_CHECK_INTERVAL_MS);
       }
@@ -2085,13 +2114,13 @@
             try{
               await postTelegramPayload(item.payload);
               rememberAutoTelegram(item.payload);
-              registerTrackedTelegramSignal(item.plan,item.payload,'Scanner class A v74');
+              registerTrackedTelegramSignal(item.plan,item.payload,'Scanner class A v75');
               sent++;
             }catch(error){
               console.warn('Telegram AUTO:',error);
             }
           }
-          if(sent&&typeof toast==='function')toast(`Telegram AUTO: отправлено сигналов ${sent} · контроль входа включён`);
+          if(sent&&typeof toast==='function')toast(`Telegram AUTO: отправлено сигналов ${sent} · контроль входа и TP1–TP3 включён`);
           if(sent)setTimeout(checkTrackedTelegramSignals,1200);
         }finally{
           telegramAutoSending=false;
@@ -2215,7 +2244,7 @@ TP3: ...
         hideAiSignalCard();
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v74…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v75…', 'loading');
         }
 
         try {
@@ -2252,7 +2281,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v74'
+            mode:'strict-v75'
           });
 
         } catch(error) {
@@ -2314,7 +2343,7 @@ TP3: ...
         if (prompts && !prompts.dataset.strictPromptsReadyV74) {
           prompts.dataset.strictPromptsReadyV74 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v74 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v74</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v75 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v75</button>
           `);
         }
       }
