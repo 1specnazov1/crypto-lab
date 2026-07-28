@@ -172,7 +172,7 @@
     <section class="section" id="aiAdvisor">
       <div class="wrap">
         <div class="card ai-advisor">
-          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.4</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
+          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.5</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
           <div class="ai-advisor-form"><textarea id="aiQuestion" maxlength="4000" placeholder="Например: Что должно подтвердить LONG по BTC на текущем таймфрейме?"></textarea><button class="btn ai-send" id="aiSend" type="button">Спросить AI</button></div>
           <div class="ai-prompts" id="aiPrompts"><button class="ai-prompt" type="button" data-ai-prompt="Что подтверждает сценарий LONG по выбранной монете и таймфрейму?">Проверить LONG</button><button class="ai-prompt" type="button" data-ai-prompt="Какие риски и что отменит текущий сценарий?">Риски сценария</button><button class="ai-prompt" type="button" data-ai-prompt="Какой торговый план проверить на графике перед входом?">План перед входом</button></div>
           <div class="ai-answer" id="aiAnswer" data-state="idle" aria-live="polite">Задайте вопрос — AI даст структуру анализа и напомнит, что обязательно проверить на графике.</div>
@@ -963,7 +963,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v65 — strict AI format + LONG/SHORT checklist */
+    /* CRYPTO LAB v66 — compact strict AI format + guaranteed ending */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1239,31 +1239,54 @@
         return text;
       }
 
+      function ensureRequiredEnding(answer){
+        let text = String(answer || '').trim();
+
+        if (!/^\s*10\s*[—-]\s*Риск\s*$/gmi.test(text)) {
+          text += `
+
+10 — Риск
+Риск/прибыль: нет данных в контексте.
+Главный риск: вход без подтверждения уровня, объёма и Stop Loss.
+Риск на сделку: не более заданного пользователем лимита.`;
+        }
+
+        if (!/^\s*11\s*[—-]\s*Итог\s*$/gmi.test(text)) {
+          text += `
+
+11 — Итог
+Короткий вывод: если нет подтверждённого входа, основной сценарий — ждать.
+Действие: ждать / не входить без подтверждения.`;
+        }
+
+        return text;
+      }
+
       function normalizeStrictAnswer(answer){
         let text = normalizeSectionHeadings(answer);
         text = normalizeConfidence(text);
+        text = ensureRequiredEnding(text);
         return text.trim();
       }
 
+      
       function buildStrictAiPrompt(userQuestion, marketContext){
         return `
-Ты — AI-аналитик CRYPTO LAB. Ответ должен быть коротким, строгим и одинаковым по структуре.
+Ты — AI-аналитик CRYPTO LAB. Отвечай коротко, строго и одинаково по структуре.
 
-ВАЖНО:
+ГЛАВНЫЕ ПРАВИЛА:
 — Это аналитическая информация, не финансовая рекомендация.
-— Не пиши "точно входить", "открывай сделку", "гарантированно" или "100%".
-— Уверенность никогда не может быть 100%.
-— Если решение WAIT, уверенность максимум 70%.
-— Если решение LONG или SHORT, уверенность максимум 85%.
-— Если данных недостаточно, решение должно быть WAIT.
-— Не выдумывай уровни, если их нет в контексте.
-— Используй только данные из контекста CRYPTO LAB и вопрос пользователя.
+— Не пиши "100%", "точно входить", "открывай сделку" или "гарантированно".
+— WAIT: уверенность максимум 70%.
+— LONG/SHORT: уверенность максимум 85%.
+— Если данных мало — решение WAIT.
+— Не выдумывай уровни. Если уровня нет, пиши: "нет данных в контексте".
 — Пиши по-русски.
-— Не используй Markdown-нумерацию вида "1." или "2.".
-— Заголовки разделов пиши только через тире: "1 — Решение", "2 — Контекст рынка" и так далее.
-— Даже если итог WAIT, обязательно заполни чек-листы LONG и SHORT: что именно должно появиться на графике, чтобы сценарий стал рабочим.
-— В чек-листах пиши конкретные проверяемые условия: цена, закрытие свечи, объём, EMA/RSI, уровень отмены, риск/прибыль.
-— Если точного уровня нет в контексте, честно пиши "уровень не задан в контексте", но всё равно объясни, что нужно проверить на графике.
+— Не используй Markdown-нумерацию "1.".
+— Заголовки только так: "1 — Решение".
+— Ответ должен быть компактным: 1–2 строки в каждом обычном разделе.
+— Чек-листы LONG и SHORT: ровно 4 коротких пункта каждый.
+— Обязательно закончи ответ разделами "10 — Риск" и "11 — Итог".
 
 КОНТЕКСТ CRYPTO LAB:
 ${marketContext}
@@ -1271,7 +1294,7 @@ ${marketContext}
 ВОПРОС ПОЛЬЗОВАТЕЛЯ:
 ${userQuestion}
 
-ОТВЕТЬ СТРОГО В ТАКОМ ФОРМАТЕ:
+ОТВЕТЬ СТРОГО В ЭТОМ ФОРМАТЕ:
 
 1 — Решение
 LONG / SHORT / WAIT: ...
@@ -1281,7 +1304,7 @@ LONG / SHORT / WAIT: ...
 Актив: ...
 Таймфрейм: ...
 Текущая цена: ...
-Общее состояние: ...
+Состояние: ...
 
 3 — Зона входа
 Вход: ...
@@ -1299,30 +1322,24 @@ TP3: ...
 6 — Что подтверждает текущий сценарий
 — ...
 — ...
-— ...
 
 7 — Что отменяет текущий сценарий
 — ...
 — ...
-— ...
 
 8 — Чек-лист LONG
-— Цена должна: ...
-— Свеча должна: ...
-— Объём должен: ...
-— EMA/RSI должны: ...
-— Уровень отмены LONG: ...
-— Риск/прибыль для LONG: ...
-Вывод по LONG: готов / не готов / ждать.
+— Цена: ...
+— Свеча + объём: ...
+— EMA/RSI: ...
+— Риск/прибыль и отмена: ...
+Вывод LONG: готов / не готов / ждать.
 
 9 — Чек-лист SHORT
-— Цена должна: ...
-— Свеча должна: ...
-— Объём должен: ...
-— EMA/RSI должны: ...
-— Уровень отмены SHORT: ...
-— Риск/прибыль для SHORT: ...
-Вывод по SHORT: готов / не готов / ждать.
+— Цена: ...
+— Свеча + объём: ...
+— EMA/RSI: ...
+— Риск/прибыль и отмена: ...
+Вывод SHORT: готов / не готов / ждать.
 
 10 — Риск
 Риск/прибыль: ...
@@ -1358,7 +1375,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит строгий торговый разбор v65…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v66…', 'loading');
         }
 
         try {
@@ -1394,7 +1411,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v65'
+            mode:'strict-v66'
           });
 
         } catch(error) {
@@ -1415,8 +1432,8 @@ TP3: ...
         if (button) button.onclick = askStrictAi;
 
         const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.strictV65EnterBound) {
-          input.dataset.strictV65EnterBound = '1';
+        if (input && !input.dataset.strictV66EnterBound) {
+          input.dataset.strictV66EnterBound = '1';
           input.addEventListener('keydown', event => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
               event.preventDefault();
@@ -1427,10 +1444,10 @@ TP3: ...
         }
 
         const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReadyV65) {
-          prompts.dataset.strictPromptsReadyV65 = '1';
+        if (prompts && !prompts.dataset.strictPromptsReadyV66) {
+          prompts.dataset.strictPromptsReadyV66 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай строгий AI-разбор v65 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог.">Строгий разбор v65</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v66 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, короткий чек-лист LONG, короткий чек-лист SHORT, риск и итог.">Строгий разбор v66</button>
           `);
         }
       }
