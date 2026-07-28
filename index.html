@@ -338,7 +338,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v68</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v69</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -446,9 +446,9 @@
       const plan=latestTradePlans[timeframe]||calculatedPlan;
 
       const lastRsi=Number.isFinite(+plan?.rsi)?+plan.rsi:(closes.length?calculateRSI(closes,14).at(-1):NaN);
-      const ema20Value=Number.isFinite(+plan?.ema20)?+plan.ema20:(closes.length?ema(closes,20).at(-1):NaN);
-      const ema50Value=Number.isFinite(+plan?.ema50)?+plan.ema50:(closes.length?ema(closes,50).at(-1):NaN);
-      const ema200Value=Number.isFinite(+plan?.ema200)?+plan.ema200:(closes.length?ema(closes,200).at(-1):NaN);
+      const ema20Value=closes.length?ema(closes,20).at(-1):NaN;
+      const ema50Value=closes.length?ema(closes,50).at(-1):NaN;
+      const ema200Value=closes.length?ema(closes,200).at(-1):NaN;
       const recent=candles.slice(-40);
       const support=Number.isFinite(+plan?.support)?+plan.support:(recent.length?Math.min(...recent.map(item=>item.low)):NaN);
       const resistance=Number.isFinite(+plan?.resistance)?+plan.resistance:(recent.length?Math.max(...recent.map(item=>item.high)):NaN);
@@ -472,9 +472,27 @@
 
       const p=value=>Number.isFinite(+value)?axisPrice(+value):'нет данных';
       const pct=value=>Number.isFinite(+value)?`${(+value).toFixed(2)}%`:'нет данных';
+      const safeAtr=Number.isFinite(+atrValue)&&+atrValue>0?+atrValue:(price?price*0.003:NaN);
+      const safeSupport=Number.isFinite(+support)?+support:(Number.isFinite(price)&&Number.isFinite(safeAtr)?price-safeAtr*2:NaN);
+      const safeResistance=Number.isFinite(+resistance)?+resistance:(Number.isFinite(price)&&Number.isFinite(safeAtr)?price+safeAtr*2:NaN);
+      const longTrigger=Number.isFinite(+plan?.longTrigger)?+plan.longTrigger:(Number.isFinite(safeResistance)&&Number.isFinite(safeAtr)?safeResistance+safeAtr*.15:NaN);
+      const shortTrigger=Number.isFinite(+plan?.shortTrigger)?+plan.shortTrigger:(Number.isFinite(safeSupport)&&Number.isFinite(safeAtr)?safeSupport-safeAtr*.15:NaN);
+      const conditionalLongStop=Number.isFinite(longTrigger)&&Number.isFinite(safeSupport)&&Number.isFinite(safeAtr)?Math.min(safeSupport-safeAtr*.15,longTrigger-safeAtr*1.5):NaN;
+      const conditionalShortStop=Number.isFinite(shortTrigger)&&Number.isFinite(safeResistance)&&Number.isFinite(safeAtr)?Math.max(safeResistance+safeAtr*.15,shortTrigger+safeAtr*1.5):NaN;
+      const conditionalLongRisk=Number.isFinite(longTrigger)&&Number.isFinite(conditionalLongStop)?Math.abs(longTrigger-conditionalLongStop):NaN;
+      const conditionalShortRisk=Number.isFinite(shortTrigger)&&Number.isFinite(conditionalShortStop)?Math.abs(conditionalShortStop-shortTrigger):NaN;
+      const conditionalLongTp1=Number.isFinite(longTrigger)&&Number.isFinite(conditionalLongRisk)?longTrigger+conditionalLongRisk:NaN;
+      const conditionalLongTp2=Number.isFinite(longTrigger)&&Number.isFinite(conditionalLongRisk)?longTrigger+conditionalLongRisk*1.8:NaN;
+      const conditionalLongTp3=Number.isFinite(longTrigger)&&Number.isFinite(conditionalLongRisk)?longTrigger+conditionalLongRisk*2.8:NaN;
+      const conditionalShortTp1=Number.isFinite(shortTrigger)&&Number.isFinite(conditionalShortRisk)?shortTrigger-conditionalShortRisk:NaN;
+      const conditionalShortTp2=Number.isFinite(shortTrigger)&&Number.isFinite(conditionalShortRisk)?shortTrigger-conditionalShortRisk*1.8:NaN;
+      const conditionalShortTp3=Number.isFinite(shortTrigger)&&Number.isFinite(conditionalShortRisk)?shortTrigger-conditionalShortRisk*2.8:NaN;
+      const emaStructure=Number.isFinite(ema20Value)&&Number.isFinite(ema50Value)&&Number.isFinite(ema200Value)&&price
+        ? (price>ema20Value&&ema20Value>ema50Value&&ema50Value>ema200Value?'бычья EMA-структура':price<ema20Value&&ema20Value<ema50Value&&ema50Value<ema200Value?'медвежья EMA-структура':'смешанная EMA-структура')
+        : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.5 / v68',
+        'AI context version: CRYPTO LAB 2.5 / v69',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -490,14 +508,19 @@
         `ATR 14: ${p(atrValue)} (${pct(atrPercent)})`,
         `Объём к среднему: ${Number.isFinite(+volumeRatio)?(+volumeRatio).toFixed(2)+'x':'нет данных'}`,
         `Импульс последних 10 свечей: ${pct(momentum)}`,
-        `Структура EMA: ${plan?.trend||'нет данных'}`,
+        `Структура EMA: ${emaStructure}`,
         `Текущий сценарий CRYPTO LAB: ${activeDirection}`,
         `Сила сценария: ${activeStrength?activeStrength+'%':'нет данных'}`
       ];
 
       if(plan&&activeDirection==='WAIT'){
-        lines.push(`WAIT LONG-триггер: ${p(plan.longTrigger)}`);
-        lines.push(`WAIT SHORT-триггер: ${p(plan.shortTrigger)}`);
+        lines.push('WAIT означает: готовой сделки сейчас нет, но есть уровни проверки пробоя. Не называй их готовым входом.');
+        lines.push(`Условие проверки LONG: закрепление выше ${p(longTrigger)} со свечой и ростом объёма`);
+        lines.push(`Ориентир Stop для LONG после подтверждения: ${p(conditionalLongStop)}`);
+        lines.push(`Ориентиры TP для LONG после подтверждения: TP1 ${p(conditionalLongTp1)} / TP2 ${p(conditionalLongTp2)} / TP3 ${p(conditionalLongTp3)}`);
+        lines.push(`Условие проверки SHORT: закрепление ниже ${p(shortTrigger)} со свечой и ростом объёма`);
+        lines.push(`Ориентир Stop для SHORT после подтверждения: ${p(conditionalShortStop)}`);
+        lines.push(`Ориентиры TP для SHORT после подтверждения: TP1 ${p(conditionalShortTp1)} / TP2 ${p(conditionalShortTp2)} / TP3 ${p(conditionalShortTp3)}`);
       }
 
       if(plan&&activeDirection!=='WAIT'){
@@ -1052,7 +1075,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v68 — strict AI format + guaranteed sections 8–11 */
+    /* CRYPTO LAB v69 — strict AI format + guaranteed sections 8–11 */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1393,10 +1416,20 @@
         return text;
       }
 
+      function normalizeKnownTextIssues(answer){
+        let text = String(answer || '');
+        text = text.replace(/не\s+финансовая\s+рекоменда(?:$|[.\s])/gim, match => match.endsWith('.') ? 'не финансовая рекомендация.' : 'не финансовая рекомендация');
+        text = text.replace(/не\s+финансовая\s+рекомендацияция/gi, 'не финансовая рекомендация');
+        text = text.replace(/финансовая\s+рекоменда(?!ц)/gi, 'финансовая рекомендация');
+        text = text.replace(/рекомендацияция/gi, 'рекомендация');
+        return text;
+      }
+
       function normalizeStrictAnswer(answer){
         let text = normalizeSectionHeadings(answer);
         text = normalizeConfidence(text);
         text = ensureRequiredSections(text);
+        text = normalizeKnownTextIssues(text);
         return text.trim();
       }
 
@@ -1405,11 +1438,12 @@
 Ты — AI-аналитик CRYPTO LAB. Отвечай коротко, строго и одинаково по структуре.
 
 ГЛАВНЫЕ ПРАВИЛА:
-— Это аналитическая информация, не финансовая рекомендация.
+— Это аналитическая информация, не финансовая рекомендация. Пиши слово "рекомендация" полностью.
 — Не пиши "100%", "точно входить", "открывай сделку" или "гарантированно".
 — WAIT: уверенность максимум 70%.
 — LONG/SHORT: уверенность максимум 85%.
 — Если данных мало — решение WAIT.
+— Для WAIT не пиши готовый вход: используй уровни проверки LONG/SHORT из контекста.
 — Не выдумывай уровни. Если уровня нет, пиши: "нет данных в контексте".
 — Пиши по-русски.
 — Не используй Markdown-нумерацию "1.".
@@ -1438,15 +1472,15 @@ LONG / SHORT / WAIT: ...
 Состояние: ...
 
 3 — Зона входа
-Вход: ...
+Вход: если WAIT — нет готового входа; укажи условные уровни проверки LONG/SHORT из контекста.
 Условие входа: ...
 
 4 — Stop Loss
-Stop Loss: ...
+Stop Loss: если WAIT — укажи ориентир Stop после подтверждения LONG/SHORT из контекста.
 Почему там: ...
 
 5 — Take Profit
-TP1: ...
+TP1: если WAIT — укажи ориентиры TP после подтверждения из контекста.
 TP2: ...
 TP3: ...
 
@@ -1506,7 +1540,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v68…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v69…', 'loading');
         }
 
         try {
@@ -1542,7 +1576,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v68'
+            mode:'strict-v69'
           });
 
         } catch(error) {
@@ -1578,7 +1612,7 @@ TP3: ...
         if (prompts && !prompts.dataset.strictPromptsReadyV67) {
           prompts.dataset.strictPromptsReadyV67 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v68 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v68</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v69 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v69</button>
           `);
         }
       }
