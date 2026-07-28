@@ -124,7 +124,7 @@
     /* CRYPTO LAB 2.0 — AI advisor */
     #aiAdvisor{scroll-margin-top:76px}.ai-advisor{margin-top:16px;padding:18px;border:1px solid rgba(69,230,208,.24);border-radius:16px;background:linear-gradient(135deg,rgba(29,58,86,.34),rgba(8,18,31,.96) 48%,rgba(69,230,208,.055));box-shadow:0 16px 36px rgba(0,0,0,.14)}.ai-advisor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.ai-advisor h3{margin:3px 0 0;font-size:21px}.ai-advisor-head p{max-width:430px;margin:0;color:var(--muted);font-size:11px;line-height:1.5;text-align:right}.ai-advisor-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:15px}.ai-advisor textarea{width:100%;min-height:80px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(4,10,18,.58);color:var(--text);font:inherit;font-size:13px;line-height:1.45;outline:none}.ai-advisor textarea:focus{border-color:rgba(69,230,208,.62);box-shadow:0 0 0 3px rgba(69,230,208,.09)}.ai-send{align-self:end;min-height:48px}.ai-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ai-prompt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:#b7c4d6;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.ai-prompt:hover{border-color:rgba(69,230,208,.5);color:var(--cyan)}.ai-answer{min-height:68px;margin-top:13px;padding:13px 14px;border:1px solid rgba(69,230,208,.15);border-radius:12px;background:rgba(3,10,17,.54);color:#dfe8f5;font-size:12px;line-height:1.58}.ai-answer h4{margin:0 0 7px;color:var(--cyan);font-size:13px}.ai-answer p{margin:0 0 9px}.ai-answer ul,.ai-answer ol{margin:0 0 11px;padding-left:19px}.ai-answer li{margin:3px 0}.ai-answer strong{color:#fff}.ai-answer[data-state="idle"]{color:var(--muted);white-space:pre-wrap}.ai-answer[data-state="error"]{border-color:rgba(255,102,125,.35);color:#ffc1cc;white-space:pre-wrap}.ai-disclaimer{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.ai-loading{display:inline-flex;align-items:center;gap:7px;color:var(--cyan)}.ai-loading:before{content:'';width:10px;height:10px;border:2px solid rgba(69,230,208,.25);border-top-color:var(--cyan);border-radius:50%;animation:aiSpin .75s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.ai-advisor-head{display:block}.ai-advisor-head p{text-align:left;margin-top:8px}.ai-advisor-form{grid-template-columns:1fr}.ai-send{width:100%}}
 
-    /* CRYPTO LAB v71 — active AI Signal Card actions */
+    /* CRYPTO LAB v72 — active AI Signal Card actions */
     .ai-signal-card{margin-top:13px;padding:15px;border:1px solid rgba(247,199,93,.28);border-radius:15px;background:linear-gradient(135deg,rgba(247,199,93,.105),rgba(53,167,255,.055) 48%,rgba(3,10,17,.7));box-shadow:0 14px 34px rgba(0,0,0,.14)}
     .ai-signal-card[hidden]{display:none}
     .ai-signal-card-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
@@ -144,9 +144,12 @@
     .ai-signal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:11px}
     .ai-signal-actions button{border-radius:10px;padding:9px 13px;font-size:10px;font-weight:900}
     .ai-signal-secondary{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff}
+    .ai-signal-telegram{border:1px solid rgba(69,230,208,.35);background:rgba(69,230,208,.1);color:var(--cyan)}
+    .ai-signal-telegram:hover{background:rgba(69,230,208,.17)}
+    .ai-signal-telegram:disabled{opacity:.5;cursor:wait}
     .ai-signal-primary{border:0;background:linear-gradient(135deg,var(--gold),#e6a634);color:#09101b}
     .ai-signal-primary:disabled{opacity:.38;cursor:not-allowed}
-    @media(max-width:700px){.ai-signal-card-head{align-items:flex-start}.ai-signal-grid{grid-template-columns:1fr 1fr}.ai-signal-actions{display:grid;grid-template-columns:1fr 1fr}.ai-signal-actions button{width:100%}}
+    @media(max-width:700px){.ai-signal-card-head{align-items:flex-start}.ai-signal-grid{grid-template-columns:1fr 1fr}.ai-signal-actions{display:grid;grid-template-columns:repeat(3,1fr)}.ai-signal-actions button{width:100%}}
     @media(max-width:440px){.ai-signal-card-head{display:block}.ai-signal-decision{text-align:left;margin-top:10px}.ai-signal-grid{grid-template-columns:1fr}.ai-signal-actions{grid-template-columns:1fr}}
 
   </style>
@@ -220,6 +223,7 @@
             </div>
             <div class="ai-signal-actions">
               <button class="ai-signal-secondary" id="aiSignalChartBtn" type="button">На график</button>
+              <button class="ai-signal-telegram" id="aiSignalTelegramBtn" type="button">В Telegram</button>
               <button class="ai-signal-primary" id="aiSignalDemoBtn" type="button">В демо-журнал</button>
             </div>
           </div>
@@ -386,7 +390,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v71</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.5 / v72</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -540,7 +544,7 @@
         : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.5 / v71',
+        'AI context version: CRYPTO LAB 2.5 / v72',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -1123,7 +1127,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v71 — active AI Signal Card actions + strict AI format */
+    /* CRYPTO LAB v72 — active AI Signal Card actions + strict AI format */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1141,6 +1145,9 @@
         'Итог'
       ];
       const REQUIRED_SECTION_NUMBERS = [8,9,10,11];
+      const TELEGRAM_SIGNAL_ENDPOINT = 'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-telegram-signal';
+      const TELEGRAM_LAST_SIGNAL_KEY = 'cryptoLabTelegramLastSignalV72';
+      const TELEGRAM_REPEAT_BLOCK_MS = 5 * 60 * 1000;
 
       function safeText(value){
         return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -1547,6 +1554,7 @@
         card.dataset.direction=data.direction;
         card.dataset.symbol=data.symbol;
         card.dataset.timeframe=data.timeframe;
+        card.dataset.confidence=data.confidence||'';
         card.dataset.answer=String(answer||'');
         document.getElementById('aiSignalMarket').textContent=`${data.symbol} / USDT · ${data.timeframe}`;
         document.getElementById('aiSignalDirection').textContent=data.direction;
@@ -1645,7 +1653,7 @@
           target:+plan.tp1,
           strength:+plan.strength,
           quality:'A',
-          source:'AI Signal Card v71',
+          source:'AI Signal Card v72',
           status:'OPEN',
           resultR:null
         });
@@ -1655,6 +1663,116 @@
         location.hash='demoJournal';
         setTimeout(()=>document.getElementById('demoJournal')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
         if(typeof toast==='function')toast(`${symbol} ${timeframe}: сигнал класса A добавлен в демо-журнал`);
+      }
+
+      function telegramSignalPayload(){
+        const card=document.getElementById('aiSignalCard');
+        if(!card||card.hidden)return null;
+
+        const answer=String(card.dataset.answer||'');
+        const symbol=card.dataset.symbol||'BTC';
+        const timeframe=card.dataset.timeframe||'5M';
+        const direction=card.dataset.direction||'WAIT';
+        const confidence=Number(card.dataset.confidence)||null;
+        const plan=typeof latestTradePlans!=='undefined'?latestTradePlans[timeframe]:null;
+        const strength=Number.isFinite(+plan?.strength)?+plan.strength:confidence;
+        const entry=document.getElementById('aiSignalEntry')?.textContent?.trim()||'—';
+        const stop=document.getElementById('aiSignalStop')?.textContent?.trim()||'—';
+        const tp1=document.getElementById('aiSignalTp1')?.textContent?.trim()||'—';
+        const tp2=shortSignalValue(fieldFromSection(answer,5,['TP2','Take Profit 2']));
+        const tp3=shortSignalValue(fieldFromSection(answer,5,['TP3','Take Profit 3']));
+        const risk=document.getElementById('aiSignalRisk')?.textContent?.trim()||'—';
+
+        return {
+          symbol,
+          timeframe,
+          direction,
+          strength:Number.isFinite(+strength)?Math.round(+strength):null,
+          entry,
+          stop,
+          tp1,
+          tp2,
+          tp3,
+          risk,
+          url:`${location.origin}${location.pathname}#analytics`
+        };
+      }
+
+      function telegramSignalFingerprint(payload){
+        return [
+          payload.symbol,
+          payload.timeframe,
+          payload.direction,
+          payload.entry,
+          payload.stop,
+          payload.tp1
+        ].join('|');
+      }
+
+      function wasTelegramSignalSentRecently(payload){
+        try{
+          const last=JSON.parse(localStorage.getItem(TELEGRAM_LAST_SIGNAL_KEY)||'null');
+          return !!last&&last.fingerprint===telegramSignalFingerprint(payload)&&Date.now()-(+last.sentAt||0)<TELEGRAM_REPEAT_BLOCK_MS;
+        }catch(e){
+          return false;
+        }
+      }
+
+      function rememberTelegramSignal(payload){
+        try{
+          localStorage.setItem(TELEGRAM_LAST_SIGNAL_KEY,JSON.stringify({
+            fingerprint:telegramSignalFingerprint(payload),
+            sentAt:Date.now()
+          }));
+        }catch(e){}
+      }
+
+      async function sendSignalToTelegram(){
+        const button=document.getElementById('aiSignalTelegramBtn');
+        const payload=telegramSignalPayload();
+        if(!payload){
+          if(typeof toast==='function')toast('Сначала выполните AI-разбор');
+          return;
+        }
+        if(wasTelegramSignalSentRecently(payload)){
+          if(typeof toast==='function')toast('Этот сигнал уже отправлялся в последние 5 минут');
+          return;
+        }
+        if(typeof AI_CONFIG==='undefined'||!AI_CONFIG.publishableKey){
+          if(typeof toast==='function')toast('Ключ подключения Supabase не найден');
+          return;
+        }
+
+        const previousText=button?.textContent||'В Telegram';
+        if(button){
+          button.disabled=true;
+          button.textContent='Отправка…';
+        }
+
+        try{
+          const response=await fetch(TELEGRAM_SIGNAL_ENDPOINT,{
+            method:'POST',
+            headers:{
+              Authorization:`Bearer ${AI_CONFIG.publishableKey}`,
+              apikey:AI_CONFIG.publishableKey,
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify(payload)
+          });
+          const result=await response.json().catch(()=>({}));
+          if(!response.ok||!result.success){
+            throw new Error(result.error||`Ошибка отправки ${response.status}`);
+          }
+          rememberTelegramSignal(payload);
+          if(typeof toast==='function')toast(`${payload.symbol} ${payload.timeframe}: отправлено в Telegram`);
+        }catch(error){
+          if(typeof toast==='function')toast(error?.message||'Не удалось отправить сигнал в Telegram');
+        }finally{
+          if(button){
+            button.disabled=false;
+            button.textContent=previousText;
+          }
+        }
       }
 
       function buildStrictAiPrompt(userQuestion, marketContext){
@@ -1765,7 +1883,7 @@ TP3: ...
         hideAiSignalCard();
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v71…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v72…', 'loading');
         }
 
         try {
@@ -1802,7 +1920,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v71'
+            mode:'strict-v72'
           });
 
         } catch(error) {
@@ -1823,20 +1941,26 @@ TP3: ...
         if (button) button.onclick = askStrictAi;
 
         const chartButton = document.getElementById('aiSignalChartBtn');
-        if (chartButton && !chartButton.dataset.boundV71) {
-          chartButton.dataset.boundV71 = '1';
+        if (chartButton && !chartButton.dataset.boundV72) {
+          chartButton.dataset.boundV72 = '1';
           chartButton.addEventListener('click', openSignalOnChart);
         }
 
+        const telegramButton = document.getElementById('aiSignalTelegramBtn');
+        if (telegramButton && !telegramButton.dataset.boundV72) {
+          telegramButton.dataset.boundV72 = '1';
+          telegramButton.addEventListener('click', sendSignalToTelegram);
+        }
+
         const demoButton = document.getElementById('aiSignalDemoBtn');
-        if (demoButton && !demoButton.dataset.boundV71) {
-          demoButton.dataset.boundV71 = '1';
+        if (demoButton && !demoButton.dataset.boundV72) {
+          demoButton.dataset.boundV72 = '1';
           demoButton.addEventListener('click', moveSignalToDemo);
         }
 
         const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.strictV71EnterBound) {
-          input.dataset.strictV71EnterBound = '1';
+        if (input && !input.dataset.strictV72EnterBound) {
+          input.dataset.strictV72EnterBound = '1';
           input.addEventListener('keydown', event => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
               event.preventDefault();
@@ -1847,10 +1971,10 @@ TP3: ...
         }
 
         const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReadyV71) {
-          prompts.dataset.strictPromptsReadyV71 = '1';
+        if (prompts && !prompts.dataset.strictPromptsReadyV72) {
+          prompts.dataset.strictPromptsReadyV72 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v71 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v71</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v72 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v72</button>
           `);
         }
       }
