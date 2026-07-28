@@ -172,7 +172,7 @@
     <section class="section" id="aiAdvisor">
       <div class="wrap">
         <div class="card ai-advisor">
-          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.3</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
+          <div class="ai-advisor-head"><div><div class="eyebrow">CRYPTO LAB 2.4</div><h3>AI‑ассистент анализа</h3></div><p>Получает выбранную монету, таймфрейм и доступный контекст CRYPTO LAB. Не открывает сделки и не гарантирует результат.</p></div>
           <div class="ai-advisor-form"><textarea id="aiQuestion" maxlength="4000" placeholder="Например: Что должно подтвердить LONG по BTC на текущем таймфрейме?"></textarea><button class="btn ai-send" id="aiSend" type="button">Спросить AI</button></div>
           <div class="ai-prompts" id="aiPrompts"><button class="ai-prompt" type="button" data-ai-prompt="Что подтверждает сценарий LONG по выбранной монете и таймфрейму?">Проверить LONG</button><button class="ai-prompt" type="button" data-ai-prompt="Какие риски и что отменит текущий сценарий?">Риски сценария</button><button class="ai-prompt" type="button" data-ai-prompt="Какой торговый план проверить на графике перед входом?">План перед входом</button></div>
           <div class="ai-answer" id="aiAnswer" data-state="idle" aria-live="polite">Задайте вопрос — AI даст структуру анализа и напомнит, что обязательно проверить на графике.</div>
@@ -338,7 +338,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.3 / v64</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.4 / v65</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -963,7 +963,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v64 — strict AI format + safe confidence */
+    /* CRYPTO LAB v65 — strict AI format + LONG/SHORT checklist */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -973,8 +973,10 @@
         'Зона входа',
         'Stop Loss',
         'Take Profit',
-        'Что подтверждает сценарий',
-        'Что отменяет сценарий',
+        'Что подтверждает текущий сценарий',
+        'Что отменяет текущий сценарий',
+        'Чек-лист LONG',
+        'Чек-лист SHORT',
         'Риск',
         'Итог'
       ];
@@ -1259,6 +1261,9 @@
 — Пиши по-русски.
 — Не используй Markdown-нумерацию вида "1." или "2.".
 — Заголовки разделов пиши только через тире: "1 — Решение", "2 — Контекст рынка" и так далее.
+— Даже если итог WAIT, обязательно заполни чек-листы LONG и SHORT: что именно должно появиться на графике, чтобы сценарий стал рабочим.
+— В чек-листах пиши конкретные проверяемые условия: цена, закрытие свечи, объём, EMA/RSI, уровень отмены, риск/прибыль.
+— Если точного уровня нет в контексте, честно пиши "уровень не задан в контексте", но всё равно объясни, что нужно проверить на графике.
 
 КОНТЕКСТ CRYPTO LAB:
 ${marketContext}
@@ -1291,22 +1296,40 @@ TP1: ...
 TP2: ...
 TP3: ...
 
-6 — Что подтверждает сценарий
+6 — Что подтверждает текущий сценарий
 — ...
 — ...
 — ...
 
-7 — Что отменяет сценарий
+7 — Что отменяет текущий сценарий
 — ...
 — ...
 — ...
 
-8 — Риск
+8 — Чек-лист LONG
+— Цена должна: ...
+— Свеча должна: ...
+— Объём должен: ...
+— EMA/RSI должны: ...
+— Уровень отмены LONG: ...
+— Риск/прибыль для LONG: ...
+Вывод по LONG: готов / не готов / ждать.
+
+9 — Чек-лист SHORT
+— Цена должна: ...
+— Свеча должна: ...
+— Объём должен: ...
+— EMA/RSI должны: ...
+— Уровень отмены SHORT: ...
+— Риск/прибыль для SHORT: ...
+Вывод по SHORT: готов / не готов / ждать.
+
+10 — Риск
 Риск/прибыль: ...
 Главный риск: ...
 Риск на сделку: не более заданного пользователем лимита.
 
-9 — Итог
+11 — Итог
 Короткий вывод: ...
 Действие: входить только после подтверждения / ждать / не входить.
         `.trim();
@@ -1335,7 +1358,7 @@ TP3: ...
         button.textContent = 'AI думает…';
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит строгий торговый разбор v64…', 'loading');
+          setAiAnswer('AI готовит строгий торговый разбор v65…', 'loading');
         }
 
         try {
@@ -1371,7 +1394,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v64'
+            mode:'strict-v65'
           });
 
         } catch(error) {
@@ -1392,8 +1415,8 @@ TP3: ...
         if (button) button.onclick = askStrictAi;
 
         const input = document.getElementById('aiQuestion');
-        if (input && !input.dataset.strictV64EnterBound) {
-          input.dataset.strictV64EnterBound = '1';
+        if (input && !input.dataset.strictV65EnterBound) {
+          input.dataset.strictV65EnterBound = '1';
           input.addEventListener('keydown', event => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
               event.preventDefault();
@@ -1404,10 +1427,10 @@ TP3: ...
         }
 
         const prompts = document.getElementById('aiPrompts');
-        if (prompts && !prompts.dataset.strictPromptsReadyV64) {
-          prompts.dataset.strictPromptsReadyV64 = '1';
+        if (prompts && !prompts.dataset.strictPromptsReadyV65) {
+          prompts.dataset.strictPromptsReadyV65 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай строгий AI-разбор по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, риск и итог.">Строгий разбор v64</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай строгий AI-разбор v65 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог.">Строгий разбор v65</button>
           `);
         }
       }
