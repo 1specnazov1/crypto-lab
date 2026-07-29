@@ -124,7 +124,7 @@
     /* CRYPTO LAB 2.0 — AI advisor */
     #aiAdvisor{scroll-margin-top:76px}.ai-advisor{margin-top:16px;padding:18px;border:1px solid rgba(69,230,208,.24);border-radius:16px;background:linear-gradient(135deg,rgba(29,58,86,.34),rgba(8,18,31,.96) 48%,rgba(69,230,208,.055));box-shadow:0 16px 36px rgba(0,0,0,.14)}.ai-advisor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.ai-advisor h3{margin:3px 0 0;font-size:21px}.ai-advisor-head p{max-width:430px;margin:0;color:var(--muted);font-size:11px;line-height:1.5;text-align:right}.ai-advisor-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:15px}.ai-advisor textarea{width:100%;min-height:80px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(4,10,18,.58);color:var(--text);font:inherit;font-size:13px;line-height:1.45;outline:none}.ai-advisor textarea:focus{border-color:rgba(69,230,208,.62);box-shadow:0 0 0 3px rgba(69,230,208,.09)}.ai-send{align-self:end;min-height:48px}.ai-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ai-prompt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:#b7c4d6;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.ai-prompt:hover{border-color:rgba(69,230,208,.5);color:var(--cyan)}.ai-answer{min-height:68px;margin-top:13px;padding:13px 14px;border:1px solid rgba(69,230,208,.15);border-radius:12px;background:rgba(3,10,17,.54);color:#dfe8f5;font-size:12px;line-height:1.58}.ai-answer h4{margin:0 0 7px;color:var(--cyan);font-size:13px}.ai-answer p{margin:0 0 9px}.ai-answer ul,.ai-answer ol{margin:0 0 11px;padding-left:19px}.ai-answer li{margin:3px 0}.ai-answer strong{color:#fff}.ai-answer[data-state="idle"]{color:var(--muted);white-space:pre-wrap}.ai-answer[data-state="error"]{border-color:rgba(255,102,125,.35);color:#ffc1cc;white-space:pre-wrap}.ai-disclaimer{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.ai-loading{display:inline-flex;align-items:center;gap:7px;color:var(--cyan)}.ai-loading:before{content:'';width:10px;height:10px;border:2px solid rgba(69,230,208,.25);border-top-color:var(--cyan);border-radius:50%;animation:aiSpin .75s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.ai-advisor-head{display:block}.ai-advisor-head p{text-align:left;margin-top:8px}.ai-advisor-form{grid-template-columns:1fr}.ai-send{width:100%}}
 
-    /* CRYPTO LAB v77 — active AI Signal Card actions */
+    /* CRYPTO LAB v78 — active AI Signal Card actions */
     .ai-signal-card{margin-top:13px;padding:15px;border:1px solid rgba(247,199,93,.28);border-radius:15px;background:linear-gradient(135deg,rgba(247,199,93,.105),rgba(53,167,255,.055) 48%,rgba(3,10,17,.7));box-shadow:0 14px 34px rgba(0,0,0,.14)}
     .ai-signal-card[hidden]{display:none}
     .ai-signal-card-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
@@ -390,7 +390,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.7 / v77</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.7 / v78</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -544,7 +544,7 @@
         : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.7 / v77',
+        'AI context version: CRYPTO LAB 2.7 / v78',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -1128,7 +1128,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v77 — protected server-side registration + Telegram 24/7 */
+    /* CRYPTO LAB v78 — protected server-side registration + Telegram 24/7 */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1663,7 +1663,7 @@
           target:+plan.tp1,
           strength:+plan.strength,
           quality:'A',
-          source:'AI Signal Card v77',
+          source:'AI Signal Card v78',
           status:'OPEN',
           resultR:null
         });
@@ -1798,7 +1798,7 @@
           rememberTelegramSignal(payload);
           const currentPlan=typeof latestTradePlans!=='undefined'?latestTradePlans[payload.timeframe]:null;
           if(currentPlan&&currentPlan.direction===payload.direction){
-            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v77');
+            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v78');
             try{
               await registerServerSignal(currentPlan,payload);
               if(typeof toast==='function')toast(`${payload.symbol} ${payload.timeframe}: Telegram отправлен · контроль 24/7 включён`);
@@ -1866,7 +1866,29 @@
       }
 
       function telegramAutoFingerprint(payload){
-        return [payload.symbol,payload.timeframe,payload.direction,payload.entry,payload.stop,payload.tp1].join('|');
+        // v78: Telegram AUTO dedupe is based on market identity, not price levels.
+        // Scanner levels can move slightly on every run; symbol+timeframe+direction must remain one active signal.
+        return [
+          String(payload?.symbol||'').toUpperCase(),
+          String(payload?.timeframe||'').toUpperCase(),
+          String(payload?.direction||'').toUpperCase()
+        ].join('|');
+      }
+
+      function activeSignalIdentity(plan,payload){
+        return {
+          symbol:String(payload?.symbol||plan?.symbol||'').toUpperCase(),
+          timeframe:String(payload?.timeframe||plan?.chartTimeframe||plan?.timeframe||'').toUpperCase(),
+          direction:String(payload?.direction||plan?.direction||'').toUpperCase()
+        };
+      }
+
+      function sameActiveSignal(item,identity){
+        if(!item||!identity)return false;
+        return ['WAITING_ENTRY','ACTIVE','ACTIVE_TP1','ACTIVE_TP2'].includes(item.status)
+          && String(item.symbol||'').toUpperCase()===identity.symbol
+          && String(item.timeframe||'').toUpperCase()===identity.timeframe
+          && String(item.direction||'').toUpperCase()===identity.direction;
       }
 
       function autoTelegramCooldownMs(){
@@ -1963,6 +1985,11 @@
         }catch(e){return []}
       }
 
+      function activeTrackedTelegramSignalExists(plan,payload){
+        const identity=activeSignalIdentity(plan,payload);
+        return loadTrackedTelegramSignals().some(item=>sameActiveSignal(item,identity));
+      }
+
       function saveTrackedTelegramSignals(items){
         const now=Date.now();
         const clean=(Array.isArray(items)?items:[])
@@ -1985,9 +2012,10 @@
         if(!plan||!payload||!['LONG','SHORT'].includes(payload.direction))return false;
         const required=[plan.entryLow,plan.entryHigh,plan.stop,plan.tp1];
         if(required.some(value=>!Number.isFinite(+value)))return false;
+        const identity=activeSignalIdentity(plan,payload);
         const fingerprint=trackedSignalFingerprint(plan,payload);
         const items=loadTrackedTelegramSignals();
-        const existing=items.find(item=>item.fingerprint===fingerprint&&['WAITING_ENTRY','ACTIVE','ACTIVE_TP1','ACTIVE_TP2'].includes(item.status));
+        const existing=items.find(item=>sameActiveSignal(item,identity)||item.fingerprint===fingerprint&&['WAITING_ENTRY','ACTIVE','ACTIVE_TP1','ACTIVE_TP2'].includes(item.status));
         if(existing)return false;
         const now=new Date().toISOString();
         items.unshift({
@@ -2153,9 +2181,9 @@
       }
 
       function startTelegramLifecycleMonitor(){
-        if(window.__cryptoLabTelegramLifecycleV77)return;
-        window.__cryptoLabTelegramLifecycleV77=true;
-        // v77: lifecycle notifications are handled by Supabase Cron 24/7.
+        if(window.__cryptoLabTelegramLifecycleV78)return;
+        window.__cryptoLabTelegramLifecycleV78=true;
+        // v78: lifecycle notifications are handled by Supabase Cron 24/7.
         // The previous browser timer is intentionally disabled to prevent duplicate Telegram messages.
       }
 
@@ -2165,25 +2193,31 @@
         const candidates=plans.map(plan=>({plan,payload:telegramPayloadFromScannerPlan(plan)})).filter(item=>item.payload).slice(0,5);
         if(!candidates.length)return;
         telegramAutoSending=true;
-        let sent=0,registered=0;
+        let sent=0,registered=0,skipped=0;
         try{
           for(const item of candidates){
             const recent=wasAutoTelegramSentRecently(item.payload);
+            const alreadyActive=activeTrackedTelegramSignalExists(item.plan,item.payload);
             try{
-              if(!recent){
-                await postTelegramPayload(item.payload);
+              if(alreadyActive||recent){
+                // v78: do not send Telegram AUTO again while the same symbol+timeframe+direction is active.
                 rememberAutoTelegram(item.payload);
-                sent++;
+                registerTrackedTelegramSignal(item.plan,item.payload,alreadyActive?'Scanner class A · active duplicate skipped':'Scanner class A · cooldown skipped');
+                skipped++;
+                continue;
               }
-              registerTrackedTelegramSignal(item.plan,item.payload,recent?'Scanner class A · previous signal':'Scanner class A v77');
               await registerServerSignal(item.plan,item.payload);
               registered++;
+              await postTelegramPayload(item.payload);
+              rememberAutoTelegram(item.payload);
+              registerTrackedTelegramSignal(item.plan,item.payload,'Scanner class A v78');
+              sent++;
             }catch(error){
               console.warn('Telegram AUTO / 24/7:',error);
             }
           }
-          if((sent||registered)&&typeof toast==='function'){
-            toast(`Telegram AUTO: новых ${sent} · под контролем 24/7: ${registered}`);
+          if((sent||registered||skipped)&&typeof toast==='function'){
+            toast(`Telegram AUTO: новых ${sent} · контроль 24/7: ${registered} · дублей пропущено ${skipped}`);
           }
         }finally{
           telegramAutoSending=false;
@@ -2307,7 +2341,7 @@ TP3: ...
         hideAiSignalCard();
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v77…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v78…', 'loading');
         }
 
         try {
@@ -2344,7 +2378,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v77'
+            mode:'strict-v78'
           });
 
         } catch(error) {
@@ -2407,7 +2441,7 @@ TP3: ...
         if (prompts && !prompts.dataset.strictPromptsReadyV76) {
           prompts.dataset.strictPromptsReadyV76 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v77 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v77</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v78 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v78</button>
           `);
         }
       }
