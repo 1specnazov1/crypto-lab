@@ -124,7 +124,7 @@
     /* CRYPTO LAB 2.0 — AI advisor */
     #aiAdvisor{scroll-margin-top:76px}.ai-advisor{margin-top:16px;padding:18px;border:1px solid rgba(69,230,208,.24);border-radius:16px;background:linear-gradient(135deg,rgba(29,58,86,.34),rgba(8,18,31,.96) 48%,rgba(69,230,208,.055));box-shadow:0 16px 36px rgba(0,0,0,.14)}.ai-advisor-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.ai-advisor h3{margin:3px 0 0;font-size:21px}.ai-advisor-head p{max-width:430px;margin:0;color:var(--muted);font-size:11px;line-height:1.5;text-align:right}.ai-advisor-form{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:15px}.ai-advisor textarea{width:100%;min-height:80px;resize:vertical;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(4,10,18,.58);color:var(--text);font:inherit;font-size:13px;line-height:1.45;outline:none}.ai-advisor textarea:focus{border-color:rgba(69,230,208,.62);box-shadow:0 0 0 3px rgba(69,230,208,.09)}.ai-send{align-self:end;min-height:48px}.ai-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ai-prompt{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:#b7c4d6;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}.ai-prompt:hover{border-color:rgba(69,230,208,.5);color:var(--cyan)}.ai-answer{min-height:68px;margin-top:13px;padding:13px 14px;border:1px solid rgba(69,230,208,.15);border-radius:12px;background:rgba(3,10,17,.54);color:#dfe8f5;font-size:12px;line-height:1.58}.ai-answer h4{margin:0 0 7px;color:var(--cyan);font-size:13px}.ai-answer p{margin:0 0 9px}.ai-answer ul,.ai-answer ol{margin:0 0 11px;padding-left:19px}.ai-answer li{margin:3px 0}.ai-answer strong{color:#fff}.ai-answer[data-state="idle"]{color:var(--muted);white-space:pre-wrap}.ai-answer[data-state="error"]{border-color:rgba(255,102,125,.35);color:#ffc1cc;white-space:pre-wrap}.ai-disclaimer{margin:9px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.ai-loading{display:inline-flex;align-items:center;gap:7px;color:var(--cyan)}.ai-loading:before{content:'';width:10px;height:10px;border:2px solid rgba(69,230,208,.25);border-top-color:var(--cyan);border-radius:50%;animation:aiSpin .75s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.ai-advisor-head{display:block}.ai-advisor-head p{text-align:left;margin-top:8px}.ai-advisor-form{grid-template-columns:1fr}.ai-send{width:100%}}
 
-    /* CRYPTO LAB v76 — active AI Signal Card actions */
+    /* CRYPTO LAB v77 — active AI Signal Card actions */
     .ai-signal-card{margin-top:13px;padding:15px;border:1px solid rgba(247,199,93,.28);border-radius:15px;background:linear-gradient(135deg,rgba(247,199,93,.105),rgba(53,167,255,.055) 48%,rgba(3,10,17,.7));box-shadow:0 14px 34px rgba(0,0,0,.14)}
     .ai-signal-card[hidden]{display:none}
     .ai-signal-card-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
@@ -390,7 +390,7 @@
     </div>
   </main>
 
-  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.6 / v76</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
+  <footer><div class="wrap footer-in"><div>© 2026 CRYPTO LAB · версия 2.7 / v77</div><span><a href="#privacy">Конфиденциальность и риски</a> · Не финансовая рекомендация</span></div></footer>
   <nav class="mobile-dock" id="mobileDock" aria-label="Быстрая навигация">
     <a href="#market" class="active" data-dock-target="market" aria-label="Рынок">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg><span>Рынок</span>
@@ -544,7 +544,7 @@
         : (plan?.trend||'нет данных');
 
       const lines=[
-        'AI context version: CRYPTO LAB 2.6 / v76',
+        'AI context version: CRYPTO LAB 2.7 / v77',
         `Выбранный актив: ${selectedSymbol}/USDT`,
         `Таймфрейм: ${timeframe}`,
         price?`Текущая цена Binance: ${price}`:'Текущая цена Binance: нет данных',
@@ -1128,7 +1128,7 @@
   </script>
 
   <script>
-    /* CRYPTO LAB v76 — server-side 24/7 Telegram monitoring + strict AI format */
+    /* CRYPTO LAB v77 — protected server-side registration + Telegram 24/7 */
     (function(){
       const AI_HISTORY_KEY = 'cryptoLabAiHistoryV62';
       const AI_HISTORY_LIMIT = 12;
@@ -1147,7 +1147,7 @@
       ];
       const REQUIRED_SECTION_NUMBERS = [8,9,10,11];
       const TELEGRAM_SIGNAL_ENDPOINT = 'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-telegram-signal';
-      const SIGNAL_REGISTER_ENDPOINT = 'https://txhzxbizjpinowepfjkm.supabase.co/rest/v1/rpc/register_crypto_signal';
+      const SIGNAL_REGISTER_ENDPOINT = 'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-signal-register';
       const SERVER_MONITOR_ENABLED = true;
       const TELEGRAM_LAST_SIGNAL_KEY = 'cryptoLabTelegramLastSignalV73';
       const TELEGRAM_REPEAT_BLOCK_MS = 5 * 60 * 1000;
@@ -1663,7 +1663,7 @@
           target:+plan.tp1,
           strength:+plan.strength,
           quality:'A',
-          source:'AI Signal Card v76',
+          source:'AI Signal Card v77',
           status:'OPEN',
           resultR:null
         });
@@ -1798,7 +1798,7 @@
           rememberTelegramSignal(payload);
           const currentPlan=typeof latestTradePlans!=='undefined'?latestTradePlans[payload.timeframe]:null;
           if(currentPlan&&currentPlan.direction===payload.direction){
-            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v76');
+            registerTrackedTelegramSignal(currentPlan,payload,'AI Signal Card v77');
             try{
               await registerServerSignal(currentPlan,payload);
               if(typeof toast==='function')toast(`${payload.symbol} ${payload.timeframe}: Telegram отправлен · контроль 24/7 включён`);
@@ -2153,9 +2153,9 @@
       }
 
       function startTelegramLifecycleMonitor(){
-        if(window.__cryptoLabTelegramLifecycleV76)return;
-        window.__cryptoLabTelegramLifecycleV76=true;
-        // v76: lifecycle notifications are handled by Supabase Cron 24/7.
+        if(window.__cryptoLabTelegramLifecycleV77)return;
+        window.__cryptoLabTelegramLifecycleV77=true;
+        // v77: lifecycle notifications are handled by Supabase Cron 24/7.
         // The previous browser timer is intentionally disabled to prevent duplicate Telegram messages.
       }
 
@@ -2175,7 +2175,7 @@
                 rememberAutoTelegram(item.payload);
                 sent++;
               }
-              registerTrackedTelegramSignal(item.plan,item.payload,recent?'Scanner class A · previous signal':'Scanner class A v76');
+              registerTrackedTelegramSignal(item.plan,item.payload,recent?'Scanner class A · previous signal':'Scanner class A v77');
               await registerServerSignal(item.plan,item.payload);
               registered++;
             }catch(error){
@@ -2307,7 +2307,7 @@ TP3: ...
         hideAiSignalCard();
 
         if (typeof setAiAnswer === 'function') {
-          setAiAnswer('AI готовит короткий строгий разбор v76…', 'loading');
+          setAiAnswer('AI готовит короткий строгий разбор v77…', 'loading');
         }
 
         try {
@@ -2344,7 +2344,7 @@ TP3: ...
             timeframe:meta.timeframe,
             question:userQuestion,
             answer:normalizedAnswer,
-            mode:'strict-v76'
+            mode:'strict-v77'
           });
 
         } catch(error) {
@@ -2407,7 +2407,7 @@ TP3: ...
         if (prompts && !prompts.dataset.strictPromptsReadyV76) {
           prompts.dataset.strictPromptsReadyV76 = '1';
           prompts.insertAdjacentHTML('beforeend', `
-            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v76 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v76</button>
+            <button class="ai-prompt" type="button" data-ai-prompt="Дай короткий строгий AI-разбор v77 по выбранной монете: решение LONG/SHORT/WAIT, уверенность без 100%, вход, Stop Loss, TP1/TP2/TP3, подтверждение, отмена сценария, чек-лист LONG, чек-лист SHORT, риск и итог. Если данных мало — WAIT.">Строгий разбор v77</button>
           `);
         }
       }
