@@ -1,0 +1,78 @@
+name: Validate v79 Preview
+
+on:
+  push:
+    paths:
+      - 'v79/**'
+      - '.github/workflows/v79-preview-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extract inline scripts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          output = Path('/tmp/v79-inline')
+          output.mkdir(parents=True, exist_ok=True)
+          count = 0
+          for html in sorted(Path('v79').glob('*.html')):
+              text = html.read_text(encoding='utf-8')
+              for index, script in enumerate(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, re.S | re.I), start=1):
+                  if not script.strip():
+                      continue
+                  target = output / f'{html.stem}-{index}.js'
+                  target.write_text(script, encoding='utf-8')
+                  print(target)
+                  count += 1
+          if count == 0:
+              raise SystemExit('No inline scripts found')
+          PY
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check v79/app.js
+          node --check v79/app-extension.js
+          find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Validate required modules and safety markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          required = {
+              'v79/index.html': ['app.html?v=7903'],
+              'v79/app.html': ['app-extension.js?v=7903'],
+              'v79/app.js': ["['backtest','↺']"],
+              'v79/app-extension.js': ['backtest.html'],
+              'v79/backtest.html': ['Profit Factor', 'maxDD', 'closed candles'],
+              'v79/chart.html': ['EMA20', 'RSI14'],
+              'v79/portfolio.html': ['portfolio'],
+              'v79/calculator.html': ['calculator'],
+          }
+          forbidden = ['SUPABASE_SERVICE_ROLE_KEY', 'MONITOR_SECRET', 'TELEGRAM_BOT_TOKEN']
+          for filename, markers in required.items():
+              text = Path(filename).read_text(encoding='utf-8')
+              missing = [marker for marker in markers if marker not in text]
+              if missing:
+                  raise SystemExit(f'{filename}: missing {missing}')
+              leaked = [item for item in forbidden if item in text]
+              if leaked:
+                  raise SystemExit(f'{filename}: forbidden secret marker {leaked}')
+          print('v79 validation passed')
+          PY
