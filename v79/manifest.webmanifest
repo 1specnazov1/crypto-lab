@@ -1,0 +1,23 @@
+{
+  "name": "CRYPTO LAB v79",
+  "short_name": "CRYPTO LAB",
+  "description": "Криптовалютный аналитический терминал: рынок, сканер, AI, портфель и бэктест.",
+  "id": "/crypto-lab/v79/",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0e11",
+  "theme_color": "#0b0e11",
+  "orientation": "any",
+  "lang": "ru",
+  "categories": ["finance", "business", "utilities"],
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Сканер","short_name":"Сканер","url":"./app.html?route=scanner"},
+    {"name":"AI-анализ","short_name":"AI","url":"./app.html?route=ai"},
+    {"name":"Бэктест","short_name":"Backtest","url":"./app.html?route=backtest"},
+    {"name":"Аккаунт","short_name":"Аккаунт","url":"./app.html?route=account"}
+  ]
+}
