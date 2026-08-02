@@ -6,26 +6,28 @@
   <meta name="theme-color" content="#0b0e11">
   <title>CRYPTO LAB v79 Preview</title>
   <style>
-    html,body{height:100%;margin:0;background:#0b0e11;color:#eaecef;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+    html,body{height:100%;margin:0;background:#0b0e11;color:#eaecef;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
     .loader{height:100%;display:grid;place-items:center;text-align:center;padding:24px;box-sizing:border-box}
-    .box{max-width:520px}
-    .spin{width:44px;height:44px;border:4px solid #2b3139;border-top-color:#f0b90b;border-radius:50%;margin:0 auto 18px;animation:s .8s linear infinite}
-    @keyframes s{to{transform:rotate(360deg)}}
-    .error{color:#ffc4cd}
+    .box{max-width:560px}.spin{width:44px;height:44px;border:4px solid #2b3139;border-top-color:#f0b90b;border-radius:50%;margin:0 auto 18px;animation:s .8s linear infinite}
+    @keyframes s{to{transform:rotate(360deg)}}.error{color:#ffc4cd}iframe{display:block;width:100%;height:100%;border:0;background:#0b0e11}
   </style>
 </head>
 <body>
-  <div class="loader"><div class="box"><div class="spin"></div><h2>CRYPTO LAB v79</h2><p id="msg">Загрузка интерфейса…</p></div></div>
+  <div class="loader" id="loader"><div class="box"><div class="spin"></div><h2>CRYPTO LAB v79</h2><p id="msg">Загрузка интерфейса…</p></div></div>
   <script>
     (async()=>{
       const source='https://txhzxbizjpinowepfjkm.supabase.co/storage/v1/object/public/crypto-lab-v79-preview/index.html?v=1785687830533';
+      const api='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-preview?api=dashboard';
       try{
         const response=await fetch(source,{cache:'no-store'});
         if(!response.ok) throw new Error('HTTP '+response.status);
-        const html=await response.text();
-        document.open();
-        document.write(html);
-        document.close();
+        let html=await response.text();
+        html=html.replace("fetch('?api=dashboard'",`fetch('${api}'`);
+        const frame=document.createElement('iframe');
+        frame.title='CRYPTO LAB v79';
+        frame.onload=()=>{const loader=document.getElementById('loader');if(loader)loader.remove()};
+        frame.srcdoc=html;
+        document.body.appendChild(frame);
       }catch(error){
         document.getElementById('msg').className='error';
         document.getElementById('msg').textContent='Не удалось загрузить preview: '+(error?.message||error);
