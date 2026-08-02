@@ -27,5 +27,22 @@
     $('frame').src = frameUrl(route, signal);
   };
 
+  const frame = $('frame');
+  const priorOnload = frame.onload;
+  frame.onload = function(event) {
+    if (typeof priorOnload === 'function') priorOnload.call(frame, event);
+    if (current !== 'account') return;
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || doc.getElementById('accountActionsScript')) return;
+      const script = doc.createElement('script');
+      script.id = 'accountActionsScript';
+      script.src = './account-actions.js?v=7904';
+      doc.head.appendChild(script);
+    } catch (error) {
+      console.warn('Account actions unavailable', error);
+    }
+  };
+
   translate();
 })();
