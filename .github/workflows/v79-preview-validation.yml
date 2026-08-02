@@ -31,9 +31,10 @@ jobs:
           output = Path('/tmp/v79-inline')
           output.mkdir(parents=True, exist_ok=True)
           count = 0
+          pattern = re.compile(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', re.S | re.I)
           for html in sorted(Path('v79').glob('*.html')):
               text = html.read_text(encoding='utf-8')
-              for index, script in enumerate(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, re.S | re.I), start=1):
+              for index, script in enumerate(pattern.findall(text), start=1):
                   if not script.strip():
                       continue
                   target = output / f'{html.stem}-{index}.js'
@@ -46,9 +47,11 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
-          node --check v79/app.js
-          node --check v79/app-extension.js
+          find v79 -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
           find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Validate manifest JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
 
       - name: Validate required modules and safety markers
         run: |
@@ -56,16 +59,24 @@ jobs:
           from pathlib import Path
 
           required = {
-              'v79/index.html': ['app.html?v=7903'],
-              'v79/app.html': ['app-extension.js?v=7903'],
-              'v79/app.js': ["['backtest','↺']"],
-              'v79/app-extension.js': ['backtest.html'],
-              'v79/backtest.html': ['Profit Factor', 'maxDD', 'closed candles'],
+              'v79/index.html': ['app.html?v=7905'],
+              'v79/app.html': ['app-extension.js?v=7905', 'viewport-fit=cover'],
+              'v79/app.js': ["['backtest','↺']", "['ai','✦']"],
+              'v79/app-extension.js': ['scanner.html', 'ai.html', 'backtest.html', 'account.html', 'service-worker.js'],
+              'v79/backtest.html': ['crypto-lab-v79-backtest-data', 'get_crypto_feature_status', 'Profit Factor'],
+              'v79/scanner.html': ['crypto-lab-v79-scanner', 'Проверка доступа'],
+              'v79/ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
+              'v79/account.html': ['get_my_crypto_account'],
+              'v79/manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
+              'v79/service-worker.js': ['crypto-lab-v79-7905', 'offline.html'],
+              'v79/privacy.html': ['Уведомление о конфиденциальности'],
+              'v79/terms.html': ['Условия использования'],
+              'v79/risk-disclosure.html': ['Раскрытие рисков'],
               'v79/chart.html': ['EMA20', 'RSI14'],
               'v79/portfolio.html': ['portfolio'],
               'v79/calculator.html': ['calculator'],
           }
-          forbidden = ['SUPABASE_SERVICE_ROLE_KEY', 'MONITOR_SECRET', 'TELEGRAM_BOT_TOKEN']
+          forbidden = ['SUPABASE_SERVICE_ROLE_KEY', 'MONITOR_SECRET', 'TELEGRAM_BOT_TOKEN', 'OPENAI_API_KEY=']
           for filename, markers in required.items():
               text = Path(filename).read_text(encoding='utf-8')
               missing = [marker for marker in markers if marker not in text]
