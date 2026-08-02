@@ -107,4 +107,6 @@
   addEventListener('error', event => console.error('CRYPTO LAB UI error', event.error || event.message));
   addEventListener('unhandledrejection', event => console.error('CRYPTO LAB promise error', event.reason));
   translate();
+  const requestedRoute = new URLSearchParams(location.search).get('route');
+  if (requestedRoute && ROUTES.some(route => route[0] === requestedRoute)) setTimeout(() => open(requestedRoute), 0);
 })();
