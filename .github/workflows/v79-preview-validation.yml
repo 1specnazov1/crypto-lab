@@ -59,16 +59,18 @@ jobs:
           from pathlib import Path
 
           required = {
-              'v79/index.html': ['app.html?v=7905'],
-              'v79/app.html': ['app-extension.js?v=7905', 'viewport-fit=cover'],
-              'v79/app.js': ["['backtest','↺']", "['ai','✦']"],
-              'v79/app-extension.js': ['scanner.html', 'ai.html', 'backtest.html', 'account.html', 'service-worker.js'],
+              'v79/index.html': ['app.html?v=7906'],
+              'v79/app.html': ['app-extension.js?v=7906', 'viewport-fit=cover'],
+              'v79/app.js': ["['backtest','↺']", "['ai','✦']", "['journal','☷']"],
+              'v79/app-extension.js': ['scanner.html', 'ai.html', 'backtest.html', 'journal.html', 'account.html', 'service-worker.js', "BUILD = '7906'"],
               'v79/backtest.html': ['crypto-lab-v79-backtest-data', 'get_crypto_feature_status', 'Profit Factor'],
               'v79/scanner.html': ['crypto-lab-v79-scanner', 'Проверка доступа'],
               'v79/ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
+              'v79/journal.html': ['journal.js?v=7906', 'Журнал сделок', 'Profit Factor'],
+              'v79/journal.js': ['crypto_trade_journal', 'realized_pnl', 'r_multiple', 'persistSession'],
               'v79/account.html': ['get_my_crypto_account'],
               'v79/manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
-              'v79/service-worker.js': ['crypto-lab-v79-7905', 'offline.html'],
+              'v79/service-worker.js': ['crypto-lab-v79-7906', 'journal.html', 'journal.js', 'offline.html'],
               'v79/privacy.html': ['Уведомление о конфиденциальности'],
               'v79/terms.html': ['Условия использования'],
               'v79/risk-disclosure.html': ['Раскрытие рисков'],
