@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://1specnazov1.github.io/crypto-lab/docs/schemas/crypto-billing-normalized-event-v1.schema.json",
+  "title": "CRYPTO LAB Normalized Billing Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provider", "provider_event_id", "event_type", "order_id", "payload"],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": ["manual", "liqpay", "stripe"]
+    },
+    "provider_event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "payment.pending",
+        "payment.succeeded",
+        "payment.failed",
+        "payment.expired",
+        "payment.canceled",
+        "payment.refunded",
+        "subscription.renewed",
+        "subscription.cancel_at_period_end",
+        "subscription.canceled"
+      ]
+    },
+    "order_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source_created_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["provider_order_id"],
+      "properties": {
+        "provider_order_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["FREE", "BASIC", "PRO"]
+        },
+        "billing_interval": {
+          "type": "string",
+          "enum": ["month", "year"]
+        },
+        "period_start": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "period_end": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "provider_customer_id": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        },
+        "provider_subscription_id": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        },
+        "provider_status": {
+          "type": ["string", "null"],
+          "maxLength": 120
+        },
+        "failure_code": {
+          "type": ["string", "null"],
+          "maxLength": 120
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event_type": {
+                "const": "payment.succeeded"
+              }
+            }
+          },
+          "then": {
+            "required": ["amount_minor", "currency"]
+          }
+        }
+      ]
+    }
+  }
+}
