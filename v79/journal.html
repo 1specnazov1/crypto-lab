@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<title>CRYPTO LAB v79 · Журнал сделок</title>
+<style>
+:root{--bg:#0b0e11;--panel:#151a21;--panel2:#1e2329;--line:#2b3139;--text:#eaecef;--muted:#848e9c;--gold:#f0b90b;--ok:#0ecb81;--bad:#f6465d;--blue:#4d9fff}
+*{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:var(--bg);color:var(--text);font:12px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}.top{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:#101317;border-bottom:1px solid var(--line)}.brand{font-weight:950;letter-spacing:.07em}.brand span{color:var(--gold)}.spacer{flex:1}.btn,input,select,textarea{background:var(--panel2);border:1px solid var(--line);color:#fff;border-radius:8px;padding:8px 10px;outline:none}.btn{cursor:pointer}.btn.gold{border-color:#f0b90b66;color:#ffe58f;background:#f0b90b12}.btn.bad{border-color:#f6465d55;color:#ffc4cd;background:#f6465d10}.btn:disabled{opacity:.5;cursor:not-allowed}.wrap{padding:12px;display:grid;gap:10px}.notice{padding:10px 12px;border:1px solid #4d9fff44;background:#4d9fff10;color:#bddbff;border-radius:9px}.notice.bad{border-color:#f6465d55;background:#f6465d10;color:#ffc4cd}.hide{display:none!important}.metrics{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px}.metric{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px}.metric span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.metric b{display:block;font-size:19px;margin-top:6px}.pos{color:var(--ok)!important}.neg{color:var(--bad)!important}.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}.card-head h2,.card-head h3{margin:0;font-size:14px}.form{padding:12px}.form-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px}.field label{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.field input,.field select,.field textarea{width:100%}.wide2{grid-column:span 2}.wide3{grid-column:span 3}.full{grid-column:1/-1}.form-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:10px;flex-wrap:wrap}.filters{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}.filters input{min-width:170px}.table-wrap{overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse;min-width:1280px}th,td{padding:10px 11px;border-top:1px solid var(--line);text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#171c23;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}.badge{display:inline-flex;padding:4px 7px;border-radius:999px;border:1px solid var(--line);font-size:9px;font-weight:850}.long{color:#9cf0ca;border-color:#0ecb8145;background:#0ecb8110}.short{color:#ffc4cd;border-color:#f6465d45;background:#f6465d10}.open{color:#b9d9ff;border-color:#4d9fff55;background:#4d9fff10}.closed{color:#a7f3d0;border-color:#0ecb8145;background:#0ecb8110}.cancelled{color:#c6cbd3}.muted{color:var(--muted)}.empty{padding:32px;text-align:center;color:var(--muted)}.row-actions{display:flex;gap:6px}.row-actions .btn{padding:6px 8px}.footer-note{font-size:10px;color:var(--muted);padding:2px 2px 14px}
+@media(max-width:1180px){.metrics{grid-template-columns:repeat(3,1fr)}.form-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.wide2,.wide3{grid-column:span 2}.top{align-items:stretch}.spacer{display:none}}
+@media(max-width:480px){.metrics,.form-grid{grid-template-columns:1fr}.wide2,.wide3{grid-column:span 1}.top>*{width:100%}.top .brand{width:auto}.form-actions{justify-content:stretch}.form-actions .btn{flex:1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><span>CRYPTO</span> LAB v79 · <b id="pageTitle">Журнал сделок</b></div><div class="spacer"></div><span id="authState" class="muted">Проверка аккаунта…</span><button class="btn gold" id="newBtn">Новая сделка</button><button class="btn" id="exportBtn">CSV</button><select id="lang"><option value="ru">RU</option><option value="uk">UA</option><option value="en">EN</option></select></header>
+<main class="wrap">
+<div id="notice" class="notice hide"></div>
+<section class="metrics"><div class="metric"><span id="closedLabel">Закрытых сделок</span><b id="closedCount">0</b></div><div class="metric"><span>Win Rate</span><b id="winRate">—</b></div><div class="metric"><span id="netLabel">Чистый P&amp;L</span><b id="netPnl">—</b></div><div class="metric"><span>Profit Factor</span><b id="profitFactor">—</b></div><div class="metric"><span id="avgRLabel">Средний R</span><b id="avgR">—</b></div><div class="metric"><span id="openLabel">Открытых</span><b id="openCount">0</b></div></section>
+<section class="card" id="editorCard">
+<div class="card-head"><h2 id="editorTitle">Новая сделка</h2><button class="btn" id="closeEditorBtn">Скрыть</button></div>
+<form class="form" id="tradeForm"><input type="hidden" id="tradeId"><div class="form-grid">
+<div class="field"><label id="symbolLabel">Монета</label><input id="symbol" maxlength="20" value="BTC" required></div>
+<div class="field"><label id="tfLabel">Таймфрейм</label><select id="timeframe"><option>1M</option><option>3M</option><option>5M</option><option>15M</option><option>30M</option><option selected>1H</option><option>2H</option><option>4H</option><option>6H</option><option>8H</option><option>12H</option><option>1D</option><option>3D</option><option>1W</option><option>1MO</option></select></div>
+<div class="field"><label id="directionLabel">Направление</label><select id="direction"><option>LONG</option><option>SHORT</option></select></div>
+<div class="field"><label id="statusLabel">Статус</label><select id="status"><option>OPEN</option><option>CLOSED</option><option>CANCELLED</option></select></div>
+<div class="field"><label id="entryTimeLabel">Время входа</label><input id="entryTime" type="datetime-local" required></div>
+<div class="field"><label id="exitTimeLabel">Время выхода</label><input id="exitTime" type="datetime-local"></div>
+<div class="field"><label>Entry</label><input id="entryPrice" type="number" min="0" step="any" required></div>
+<div class="field"><label>Exit</label><input id="exitPrice" type="number" min="0" step="any"></div>
+<div class="field"><label>Stop</label><input id="stopPrice" type="number" min="0" step="any"></div>
+<div class="field"><label>Take Profit</label><input id="takeProfitPrice" type="number" min="0" step="any"></div>
+<div class="field"><label id="quantityLabel">Количество</label><input id="quantity" type="number" min="0" step="any" value="1" required></div>
+<div class="field"><label id="leverageLabel">Плечо</label><input id="leverage" type="number" min="1" max="125" step="1" value="1" required></div>
+<div class="field"><label id="feesLabel">Комиссии, USDT</label><input id="fees" type="number" min="0" step="any" value="0"></div>
+<div class="field wide2"><label id="strategyLabel">Стратегия</label><input id="strategy" maxlength="120" placeholder="EMA + RSI"></div>
+<div class="field wide3"><label id="setupLabel">Сетап</label><input id="setup" maxlength="250" placeholder="Пробой уровня, ретест, подтверждение объёма"></div>
+<div class="field wide3"><label id="tagsLabel">Теги через запятую</label><input id="tags" maxlength="250" placeholder="trend, breakout"></div>
+<div class="field full"><label id="notesLabel">Заметки</label><textarea id="notes" rows="3" maxlength="4000"></textarea></div>
+</div><div class="form-actions"><span id="formState" class="muted"></span><button type="button" class="btn" id="resetFormBtn">Очистить</button><button type="submit" class="btn gold" id="saveBtn">Сохранить</button></div></form>
+</section>
+<section class="card"><div class="card-head"><div><h3 id="tableTitle">История сделок</h3><small id="rowCount" class="muted">0</small></div><button class="btn" id="refreshBtn">Обновить</button></div><div class="filters"><select id="filterStatus"><option value="all">Все статусы</option><option>OPEN</option><option>CLOSED</option><option>CANCELLED</option></select><select id="filterDirection"><option value="all">LONG + SHORT</option><option>LONG</option><option>SHORT</option></select><input id="filterSearch" placeholder="Монета, стратегия или тег"></div><div class="table-wrap"><table><thead><tr><th id="thEntry">Вход</th><th id="thAsset">Монета</th><th>TF</th><th id="thDirection">Направление</th><th id="thStatus">Статус</th><th>Entry</th><th>Exit</th><th>Stop</th><th>TP</th><th id="thQty">Количество</th><th id="thPnl">P&amp;L</th><th>R</th><th id="thStrategy">Стратегия</th><th id="thTags">Теги</th><th id="thAction">Действия</th></tr></thead><tbody id="body"><tr><td colspan="15" class="empty">Загрузка…</td></tr></tbody></table></div></section>
+<div class="footer-note" id="footerNote">P&amp;L рассчитывается по количеству актива: LONG = (Exit − Entry) × Quantity − Fees; SHORT = (Entry − Exit) × Quantity − Fees. Плечо сохраняется как параметр сделки и не умножает P&amp;L повторно.</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./journal.js?v=7906"></script>
+</body>
+</html>
