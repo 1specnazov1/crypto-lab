@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'v79/**'
+      - 'docs/schemas/crypto-billing-normalized-event-v1.schema.json'
       - '.github/workflows/v79-preview-validation.yml'
   pull_request:
     paths:
       - 'v79/**'
+      - 'docs/schemas/crypto-billing-normalized-event-v1.schema.json'
       - '.github/workflows/v79-preview-validation.yml'
   workflow_dispatch:
 
@@ -24,10 +26,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -36,7 +38,6 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-
           output = Path('/tmp/v79-inline')
           output.mkdir(parents=True, exist_ok=True)
           pattern = re.compile(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', re.S | re.I)
@@ -48,7 +49,6 @@ jobs:
                       continue
                   target = output / f'{html.stem}-{index}.js'
                   target.write_text(script, encoding='utf-8')
-                  print(target)
                   count += 1
           print(f'Extracted {count} inline scripts')
           PY
@@ -59,8 +59,10 @@ jobs:
           find v79 -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
           find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
 
-      - name: Validate manifest JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
+      - name: Validate JSON assets
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/schemas/crypto-billing-normalized-event-v1.schema.json','utf8'))"
 
       - name: Validate release gate
         run: |
@@ -72,7 +74,6 @@ jobs:
 
           root = Path('v79')
           errors = []
-
           required_files = [
               'index.html','app.html','app.css','app.js','app-extension.js',
               'support-extension.js','commercial-extension.js','platform.css',
@@ -83,110 +84,78 @@ jobs:
               'account.html','account-actions.js','registration-consent.js',
               'commercial.js','subscription-lifecycle.js','support.html',
               'admin.html','admin-health.js','admin-deletions.js','admin-support.js',
-              'admin-commercial.js','admin-billing-events.js','admin-telemetry.js',
-              'admin-ai-telemetry.js','legal.js','privacy.html','terms.html',
-              'risk-disclosure.html','service-worker.js'
+              'admin-commercial.js','admin-billing-events.js','admin-provider-readiness.js',
+              'admin-telemetry.js','admin-ai-telemetry.js','legal.js','privacy.html',
+              'terms.html','risk-disclosure.html','service-worker.js'
           ]
           for name in required_files:
-              if not (root / name).is_file():
-                  errors.append(f'missing required file: v79/{name}')
+              if not (root / name).is_file(): errors.append(f'missing required file: v79/{name}')
 
           def read(name):
               path = root / name
               return path.read_text(encoding='utf-8') if path.exists() else ''
 
-          index = read('index.html')
-          app = read('app.html')
-          commercial_extension = read('commercial-extension.js')
-          service_worker = read('service-worker.js')
-
+          index,app,commercial_extension,service_worker = map(read,['index.html','app.html','commercial-extension.js','service-worker.js'])
           match = re.search(r'app\.html\?v=(\d{4,})', index)
-          if not match:
-              errors.append('index.html does not declare a numeric v79 build')
-              build = None
-          else:
-              build = match.group(1)
-
+          build = match.group(1) if match else None
+          if not build: errors.append('index.html does not declare a numeric v79 build')
           if build:
-              if f'commercial-extension.js?v={build}' not in app:
-                  errors.append(f'app.html does not load commercial-extension build {build}')
-              if not re.search(rf"\bBUILD\s*=\s*['\"]{re.escape(build)}['\"]", commercial_extension):
-                  errors.append(f'commercial-extension.js BUILD is not {build}')
-              if f'crypto-lab-v79-{build}' not in service_worker:
-                  errors.append(f'service-worker cache is not build {build}')
+              if f'commercial-extension.js?v={build}' not in app: errors.append(f'app.html does not load commercial-extension build {build}')
+              if not re.search(rf"\bBUILD\s*=\s*['\"]{re.escape(build)}['\"]", commercial_extension): errors.append(f'commercial-extension.js BUILD is not {build}')
+              if f'crypto-lab-v79-{build}' not in service_worker: errors.append(f'service-worker cache is not build {build}')
 
           structural_markers = {
-              'app.html': ['viewport-fit=cover', 'Content-Security-Policy', 'support-extension.js', 'commercial-extension.js'],
-              'app.js': ["['backtest','↺']", "['ai','✦']", "['journal','☷']"],
-              'app-extension.js': ['scanner.html', 'journal.html', 'account.html', 'service-worker.js'],
-              'support-extension.js': ['support.html', 'admin-support.js'],
-              'commercial-extension.js': ['subscription-lifecycle.js', 'admin-commercial.js', 'admin-billing-events.js'],
-              'backtest.html': ['Server Backtest', 'get_crypto_feature_status', 'Profit Factor', 'Stop-first'],
-              'scanner.html': ['crypto-lab-v79-scanner'],
-              'ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
-              'journal.js': ['crypto_trade_journal', 'realized_pnl', 'r_multiple'],
-              'account.html': ['get_my_crypto_account'],
-              'support.html': ['get_my_crypto_support_tickets', 'create_crypto_support_ticket'],
-              'admin.html': ['get_crypto_admin_summary'],
-              'admin-billing-events.js': ['get_crypto_admin_billing_dashboard', 'admin_review_crypto_billing_event', 'admin_resolve_crypto_billing_anomaly'],
-              'manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
-              'service-worker.js': ['offline.html', 'admin-billing-events.js', 'subscription-lifecycle.js'],
-              'privacy.html': ['privacy'],
-              'terms.html': ['terms'],
-              'risk-disclosure.html': ['risk'],
-              'chart.html': ['EMA20', 'RSI14'],
-              'portfolio.html': ['portfolio'],
-              'calculator.html': ['calculator'],
+              'app.html':['viewport-fit=cover','Content-Security-Policy','support-extension.js','commercial-extension.js'],
+              'app.js':["['backtest','↺']","['ai','✦']","['journal','☷']"],
+              'app-extension.js':['scanner.html','journal.html','account.html','service-worker.js'],
+              'support-extension.js':['support.html','admin-support.js'],
+              'commercial-extension.js':['subscription-lifecycle.js','admin-commercial.js','admin-billing-events.js','admin-provider-readiness.js'],
+              'admin-provider-readiness.js':['get_crypto_admin_provider_adapters','required_secret_names','runtime_secrets_not_verified'],
+              'backtest.html':['Server Backtest','get_crypto_feature_status','Profit Factor','Stop-first'],
+              'scanner.html':['crypto-lab-v79-scanner'],
+              'ai.html':['crypto-ai-advisor','get_crypto_feature_status'],
+              'journal.js':['crypto_trade_journal','realized_pnl','r_multiple'],
+              'account.html':['get_my_crypto_account'],
+              'support.html':['get_my_crypto_support_tickets','create_crypto_support_ticket'],
+              'admin.html':['get_crypto_admin_summary'],
+              'admin-billing-events.js':['get_crypto_admin_billing_dashboard','admin_review_crypto_billing_event','admin_resolve_crypto_billing_anomaly'],
+              'manifest.webmanifest':['"display": "standalone"','icon.svg'],
+              'service-worker.js':['offline.html','admin-billing-events.js','admin-provider-readiness.js','subscription-lifecycle.js'],
+              'privacy.html':['privacy'],'terms.html':['terms'],'risk-disclosure.html':['risk'],
+              'chart.html':['EMA20','RSI14'],'portfolio.html':['portfolio'],'calculator.html':['calculator']
           }
-          for name, markers in structural_markers.items():
-              text = read(name)
+          for name,markers in structural_markers.items():
+              text=read(name)
               for marker in markers:
-                  if marker not in text:
-                      errors.append(f'v79/{name}: missing marker {marker!r}')
+                  if marker not in text: errors.append(f'v79/{name}: missing marker {marker!r}')
 
-          attr_pattern = re.compile(r'(?:src|href)=["\'](\./[^"\']+)["\']', re.I)
+          attr_pattern=re.compile(r'(?:src|href)=["\'](\./[^"\']+)["\']',re.I)
           for html in root.glob('*.html'):
               for ref in attr_pattern.findall(html.read_text(encoding='utf-8')):
-                  clean = ref.split('?', 1)[0].split('#', 1)[0]
-                  if clean in ('./', ''):
-                      continue
-                  target = root / clean[2:]
-                  if not target.exists():
-                      errors.append(f'{html}: missing local reference {ref}')
+                  clean=ref.split('?',1)[0].split('#',1)[0]
+                  if clean not in ('./','') and not (root/clean[2:]).exists(): errors.append(f'{html}: missing local reference {ref}')
 
-          shell_match = re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];', service_worker, re.S)
-          if not shell_match:
-              errors.append('service-worker.js: SHELL list not found')
+          shell_match=re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];',service_worker,re.S)
+          if not shell_match: errors.append('service-worker.js: SHELL list not found')
           else:
-              for ref in re.findall(r"['\"](\./[^'\"]+)['\"]", shell_match.group(1)):
-                  clean = ref.split('?', 1)[0].split('#', 1)[0]
-                  if clean == './':
-                      continue
-                  target = root / clean[2:]
-                  if not target.exists():
-                      errors.append(f'service-worker.js: missing cached file {ref}')
+              for ref in re.findall(r"['\"](\./[^'\"]+)['\"]",shell_match.group(1)):
+                  clean=ref.split('?',1)[0].split('#',1)[0]
+                  if clean!='./' and not (root/clean[2:]).exists(): errors.append(f'service-worker.js: missing cached file {ref}')
 
-          forbidden = [
-              'SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN',
-              'OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET',
-              'CRYPTO_TURNSTILE_SECRET_KEY','sb_secret_'
-          ]
+          forbidden=['SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN','OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET','CRYPTO_TURNSTILE_SECRET_KEY','LIQPAY_PRIVATE_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','sb_secret_']
           for path in root.iterdir():
-              if not path.is_file() or path.suffix.lower() not in {'.html','.js','.css','.json','.webmanifest','.svg'}:
-                  continue
-              text = path.read_text(encoding='utf-8')
-              for marker in forbidden:
-                  if marker in text:
-                      errors.append(f'{path}: forbidden server-secret marker {marker}')
+              if path.is_file() and path.suffix.lower() in {'.html','.js','.css','.json','.webmanifest','.svg'}:
+                  text=path.read_text(encoding='utf-8')
+                  for marker in forbidden:
+                      if marker in text: errors.append(f'{path}: forbidden server-secret marker {marker}')
 
-          manifest = json.loads(read('manifest.webmanifest'))
-          if manifest.get('display') != 'standalone':
-              errors.append('manifest.webmanifest display must be standalone')
-          if not manifest.get('icons'):
-              errors.append('manifest.webmanifest requires at least one icon')
+          manifest=json.loads(read('manifest.webmanifest'))
+          if manifest.get('display')!='standalone': errors.append('manifest.webmanifest display must be standalone')
+          if not manifest.get('icons'): errors.append('manifest.webmanifest requires at least one icon')
+          schema=json.loads(Path('docs/schemas/crypto-billing-normalized-event-v1.schema.json').read_text(encoding='utf-8'))
+          if schema.get('title')!='CRYPTO LAB Normalized Billing Event v1': errors.append('normalized billing schema title mismatch')
 
           if errors:
-              print('\n'.join(f'ERROR: {item}' for item in errors))
-              sys.exit(1)
+              print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
           print(f'v79 release gate passed for build {build}')
           PY
