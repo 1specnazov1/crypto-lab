@@ -78,6 +78,20 @@ Both functions verify the authenticated user's `crypto_user_profiles.role = admi
 
 Support tickets reference `auth.users` with `ON DELETE CASCADE`; ticket messages reference tickets with `ON DELETE CASCADE`. A completed account deletion therefore removes the user's support conversations as well.
 
+`crypto-lab-v79-admin-deletions` version 2 now includes legal acceptances, support tickets, support messages and the deletion request itself in the pre-deletion audit count. The privacy-preserving deletion audit therefore reports the complete user-owned row count for the expanded v79 schema.
+
+## Operational health
+
+Migration `crypto_lab_v79_support_operational_health` extended the protected admin health RPC with:
+
+- open support count;
+- in-progress support count;
+- resolved and closed counts;
+- urgent unresolved count;
+- age of the oldest unresolved ticket.
+
+This makes unresolved customer support part of commercial launch operations rather than a separate unmonitored feature.
+
 ## Performance
 
 Migration `crypto_lab_v79_support_and_legal_performance` added covering indexes for:
@@ -86,7 +100,7 @@ Migration `crypto_lab_v79_support_and_legal_performance` added covering indexes 
 - assigned support administrators;
 - legal document/version foreign keys.
 
-The legal acceptance RLS policy now initializes `auth.uid()` once per query.
+The legal acceptance RLS policy now initializes `auth.uid()` once per query. After rechecking the Supabase performance advisor, foreign-key and RLS initialization warnings were cleared; only informational unused-index notices remain on new or empty production tables.
 
 ## Verification
 
@@ -100,7 +114,9 @@ Verified sequence:
 4. admin retrieved the queue;
 5. admin changed priority to High, added a response and resolved the ticket;
 6. admin counts changed from Open 1 to Resolved 1;
-7. deleting the temporary Auth rows cascaded to zero test users, tickets and messages.
+7. deleting the temporary Auth rows cascaded to zero test users, tickets and messages;
+8. the operational health RPC returned the new support metrics;
+9. unauthenticated data-export and admin-deletion requests returned HTTP 401.
 
 Public validator confirmed HTTP 200 and valid JavaScript for:
 
