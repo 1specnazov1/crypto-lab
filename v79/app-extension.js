@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7913';
+  const BUILD = '7914';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -147,7 +147,10 @@
         injectScript(doc, 'journalAnalyticsScript', './journal-analytics.js');
       }
       if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
-      if (path.endsWith('/admin.html')) injectScript(doc, 'adminTelemetryScript', './admin-telemetry.js');
+      if (path.endsWith('/admin.html')) {
+        injectScript(doc, 'adminTelemetryScript', './admin-telemetry.js');
+        injectScript(doc, 'adminAiTelemetryScript', './admin-ai-telemetry.js');
+      }
     } catch (error) {
       console.warn('Frame enhancements unavailable', error);
     }
