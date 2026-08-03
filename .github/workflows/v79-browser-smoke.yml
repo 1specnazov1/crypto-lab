@@ -1,0 +1,73 @@
+name: V79 Browser Smoke
+
+on:
+  push:
+    paths:
+      - 'v79/**'
+      - 'tests/v79-mobile-smoke.spec.js'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - '.github/workflows/v79-browser-smoke.yml'
+  pull_request:
+    paths:
+      - 'v79/**'
+      - 'tests/v79-mobile-smoke.spec.js'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - '.github/workflows/v79-browser-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-browser-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install pinned Playwright test runner
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Install Chromium and Linux dependencies
+        run: npx playwright install chromium --with-deps
+
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/crypto-lab-http.log 2>&1 &
+          echo $! > /tmp/crypto-lab-http.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/v79/app.html > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/crypto-lab-http.log
+          exit 1
+
+      - name: Run v79 browser smoke
+        run: npm run test:v79:browser
+        env:
+          CI: 'true'
+
+      - name: Upload browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: v79-browser-smoke-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
