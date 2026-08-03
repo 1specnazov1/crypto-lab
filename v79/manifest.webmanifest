@@ -1,7 +1,7 @@
 {
   "name": "CRYPTO LAB v79",
   "short_name": "CRYPTO LAB",
-  "description": "Криптовалютный аналитический терминал: рынок, сканер, AI, портфель и бэктест.",
+  "description": "Криптовалютный аналитический терминал: рынок, сканер, AI, портфель, журнал и бэктест.",
   "id": "/crypto-lab/v79/",
   "start_url": "./index.html?source=pwa",
   "scope": "./",
@@ -17,6 +17,7 @@
   "shortcuts": [
     {"name":"Сканер","short_name":"Сканер","url":"./app.html?route=scanner"},
     {"name":"AI-анализ","short_name":"AI","url":"./app.html?route=ai"},
+    {"name":"Журнал сделок","short_name":"Журнал","url":"./app.html?route=journal"},
     {"name":"Бэктест","short_name":"Backtest","url":"./app.html?route=backtest"},
     {"name":"Аккаунт","short_name":"Аккаунт","url":"./app.html?route=account"}
   ]
