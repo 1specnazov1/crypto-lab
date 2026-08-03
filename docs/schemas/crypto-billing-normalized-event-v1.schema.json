@@ -91,21 +91,25 @@
           "type": "object",
           "additionalProperties": true
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "event_type": {
-                "const": "payment.succeeded"
-              }
-            }
-          },
-          "then": {
-            "required": ["amount_minor", "currency"]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["payment.succeeded", "payment.refunded", "subscription.renewed"]
           }
         }
-      ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["provider_order_id", "amount_minor", "currency"]
+          }
+        }
+      }
     }
-  }
+  ]
 }
