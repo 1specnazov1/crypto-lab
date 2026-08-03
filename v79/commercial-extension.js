@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7928';
+  const BUILD='7929';
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
@@ -11,11 +11,14 @@
         add(doc,'registrationConsentScript','./registration-consent.js');
         add(doc,'commercialCenterScript','./commercial.js');
         add(doc,'subscriptionLifecycleScript','./subscription-lifecycle.js');
+        add(doc,'sessionSecurityScript','./session-security.js');
       }
       if(path.endsWith('/admin.html')){
         add(doc,'adminCommercialScript','./admin-commercial.js');
         add(doc,'adminBillingEventsScript','./admin-billing-events.js');
         add(doc,'adminProviderReadinessScript','./admin-provider-readiness.js');
+        add(doc,'adminAuditScript','./admin-audit.js');
+        add(doc,'adminSessionSecurityScript','./admin-session-security.js');
       }
     }catch(error){console.warn('Commercial integration unavailable',error);}
   });
