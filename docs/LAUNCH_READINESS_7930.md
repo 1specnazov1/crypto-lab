@@ -19,8 +19,8 @@ This scorecard separates automated technical beta readiness from readiness for a
 
 | Gate | Weight | Result | Evidence |
 |---|---:|---|---|
-| UI, responsive shell, PWA and accessibility | 20 | Pass | Chromium profiles 390×844, 412×915 and 1440×900; 15/15 tests passed in run `30854617205` for build 7929. Build 7930 extends the same gate with readiness assets. |
-| Database row-level security | 20 | Pass | All 31 CRYPTO LAB public tables use RLS. |
+| UI, responsive shell, PWA and accessibility | 20 | Pass | Chromium profiles 390×844, 412×915 and 1440×900; 15/15 tests passed in run `30859406451`. |
+| Database row-level security | 20 | Pass | All 33 CRYPTO LAB public tables use RLS. |
 | Scheduled operations | 15 | Pass | Six of six CRYPTO LAB cron jobs are active; no cron failure was found in the preceding 24 hours. |
 | Scanner and monitor freshness | 15 | Pass | Scanner completed successfully; monitor freshness remained within the defined operational window. |
 | Account, privacy and administrative controls | 15 | Pass | Session security, user export, deletion workflow, support workflow and protected administrative audit are present. |
@@ -50,9 +50,9 @@ The 100/100 score means the currently automated non-commercial beta checks pass.
 
 ## Security inventory
 
-- 31 of 31 CRYPTO LAB public tables use RLS.
-- 101 CRYPTO LAB functions exist across public and private schemas.
-- 58 functions use `SECURITY DEFINER` for server-side boundaries.
+- 33 of 33 CRYPTO LAB public tables use RLS.
+- 105 CRYPTO LAB functions exist across public and private schemas.
+- 60 functions use `SECURITY DEFINER` for server-side boundaries.
 - No public `SECURITY DEFINER` function is directly executable by `anon` or `authenticated` roles.
 - Supabase Security Advisor reports zero security lints.
 - Performance Advisor reports only informational unused-index notices on new or low-traffic tables.
@@ -67,6 +67,14 @@ The 100/100 score means the currently automated non-commercial beta checks pass.
 | Billing event retry | Every 5 minutes | Active |
 | Billing reconciliation | At minute 7 each hour | Active |
 | Maintenance | 03:17 daily | Active |
+
+## Release evidence
+
+- Browser/PWA/accessibility/offline smoke: run `30859406451` — success, 15 tests passed.
+- Dynamic release gate: run `30859439388` — success.
+- GitHub Pages deployment for the complete documentation head: run `30859529096` — success.
+- Server validator: version 61, synchronized to build 7930.
+- Root v78 SHA: `4a278c891d37b3760ec1ac988690ea9ad587b24e`.
 
 ## Decision
 
