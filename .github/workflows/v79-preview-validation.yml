@@ -4,11 +4,17 @@ on:
   push:
     paths:
       - 'v79/**'
+      - 'tests/v79-mobile-smoke.spec.js'
+      - 'package.json'
+      - 'playwright.config.mjs'
       - 'docs/schemas/crypto-billing-normalized-event-v1.schema.json'
       - '.github/workflows/v79-preview-validation.yml'
   pull_request:
     paths:
       - 'v79/**'
+      - 'tests/v79-mobile-smoke.spec.js'
+      - 'package.json'
+      - 'playwright.config.mjs'
       - 'docs/schemas/crypto-billing-normalized-event-v1.schema.json'
       - '.github/workflows/v79-preview-validation.yml'
   workflow_dispatch:
@@ -58,9 +64,12 @@ jobs:
           set -euo pipefail
           find v79 -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
           find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
+          node --check tests/v79-mobile-smoke.spec.js
+          node --check playwright.config.mjs
 
       - name: Validate JSON assets
         run: |
+          node -e "const p=JSON.parse(require('fs').readFileSync('package.json','utf8'));if(p.version!=='79.29.0')throw new Error('package version mismatch')"
           node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('docs/schemas/crypto-billing-normalized-event-v1.schema.json','utf8'))"
 
@@ -76,20 +85,23 @@ jobs:
           errors = []
           required_files = [
               'index.html','app.html','app.css','app.js','app-extension.js',
-              'support-extension.js','commercial-extension.js','platform.css',
-              'module-mobile.css','manifest.webmanifest','icon.svg','offline.html',
-              'chart.html','portfolio.html','calculator.html','backtest.html',
-              'backtest-history.js','scanner.html','scanner-actions.js','ai.html',
-              'journal.html','journal.js','journal-import.js','journal-analytics.js',
-              'account.html','account-actions.js','registration-consent.js',
-              'commercial.js','subscription-lifecycle.js','support.html',
-              'admin.html','admin-health.js','admin-deletions.js','admin-support.js',
-              'admin-commercial.js','admin-billing-events.js','admin-provider-readiness.js',
-              'admin-telemetry.js','admin-ai-telemetry.js','legal.js','privacy.html',
-              'terms.html','risk-disclosure.html','service-worker.js'
+              'support-extension.js','commercial-extension.js','accessibility.js',
+              'module-accessibility.js','platform.css','module-mobile.css',
+              'manifest.webmanifest','icon.svg','offline.html','chart.html',
+              'portfolio.html','calculator.html','backtest.html','backtest-history.js',
+              'scanner.html','scanner-actions.js','ai.html','journal.html','journal.js',
+              'journal-import.js','journal-analytics.js','account.html','account-actions.js',
+              'session-security.js','registration-consent.js','commercial.js',
+              'subscription-lifecycle.js','support.html','admin.html','admin-health.js',
+              'admin-deletions.js','admin-support.js','admin-commercial.js',
+              'admin-billing-events.js','admin-provider-readiness.js','admin-audit.js',
+              'admin-session-security.js','admin-telemetry.js','admin-ai-telemetry.js',
+              'legal.js','privacy.html','terms.html','risk-disclosure.html','service-worker.js'
           ]
           for name in required_files:
               if not (root / name).is_file(): errors.append(f'missing required file: v79/{name}')
+          if not Path('tests/v79-mobile-smoke.spec.js').is_file(): errors.append('missing browser smoke test')
+          if not Path('playwright.config.mjs').is_file(): errors.append('missing Playwright config')
 
           def read(name):
               path = root / name
@@ -101,15 +113,21 @@ jobs:
           if not build: errors.append('index.html does not declare a numeric v79 build')
           if build:
               if f'commercial-extension.js?v={build}' not in app: errors.append(f'app.html does not load commercial-extension build {build}')
+              if f'accessibility.js?v={build}' not in app: errors.append(f'app.html does not load accessibility build {build}')
               if not re.search(rf"\bBUILD\s*=\s*['\"]{re.escape(build)}['\"]", commercial_extension): errors.append(f'commercial-extension.js BUILD is not {build}')
               if f'crypto-lab-v79-{build}' not in service_worker: errors.append(f'service-worker cache is not build {build}')
 
           structural_markers = {
-              'app.html':['viewport-fit=cover','Content-Security-Policy','support-extension.js','commercial-extension.js'],
+              'app.html':['viewport-fit=cover','Content-Security-Policy','support-extension.js','commercial-extension.js','accessibility.js'],
               'app.js':["['backtest','↺']","['ai','✦']","['journal','☷']"],
               'app-extension.js':['scanner.html','journal.html','account.html','service-worker.js'],
               'support-extension.js':['support.html','admin-support.js'],
-              'commercial-extension.js':['subscription-lifecycle.js','admin-commercial.js','admin-billing-events.js','admin-provider-readiness.js'],
+              'commercial-extension.js':['subscription-lifecycle.js','admin-commercial.js','admin-billing-events.js','admin-provider-readiness.js','session-security.js','admin-audit.js','admin-session-security.js'],
+              'accessibility.js':['cryptoSkipLink','aria-current','module-accessibility.js','prefers-reduced-motion','homeChartCard'],
+              'module-accessibility.js':['focus-visible','aria-label','prefers-reduced-motion'],
+              'session-security.js':['get_my_crypto_security_state','refreshSession','scope:\'global\'','BroadcastChannel'],
+              'admin-session-security.js':['LIMIT_MS','scope:\'local\'','ADMIN SESSION'],
+              'admin-audit.js':['get_crypto_admin_audit','auditAction','correlation_id'],
               'admin-provider-readiness.js':['get_crypto_admin_provider_adapters','required_secret_names','runtime_secrets_not_verified'],
               'backtest.html':['Server Backtest','get_crypto_feature_status','Profit Factor','Stop-first'],
               'scanner.html':['crypto-lab-v79-scanner'],
@@ -120,7 +138,7 @@ jobs:
               'admin.html':['get_crypto_admin_summary'],
               'admin-billing-events.js':['get_crypto_admin_billing_dashboard','admin_review_crypto_billing_event','admin_resolve_crypto_billing_anomaly'],
               'manifest.webmanifest':['"display": "standalone"','icon.svg'],
-              'service-worker.js':['offline.html','admin-billing-events.js','admin-provider-readiness.js','subscription-lifecycle.js'],
+              'service-worker.js':['offline.html','admin-billing-events.js','admin-provider-readiness.js','session-security.js','admin-audit.js','admin-session-security.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
               'privacy.html':['privacy'],'terms.html':['terms'],'risk-disclosure.html':['risk'],
               'chart.html':['EMA20','RSI14'],'portfolio.html':['portfolio'],'calculator.html':['calculator']
           }
@@ -138,9 +156,12 @@ jobs:
           shell_match=re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];',service_worker,re.S)
           if not shell_match: errors.append('service-worker.js: SHELL list not found')
           else:
-              for ref in re.findall(r"['\"](\./[^'\"]+)['\"]",shell_match.group(1)):
+              shell_refs=set(re.findall(r"['\"](\./[^'\"]+)['\"]",shell_match.group(1)))
+              for ref in shell_refs:
                   clean=ref.split('?',1)[0].split('#',1)[0]
                   if clean!='./' and not (root/clean[2:]).exists(): errors.append(f'service-worker.js: missing cached file {ref}')
+              for required in ['./accessibility.js','./module-accessibility.js','./session-security.js','./admin-audit.js','./admin-session-security.js']:
+                  if required not in shell_refs: errors.append(f'service-worker.js: security asset not cached {required}')
 
           forbidden=['SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN','OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET','CRYPTO_TURNSTILE_SECRET_KEY','LIQPAY_PRIVATE_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','sb_secret_']
           for path in root.iterdir():
@@ -154,6 +175,10 @@ jobs:
           if not manifest.get('icons'): errors.append('manifest.webmanifest requires at least one icon')
           schema=json.loads(Path('docs/schemas/crypto-billing-normalized-event-v1.schema.json').read_text(encoding='utf-8'))
           if schema.get('title')!='CRYPTO LAB Normalized Billing Event v1': errors.append('normalized billing schema title mismatch')
+
+          browser_test=Path('tests/v79-mobile-smoke.spec.js').read_text(encoding='utf-8')
+          for marker in ['shell and module accessibility semantics are applied','cached module remains available while offline','crypto-lab-v79-7929']:
+              if marker not in browser_test: errors.append(f'browser smoke missing marker {marker!r}')
 
           if errors:
               print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
