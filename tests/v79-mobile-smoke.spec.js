@@ -33,6 +33,7 @@ async function openShell(page) {
   await page.goto('/v79/app.html?browser-smoke=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#nav button[data-route="home"]')).toBeVisible();
   await expect(page.locator('#homeView')).toBeVisible();
+  await expect(page.locator('#cryptoSkipLink')).toBeAttached();
 }
 
 async function expectNoBodyOverflow(page) {
@@ -74,6 +75,43 @@ test('v79 shell, modules and mobile navigation remain usable', async ({ page, is
   }
 });
 
+test('shell and module accessibility semantics are applied', async ({ page, isMobile }) => {
+  await openShell(page);
+  await expect(page.locator('#nav')).toHaveAttribute('aria-label', /.+/);
+  await expect(page.locator('#menu')).toHaveAttribute('aria-label', /.+/);
+  await expect(page.locator('#menu')).toHaveAttribute('aria-controls', 'side');
+  await expect(page.locator('#lang')).toHaveAttribute('aria-label', /.+/);
+  await expect(page.locator('#nav button[data-route="home"]')).toHaveAttribute('aria-current', 'page');
+
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#cryptoSkipLink')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('main')).toBeFocused();
+
+  if (isMobile) {
+    await page.locator('#menu').click();
+    await expect(page.locator('#menu')).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#side')).not.toHaveClass(/open/);
+    await expect(page.locator('#menu')).toBeFocused();
+  }
+
+  await page.locator('#nav button[data-route="calculator"]').click();
+  await expect(page.locator('#frame')).toHaveAttribute('title', /Calculator|Калькулятор/);
+  const frame = page.frameLocator('#frame');
+  await expect(frame.locator('body')).toBeVisible();
+  await expect(frame.locator('#moduleAccessibilityScript')).toBeAttached();
+  const unnamedControls = await frame.locator('input,select,textarea,button').evaluateAll(elements => elements
+    .filter(element => {
+      const text = (element.textContent || '').trim();
+      const labelled = element.getAttribute('aria-label') || element.getAttribute('aria-labelledby') || element.getAttribute('title');
+      const label = element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`) : null;
+      return !text && !labelled && !label && !element.closest('label');
+    })
+    .map(element => element.outerHTML.slice(0, 180)));
+  expect(unnamedControls).toEqual([]);
+});
+
 test('manifest and service worker are installable assets', async ({ page, request }) => {
   await openShell(page);
 
@@ -87,7 +125,9 @@ test('manifest and service worker are installable assets', async ({ page, reques
   expect(workerResponse.ok()).toBeTruthy();
   const workerSource = await workerResponse.text();
   expect(workerSource).toContain('offline.html');
-  expect(workerSource).toContain('crypto-lab-v79-');
+  expect(workerSource).toContain('crypto-lab-v79-7929');
+  expect(workerSource).toContain('session-security.js');
+  expect(workerSource).toContain('admin-audit.js');
 
   const registration = await page.evaluate(async () => {
     if (!('serviceWorker' in navigator)) return null;
@@ -102,10 +142,26 @@ test('manifest and service worker are installable assets', async ({ page, reques
   expect(registration.scope).toContain('/v79/');
 });
 
+test('cached module remains available while offline', async ({ page }) => {
+  await openShell(page);
+  await page.evaluate(async () => {
+    if ('serviceWorker' in navigator) await navigator.serviceWorker.ready;
+  });
+  await page.context().setOffline(true);
+  try {
+    await page.goto('/v79/calculator.html?offline-smoke=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toBeVisible();
+    await expect(page).toHaveTitle(/Calculator|Калькулятор|CRYPTO LAB/i);
+  } finally {
+    await page.context().setOffline(false);
+  }
+});
+
 test('language selection survives reload', async ({ page }) => {
   await openShell(page);
   await page.locator('#lang').selectOption('uk');
   await expect(page.locator('#title')).toContainText('CRYPTO LAB');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#lang')).toHaveValue('uk');
+  await expect(page.locator('#cryptoSkipLink')).toContainText('Перейти');
 });
