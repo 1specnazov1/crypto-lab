@@ -1,207 +1,41 @@
 'use strict';
 (() => {
-  const PROJECT_URL = 'https://txhzxbizjpinowepfjkm.supabase.co';
-  const PUBLISHABLE_KEY = 'sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
-  const client = supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
-  const MAX_ROWS = 5000;
-  const CHUNK_SIZE = 200;
-  const T = {
-    ru: { import:'Импорт', template:'Шаблон', importing:'Импорт сделок…', done:(added,total,skipped)=>`Импорт завершён: добавлено ${added} из ${total}, пропущено дублей ${skipped}.`, empty:'В файле нет подходящих сделок.', bad:'Не удалось импортировать файл', login:'Для импорта войдите в аккаунт.', limit:`За один импорт разрешено не более ${MAX_ROWS} строк.`, draft:'Сигнал сканера перенесён в форму. Проверьте количество и цену входа перед сохранением.' },
-    uk: { import:'Імпорт', template:'Шаблон', importing:'Імпорт угод…', done:(added,total,skipped)=>`Імпорт завершено: додано ${added} з ${total}, пропущено дублів ${skipped}.`, empty:'У файлі немає придатних угод.', bad:'Не вдалося імпортувати файл', login:'Для імпорту увійдіть в акаунт.', limit:`За один імпорт дозволено не більше ${MAX_ROWS} рядків.`, draft:'Сигнал сканера перенесено у форму. Перевірте кількість і ціну входу перед збереженням.' },
-    en: { import:'Import', template:'Template', importing:'Importing trades…', done:(added,total,skipped)=>`Import complete: added ${added} of ${total}, duplicates skipped ${skipped}.`, empty:'The file contains no valid trades.', bad:'Could not import file', login:'Sign in before importing.', limit:`A single import is limited to ${MAX_ROWS} rows.`, draft:'The scanner signal was copied into the form. Check quantity and entry price before saving.' }
+  const PROJECT_URL='https://txhzxbizjpinowepfjkm.supabase.co';
+  const PUBLISHABLE_KEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
+  const client=supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  const MAX_ROWS=5000,CHUNK_SIZE=200,QUOTES=['FDUSD','USDT','BUSD','USDC','TUSD','BTC','ETH','EUR','TRY','USD'];
+  const T={
+    ru:{profile:'Профиль импорта',auto:'Авто',generic:'Обычный CSV/JSON',spot:'Binance Spot',futures:'Binance Futures',import:'Импорт',template:'Шаблон',importing:'Импорт сделок…',done:(a,t,d,p)=>`Импорт ${p}: добавлено ${a} из ${t}, дубликатов ${d}.`,empty:'В файле нет подходящих сделок.',bad:'Не удалось импортировать файл',login:'Для импорта войдите в аккаунт.',limit:`За один импорт разрешено не более ${MAX_ROWS} строк.`,draft:'Сигнал сканера перенесён в форму. Проверьте количество и цену входа перед сохранением.',detected:'Определён профиль',spotNote:'Spot использует FIFO: покупки сопоставляются с последующими продажами. Остаток покупок сохраняется как открытая позиция.',futuresNote:'Futures импортирует закрывающие исполнения с Realized Profit. Историческая цена входа может отсутствовать в экспорте Binance.'},
+    uk:{profile:'Профіль імпорту',auto:'Авто',generic:'Звичайний CSV/JSON',spot:'Binance Spot',futures:'Binance Futures',import:'Імпорт',template:'Шаблон',importing:'Імпорт угод…',done:(a,t,d,p)=>`Імпорт ${p}: додано ${a} з ${t}, дублів ${d}.`,empty:'У файлі немає придатних угод.',bad:'Не вдалося імпортувати файл',login:'Для імпорту увійдіть в акаунт.',limit:`За один імпорт дозволено не більше ${MAX_ROWS} рядків.`,draft:'Сигнал сканера перенесено у форму. Перевірте кількість і ціну входу перед збереженням.',detected:'Визначено профіль',spotNote:'Spot використовує FIFO: покупки зіставляються з наступними продажами. Залишок покупок зберігається як відкрита позиція.',futuresNote:'Futures імпортує закривальні виконання з Realized Profit. Історична ціна входу може бути відсутня в експорті Binance.'},
+    en:{profile:'Import profile',auto:'Auto',generic:'Generic CSV/JSON',spot:'Binance Spot',futures:'Binance Futures',import:'Import',template:'Template',importing:'Importing trades…',done:(a,t,d,p)=>`Import ${p}: added ${a} of ${t}, duplicates ${d}.`,empty:'The file contains no valid trades.',bad:'Could not import file',login:'Sign in before importing.',limit:`A single import is limited to ${MAX_ROWS} rows.`,draft:'The scanner signal was copied into the form. Check quantity and entry price before saving.',detected:'Detected profile',spotNote:'Spot uses FIFO: buys are matched with later sells. Remaining buys are saved as an open position.',futuresNote:'Futures imports closing fills with Realized Profit. Historical entry price may be absent from Binance exports.'}
   };
-
-  function language(){ return localStorage.getItem('cryptoLabLanguage') || document.documentElement.lang || 'ru'; }
-  function tr(){ return T[language()] || T.ru; }
-  function notice(message, bad=false){
-    const box=document.getElementById('notice');
-    if(!box)return;
-    box.textContent=message;
-    box.className='notice'+(bad?' bad':'');
-    clearTimeout(notice.timer);
-    notice.timer=setTimeout(()=>box.classList.add('hide'),8000);
-  }
-  function canonical(value){ return String(value||'').trim().toLowerCase().replace(/[^a-zа-яіїє0-9]+/g,''); }
-  function mapRow(row){
-    const mapped={};
-    Object.entries(row||{}).forEach(([key,value])=>{mapped[canonical(key)]=value});
-    return mapped;
-  }
-  function pick(row, aliases){
-    for(const alias of aliases){
-      const value=row[canonical(alias)];
-      if(value!==undefined&&value!==null&&String(value).trim()!=='')return value;
-    }
-    return null;
-  }
-  function number(value, fallback=null){
-    if(value===null||value===undefined||String(value).trim()==='')return fallback;
-    let text=String(value).trim().replace(/\s/g,'');
-    if(text.includes(',')&&text.includes('.'))text=text.replace(/,/g,'');
-    else if(text.includes(','))text=text.replace(',','.');
-    text=text.replace(/[^0-9eE+\-.]/g,'');
-    const parsed=Number(text);
-    return Number.isFinite(parsed)?parsed:fallback;
-  }
-  function timestamp(value, fallback=null){
-    if(value===null||value===undefined||String(value).trim()==='')return fallback;
-    const raw=String(value).trim();
-    if(/^\d{10}$/.test(raw))return new Date(Number(raw)*1000).toISOString();
-    if(/^\d{13}$/.test(raw))return new Date(Number(raw)).toISOString();
-    const parsed=Date.parse(raw);
-    return Number.isFinite(parsed)?new Date(parsed).toISOString():fallback;
-  }
-  function symbol(value){
-    let result=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    for(const quote of ['USDT','BUSD','USDC','FDUSD','USD']){
-      if(result.length>quote.length+1&&result.endsWith(quote)){result=result.slice(0,-quote.length);break}
-    }
-    return result.slice(0,20);
-  }
-  function direction(value){
-    const side=String(value||'').toUpperCase();
-    if(['LONG','BUY','B'].includes(side))return 'LONG';
-    if(['SHORT','SELL','S'].includes(side))return 'SHORT';
-    return null;
-  }
-  function timeframe(value){
-    const raw=String(value||'1H').trim().toUpperCase().replace(/\s/g,'');
-    const aliases={'1MIN':'1M','3MIN':'3M','5MIN':'5M','15MIN':'15M','30MIN':'30M','60MIN':'1H','1HR':'1H','2HR':'2H','4HR':'4H','6HR':'6H','8HR':'8H','12HR':'12H','1DAY':'1D','3DAY':'3D','1WEEK':'1W','1MONTH':'1MO'};
-    const normalized=aliases[raw]||raw;
-    return ['1M','3M','5M','15M','30M','1H','2H','4H','6H','8H','12H','1D','3D','1W','1MO'].includes(normalized)?normalized:'1H';
-  }
-  function tags(value){
-    if(Array.isArray(value))return value.map(x=>String(x).trim().toLowerCase()).filter(Boolean).slice(0,20);
-    return String(value||'').split(/[|,;]/).map(x=>x.trim().toLowerCase()).filter(Boolean).slice(0,20);
-  }
-  function csv(text){
-    const rows=[];let row=[],field='',quoted=false;
-    for(let i=0;i<text.length;i++){
-      const char=text[i],next=text[i+1];
-      if(char==='"'){
-        if(quoted&&next==='"'){field+='"';i++;}
-        else quoted=!quoted;
-      }else if(char===','&&!quoted){row.push(field);field='';}
-      else if((char==='\n'||char==='\r')&&!quoted){
-        if(char==='\r'&&next==='\n')i++;
-        row.push(field);field='';
-        if(row.some(value=>String(value).trim()!==''))rows.push(row);
-        row=[];
-      }else field+=char;
-    }
-    row.push(field);if(row.some(value=>String(value).trim()!==''))rows.push(row);
-    if(rows.length<2)return [];
-    const headers=rows[0].map(value=>String(value).replace(/^\ufeff/,'').trim());
-    return rows.slice(1).map(values=>Object.fromEntries(headers.map((header,index)=>[header,values[index]??''])));
-  }
-  async function fingerprint(trade){
-    const normalized=[trade.symbol,trade.direction,trade.status,trade.entry_time,trade.exit_time||'',trade.entry_price,trade.exit_price||'',trade.quantity,trade.fees].join('|');
-    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(normalized));
-    return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
-  }
-  async function normalize(raw,userId,index){
-    const row=mapRow(raw);
-    const asset=symbol(pick(row,['symbol','asset','pair','market','instrument']));
-    const side=direction(pick(row,['direction','side','position side','positionside','type']));
-    const entryPrice=number(pick(row,['entry_price','entry price','avg entry price','average entry price','open price','price']));
-    const exitPrice=number(pick(row,['exit_price','exit price','avg exit price','average exit price','close price']));
-    const quantity=number(pick(row,['quantity','qty','executed','executed qty','size','amount']),1);
-    if(!asset||!side||!(entryPrice>0)||!(quantity>0))throw Error(`row ${index+2}: symbol/direction/entry/quantity`);
-    const entryTime=timestamp(pick(row,['entry_time','entry time','open time','opened at','time','date']),new Date().toISOString());
-    const exitTime=timestamp(pick(row,['exit_time','exit time','close time','closed at']));
-    const requestedStatus=String(pick(row,['status'])||'').toUpperCase();
-    const status=['OPEN','CLOSED','CANCELLED'].includes(requestedStatus)?requestedStatus:(exitPrice>0&&exitTime?'CLOSED':'OPEN');
-    if(status==='CLOSED'&&(!(exitPrice>0)||!exitTime))throw Error(`row ${index+2}: closed trade requires exit price/time`);
-    const trade={
-      user_id:userId,
-      symbol:asset,
-      timeframe:timeframe(pick(row,['timeframe','tf','interval'])),
-      direction:side,
-      status,
-      strategy:String(pick(row,['strategy'])||'Imported history').slice(0,120)||null,
-      setup:String(pick(row,['setup'])||'').slice(0,250)||null,
-      entry_time:entryTime,
-      exit_time:status==='CLOSED'?exitTime:null,
-      entry_price:entryPrice,
-      exit_price:status==='CLOSED'?exitPrice:null,
-      stop_price:number(pick(row,['stop_price','stop price','stop','sl'])),
-      take_profit_price:number(pick(row,['take_profit_price','take profit price','take profit','tp'])),
-      quantity,
-      leverage:Math.min(125,Math.max(1,number(pick(row,['leverage']),1))),
-      fees:Math.max(0,number(pick(row,['fees','fee','commission','commissions']),0)),
-      notes:String(pick(row,['notes','note','comment'])||'').slice(0,4000)||null,
-      tags:tags(pick(row,['tags','tag'])),
-      source:'import',
-      source_signal_id:null
-    };
-    trade.import_fingerprint=await fingerprint(trade);
-    return trade;
-  }
-  async function parseFile(file){
-    const text=await file.text();
-    let raw;
-    if(file.name.toLowerCase().endsWith('.json')||text.trim().startsWith('[')||text.trim().startsWith('{')){
-      const data=JSON.parse(text);
-      raw=Array.isArray(data)?data:(data.trades||data.rows||data.data||[]);
-    }else raw=csv(text);
-    if(!Array.isArray(raw))throw Error(tr().empty);
-    if(raw.length>MAX_ROWS)throw Error(tr().limit);
-    return raw;
-  }
-  async function importFile(file){
-    const {data:{session}}=await client.auth.getSession();
-    if(!session)throw Error(tr().login);
-    const raw=await parseFile(file);
-    const valid=[];const errors=[];
-    for(let index=0;index<raw.length;index++){
-      try{valid.push(await normalize(raw[index],session.user.id,index));}
-      catch(error){if(errors.length<10)errors.push(error.message);}
-    }
-    if(!valid.length)throw Error(errors.length?errors.join('; '):tr().empty);
-    let added=0;
-    for(let index=0;index<valid.length;index+=CHUNK_SIZE){
-      const chunk=valid.slice(index,index+CHUNK_SIZE);
-      const {data,error}=await client.from('crypto_trade_journal').upsert(chunk,{onConflict:'user_id,import_fingerprint',ignoreDuplicates:true}).select('id');
-      if(error)throw error;
-      added+=Array.isArray(data)?data.length:0;
-    }
-    return {added,total:valid.length,skipped:valid.length-added,errors};
-  }
-  function downloadTemplate(){
-    const header='entry_time,exit_time,symbol,timeframe,direction,status,entry_price,exit_price,stop_price,take_profit_price,quantity,leverage,fees,strategy,setup,tags,notes\n';
-    const example='2026-08-01T09:00:00Z,2026-08-01T13:00:00Z,BTC,1H,LONG,CLOSED,65000,66000,64500,66000,0.01,3,0.65,EMA + RSI,Trend continuation,"trend|scanner",Example trade\n';
-    const blob=new Blob(['\ufeff'+header+example],{type:'text/csv;charset=utf-8'}),link=document.createElement('a');
-    link.href=URL.createObjectURL(blob);link.download='crypto-lab-journal-import-template.csv';link.click();URL.revokeObjectURL(link.href);
-  }
-  function enhanceScannerDraft(){
-    const query=new URLSearchParams(location.search),signalId=query.get('sourceSignal');
-    if(!signalId)return;
-    const strategy=document.getElementById('strategy'),setup=document.getElementById('setup'),notes=document.getElementById('notes'),tagsInput=document.getElementById('tags'),entryTime=document.getElementById('entryTime');
-    const low=number(query.get('entryLow')),high=number(query.get('entryHigh')),strength=query.get('strength'),status=query.get('signalStatus'),tp2=query.get('tp2'),tp3=query.get('tp3');
-    if(strategy&&!strategy.value)strategy.value='CRYPTO LAB Scanner';
-    if(setup)setup.value=[`Signal ${signalId}`,strength?`strength ${strength}`:null,status?`status ${status}`:null].filter(Boolean).join(' · ');
-    if(notes&&!notes.value)notes.value=[low&&high?`Entry range: ${low}–${high}`:null,tp2?`TP2: ${tp2}`:null,tp3?`TP3: ${tp3}`:null].filter(Boolean).join('\n');
-    if(tagsInput&&!tagsInput.value)tagsInput.value=['scanner',strength?`strength-${strength}`:null].filter(Boolean).join(', ');
-    const signalTime=query.get('signalTime');if(entryTime&&signalTime)entryTime.value=new Date(new Date(signalTime).getTime()-new Date(signalTime).getTimezoneOffset()*60000).toISOString().slice(0,16);
-    notice(tr().draft);
-  }
-  function install(){
-    const lang=document.getElementById('lang');
-    const input=document.createElement('input');input.type='file';input.accept='.csv,.json,text/csv,application/json';input.hidden=true;input.id='journalImportFile';
-    const importButton=document.createElement('button');importButton.type='button';importButton.className='btn gold';importButton.id='journalImportBtn';
-    const templateButton=document.createElement('button');templateButton.type='button';templateButton.className='btn';templateButton.id='journalTemplateBtn';
-    function translate(){importButton.textContent=tr().import;templateButton.textContent=tr().template;}
-    translate();
-    if(lang){lang.before(templateButton,importButton,input);lang.addEventListener('change',()=>setTimeout(translate,0));}
-    importButton.onclick=()=>input.click();templateButton.onclick=downloadTemplate;
-    input.onchange=async()=>{
-      const file=input.files&&input.files[0];if(!file)return;
-      importButton.disabled=true;notice(tr().importing);
-      try{const result=await importFile(file);notice(tr().done(result.added,result.total,result.skipped));document.getElementById('refreshBtn')?.click();}
-      catch(error){notice(`${tr().bad}: ${error.message||error}`,true);}
-      finally{importButton.disabled=false;input.value='';}
-    };
-    enhanceScannerDraft();
-  }
-  install();
+  const $=id=>document.getElementById(id);
+  function language(){return localStorage.getItem('cryptoLabLanguage')||document.documentElement.lang||'ru'}
+  function tr(){return T[language()]||T.ru}
+  function notice(message,bad=false){const box=$('notice');if(!box)return;box.textContent=message;box.className='notice'+(bad?' bad':'');clearTimeout(notice.timer);notice.timer=setTimeout(()=>box.classList.add('hide'),9000)}
+  function canonical(v){return String(v||'').trim().toLowerCase().replace(/[^a-zа-яіїє0-9]+/g,'')}
+  function mapRow(row){const out={};Object.entries(row||{}).forEach(([k,v])=>out[canonical(k)]=v);return out}
+  function pick(row,aliases){for(const alias of aliases){const v=row[canonical(alias)];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v}return null}
+  function num(v,fallback=null){if(v===null||v===undefined||String(v).trim()==='')return fallback;let t=String(v).trim().replace(/\s/g,'');if(t.includes(',')&&t.includes('.'))t=t.replace(/,/g,'');else if(t.includes(','))t=t.replace(',','.');t=t.replace(/[^0-9eE+\-.]/g,'');const n=Number(t);return Number.isFinite(n)?n:fallback}
+  function assetAmount(v){const text=String(v||'').trim();return {amount:num(text),asset:(text.match(/[A-Za-z]{2,10}/)||[])[0]?.toUpperCase()||null}}
+  function stamp(v,fallback=null){if(v===null||v===undefined||String(v).trim()==='')return fallback;const raw=String(v).trim();if(/^\d{10}$/.test(raw))return new Date(Number(raw)*1000).toISOString();if(/^\d{13}$/.test(raw))return new Date(Number(raw)).toISOString();const p=Date.parse(raw.replace(' UTC','Z'));return Number.isFinite(p)?new Date(p).toISOString():fallback}
+  function pair(v){const raw=String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');for(const q of QUOTES){if(raw.length>q.length+1&&raw.endsWith(q))return {base:raw.slice(0,-q.length),quote:q,pair:raw}}return {base:raw,quote:null,pair:raw}}
+  function direction(v){const s=String(v||'').toUpperCase();if(['LONG','BUY','B'].includes(s))return 'LONG';if(['SHORT','SELL','S'].includes(s))return 'SHORT';return null}
+  function tf(v){const raw=String(v||'1H').trim().toUpperCase().replace(/\s/g,''),a={'1MIN':'1M','3MIN':'3M','5MIN':'5M','15MIN':'15M','30MIN':'30M','60MIN':'1H','1HR':'1H','2HR':'2H','4HR':'4H','6HR':'6H','8HR':'8H','12HR':'12H','1DAY':'1D','3DAY':'3D','1WEEK':'1W','1MONTH':'1MO'},n=a[raw]||raw;return ['1M','3M','5M','15M','30M','1H','2H','4H','6H','8H','12H','1D','3D','1W','1MO'].includes(n)?n:'1H'}
+  function tags(v){return String(v||'').split(/[|,;]/).map(x=>x.trim().toLowerCase()).filter(Boolean).slice(0,20)}
+  function delimiter(text){const line=(text.split(/\r?\n/).find(x=>x.trim())||'');const candidates=[',',';','\t'];return candidates.sort((a,b)=>line.split(b).length-line.split(a).length)[0]}
+  function delimited(text){const sep=delimiter(text),rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i],next=text[i+1];if(c==='"'){if(quoted&&next==='"'){field+='"';i++}else quoted=!quoted}else if(c===sep&&!quoted){row.push(field);field=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&next==='\n')i++;row.push(field);field='';if(row.some(x=>String(x).trim()!==''))rows.push(row);row=[]}else field+=c}row.push(field);if(row.some(x=>String(x).trim()!==''))rows.push(row);if(rows.length<2)return[];const headers=rows[0].map(x=>String(x).replace(/^\ufeff/,'').trim());return rows.slice(1).map(values=>Object.fromEntries(headers.map((h,i)=>[h,values[i]??''])))}
+  async function digest(text){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+  async function finalize(trade){trade.import_fingerprint=await digest([trade.exchange,trade.market_type,trade.external_trade_id||'',trade.symbol,trade.direction,trade.status,trade.entry_time,trade.exit_time||'',trade.entry_price,trade.exit_price||'',trade.quantity,trade.exchange_realized_pnl??'',trade.fees,trade.funding_fee].join('|'));return trade}
+  function baseTrade(userId){return {user_id:userId,timeframe:'1H',status:'OPEN',strategy:null,setup:null,exit_time:null,exit_price:null,stop_price:null,take_profit_price:null,quantity:1,leverage:1,fees:0,funding_fee:0,notes:null,tags:[],source:'import',source_signal_id:null,exchange:'OTHER',market_type:'OTHER',quote_asset:null,external_trade_id:null,exchange_realized_pnl:null}}
+  function detect(raw){const keys=new Set(Object.keys(mapRow(raw[0]||{})));if(keys.has('realizedprofit')||keys.has('realizedpnl'))return'futures';if((keys.has('pair')||keys.has('symbol'))&&keys.has('side')&&keys.has('price')&&(keys.has('executed')||keys.has('quantity')||keys.has('amount'))&&keys.has('fee'))return'spot';return'generic'}
+  async function generic(raw,userId){const out=[],errors=[];for(let i=0;i<raw.length;i++){try{const row=mapRow(raw[i]),p=pair(pick(row,['symbol','asset','pair','market','instrument'])),side=direction(pick(row,['direction','side','position side','positionside','type'])),entry=num(pick(row,['entry_price','entry price','avg entry price','average entry price','open price','price'])),exit=num(pick(row,['exit_price','exit price','avg exit price','average exit price','close price'])),qty=num(pick(row,['quantity','qty','executed','executed qty','size','amount']),1);if(!p.base||!side||!(entry>0)||!(qty>0))throw Error(`row ${i+2}: symbol/direction/entry/quantity`);const entryTime=stamp(pick(row,['entry_time','entry time','open time','opened at','time','date']),new Date().toISOString()),exitTime=stamp(pick(row,['exit_time','exit time','close time','closed at'])),requested=String(pick(row,['status'])||'').toUpperCase(),status=['OPEN','CLOSED','CANCELLED'].includes(requested)?requested:(exit>0&&exitTime?'CLOSED':'OPEN'),trade={...baseTrade(userId),symbol:p.base,quote_asset:p.quote,timeframe:tf(pick(row,['timeframe','tf','interval'])),direction:side,status,entry_time:entryTime,exit_time:status==='CLOSED'?exitTime:null,entry_price:entry,exit_price:status==='CLOSED'?exit:null,stop_price:num(pick(row,['stop_price','stop price','stop','sl'])),take_profit_price:num(pick(row,['take_profit_price','take profit price','take profit','tp'])),quantity:qty,leverage:Math.min(125,Math.max(1,num(pick(row,['leverage']),1))),fees:Math.max(0,num(pick(row,['fees','fee','commission','commissions']),0)),funding_fee:num(pick(row,['funding_fee','funding fee','funding']),0),strategy:String(pick(row,['strategy'])||'Imported history').slice(0,120)||null,setup:String(pick(row,['setup'])||'').slice(0,250)||null,notes:String(pick(row,['notes','note','comment'])||'').slice(0,4000)||null,tags:tags(pick(row,['tags','tag'])),exchange:String(pick(row,['exchange'])||'OTHER').toUpperCase()==='BINANCE'?'BINANCE':'OTHER',market_type:String(pick(row,['market_type','market type'])||'OTHER').toUpperCase(),external_trade_id:String(pick(row,['trade id','tradeid','order id','orderid','external_trade_id'])||'').slice(0,160)||null,exchange_realized_pnl:num(pick(row,['realized profit','realized pnl','pnl']))};if(status==='CLOSED'&&trade.exchange_realized_pnl===null&&(!(exit>0)||!exitTime))throw Error(`row ${i+2}: closed trade requires exit price/time or PnL`);if(!['SPOT','FUTURES','MARGIN','OTHER'].includes(trade.market_type))trade.market_type='OTHER';out.push(await finalize(trade))}catch(error){if(errors.length<20)errors.push(error.message)}}return{trades:out,errors}}
+  async function futures(raw,userId){const out=[],errors=[];for(let i=0;i<raw.length;i++){try{const row=mapRow(raw[i]),p=pair(pick(row,['symbol','pair'])),realized=num(pick(row,['realized profit','realizedprofit','realized pnl','pnl']));if(!p.base||realized===null||Math.abs(realized)<1e-14)continue;const sideRaw=String(pick(row,['side'])||'').toUpperCase(),position=String(pick(row,['position side','positionside'])||'').toUpperCase(),side=position==='LONG'?'LONG':position==='SHORT'?'SHORT':sideRaw==='SELL'?'LONG':sideRaw==='BUY'?'SHORT':null,price=num(pick(row,['price','avg price','average price'])),qty=num(pick(row,['quantity','qty','executed qty','size'])),time=stamp(pick(row,['date(utc)','date','time','trade time']),new Date().toISOString());if(!side||!(price>0)||!(qty>0))throw Error(`row ${i+2}: futures side/price/quantity`);const id=String(pick(row,['trade id','tradeid','order id','orderid','id'])||`${time}-${i}`),commission=Math.abs(num(pick(row,['commission','fee']),0)),feeAsset=String(pick(row,['commission asset','fee asset','asset'])||p.quote||'USDT').toUpperCase(),trade={...baseTrade(userId),symbol:p.base,quote_asset:p.quote||feeAsset,timeframe:'1H',direction:side,status:'CLOSED',entry_time:time,exit_time:time,entry_price:price,exit_price:price,quantity:qty,fees:commission,funding_fee:0,strategy:'Binance Futures',setup:'Closing execution imported from Binance',notes:tr().futuresNote,tags:['binance','futures','import'],exchange:'BINANCE',market_type:'FUTURES',external_trade_id:id.slice(0,160),exchange_realized_pnl:realized};out.push(await finalize(trade))}catch(error){if(errors.length<20)errors.push(error.message)}}return{trades:out,errors}}
+  async function spot(raw,userId){const rows=raw.map((x,i)=>({row:mapRow(x),i})).map(x=>({...x,time:stamp(pick(x.row,['date(utc)','date','time','trade time']))})).filter(x=>x.time).sort((a,b)=>new Date(a.time)-new Date(b.time));const lots=new Map(),out=[],errors=[];for(const item of rows){try{const row=item.row,p=pair(pick(row,['pair','symbol'])),side=String(pick(row,['side'])||'').toUpperCase(),price=num(pick(row,['price','avg price','average price'])),executed=assetAmount(pick(row,['executed','executed qty','quantity','qty'])),qty=executed.amount,fee=assetAmount(pick(row,['fee','commission'])),id=String(pick(row,['trade id','tradeid','order id','orderid','id'])||`${item.time}-${item.i}`);if(!p.base||!['BUY','SELL'].includes(side)||!(price>0)||!(qty>0))throw Error(`row ${item.i+2}: spot pair/side/price/quantity`);const key=p.pair,queue=lots.get(key)||[],feeQuote=fee.amount&&fee.asset===p.quote?Math.abs(fee.amount):fee.amount&&fee.asset===p.base?Math.abs(fee.amount)*price:0;if(side==='BUY'){const netQty=fee.amount&&fee.asset===p.base?Math.max(0,qty-Math.abs(fee.amount)):qty;queue.push({qty:netQty,price,time:item.time,fee:feeQuote,id});lots.set(key,queue);continue}let remaining=qty;while(remaining>1e-14&&queue.length){const lot=queue[0],matched=Math.min(remaining,lot.qty),lotRatio=matched/lot.qty,sellRatio=matched/qty,trade={...baseTrade(userId),symbol:p.base,quote_asset:p.quote,timeframe:'1H',direction:'LONG',status:'CLOSED',entry_time:lot.time,exit_time:item.time,entry_price:lot.price,exit_price:price,quantity:matched,fees:lot.fee*lotRatio+feeQuote*sellRatio,strategy:'Binance Spot FIFO',setup:'Matched buy and sell fills',notes:fee.amount&&fee.asset&&!([p.base,p.quote].includes(fee.asset))?`Fee ${fee.amount} ${fee.asset} was not converted.`:tr().spotNote,tags:['binance','spot','fifo'],exchange:'BINANCE',market_type:'SPOT',external_trade_id:`${id}-${lot.id}-${out.length}`.slice(0,160)};out.push(await finalize(trade));lot.qty-=matched;lot.fee*=Math.max(0,1-lotRatio);remaining-=matched;if(lot.qty<=1e-14)queue.shift()}if(remaining>1e-10)errors.push(`row ${item.i+2}: unmatched sell ${remaining} ${p.base}`);lots.set(key,queue)}catch(error){if(errors.length<20)errors.push(error.message)}}for(const [key,queue] of lots){if(!queue.length)continue;const p=pair(key),qty=queue.reduce((s,x)=>s+x.qty,0);if(!(qty>0))continue;const entry=queue.reduce((s,x)=>s+x.price*x.qty,0)/qty,fees=queue.reduce((s,x)=>s+x.fee,0),first=queue[0],trade={...baseTrade(userId),symbol:p.base,quote_asset:p.quote,timeframe:'1H',direction:'LONG',status:'OPEN',entry_time:first.time,entry_price:entry,quantity:qty,fees,strategy:'Binance Spot FIFO',setup:'Remaining inventory after FIFO matching',notes:tr().spotNote,tags:['binance','spot','open'],exchange:'BINANCE',market_type:'SPOT',external_trade_id:`open-${key}-${first.id}`.slice(0,160)};out.push(await finalize(trade))}return{trades:out,errors}}
+  async function parseFile(file){const text=await file.text();let raw;if(file.name.toLowerCase().endsWith('.json')||text.trim().startsWith('[')||text.trim().startsWith('{')){const d=JSON.parse(text);raw=Array.isArray(d)?d:(d.trades||d.rows||d.data||[])}else raw=delimited(text);if(!Array.isArray(raw))throw Error(tr().empty);if(raw.length>MAX_ROWS)throw Error(tr().limit);return raw}
+  async function importFile(file,selected){const {data:{session}}=await client.auth.getSession();if(!session)throw Error(tr().login);const raw=await parseFile(file);if(!raw.length)throw Error(tr().empty);const profile=selected==='auto'?detect(raw):selected,result=profile==='spot'?await spot(raw,session.user.id):profile==='futures'?await futures(raw,session.user.id):await generic(raw,session.user.id);if(!result.trades.length)throw Error(result.errors.length?result.errors.join('; '):tr().empty);let added=0;for(let i=0;i<result.trades.length;i+=CHUNK_SIZE){const chunk=result.trades.slice(i,i+CHUNK_SIZE),{data,error}=await client.from('crypto_trade_journal').upsert(chunk,{onConflict:'user_id,import_fingerprint',ignoreDuplicates:true}).select('id');if(error)throw error;added+=Array.isArray(data)?data.length:0}return{added,total:result.trades.length,skipped:result.trades.length-added,profile,errors:result.errors}}
+  function template(){const header='entry_time,exit_time,symbol,timeframe,direction,status,entry_price,exit_price,stop_price,take_profit_price,quantity,leverage,fees,funding_fee,exchange_realized_pnl,exchange,market_type,external_trade_id,strategy,setup,tags,notes\n',example='2026-08-01T09:00:00Z,2026-08-01T13:00:00Z,BTC,1H,LONG,CLOSED,65000,66000,64500,66000,0.01,3,0.65,0,,BINANCE,FUTURES,123456,EMA + RSI,Trend continuation,"trend|scanner",Example trade\n',blob=new Blob(['\ufeff'+header+example],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='crypto-lab-journal-import-template.csv';a.click();URL.revokeObjectURL(a.href)}
+  function scannerDraft(){const q=new URLSearchParams(location.search),id=q.get('sourceSignal');if(!id)return;const strategy=$('strategy'),setup=$('setup'),notes=$('notes'),tagsInput=$('tags'),entryTime=$('entryTime'),low=num(q.get('entryLow')),high=num(q.get('entryHigh')),strength=q.get('strength'),status=q.get('signalStatus'),tp2=q.get('tp2'),tp3=q.get('tp3');if(strategy&&!strategy.value)strategy.value='CRYPTO LAB Scanner';if(setup)setup.value=[`Signal ${id}`,strength?`strength ${strength}`:null,status?`status ${status}`:null].filter(Boolean).join(' · ');if(notes&&!notes.value)notes.value=[low&&high?`Entry range: ${low}–${high}`:null,tp2?`TP2: ${tp2}`:null,tp3?`TP3: ${tp3}`:null].filter(Boolean).join('\n');if(tagsInput&&!tagsInput.value)tagsInput.value=['scanner',strength?`strength-${strength}`:null].filter(Boolean).join(', ');const t=q.get('signalTime');if(entryTime&&t)entryTime.value=new Date(new Date(t).getTime()-new Date(t).getTimezoneOffset()*60000).toISOString().slice(0,16);notice(tr().draft)}
+  function install(){if($('journalImportBtn'))return;const lang=$('lang'),input=document.createElement('input'),profile=document.createElement('select'),importBtn=document.createElement('button'),templateBtn=document.createElement('button');input.type='file';input.accept='.csv,.json,text/csv,application/json';input.hidden=true;input.id='journalImportFile';profile.id='journalImportProfile';profile.innerHTML='<option value="auto"></option><option value="generic"></option><option value="spot"></option><option value="futures"></option>';importBtn.type='button';importBtn.className='btn gold';importBtn.id='journalImportBtn';templateBtn.type='button';templateBtn.className='btn';templateBtn.id='journalTemplateBtn';function translate(){profile.title=tr().profile;profile.options[0].text=tr().auto;profile.options[1].text=tr().generic;profile.options[2].text=tr().spot;profile.options[3].text=tr().futures;importBtn.textContent=tr().import;templateBtn.textContent=tr().template}translate();if(lang){lang.before(profile,templateBtn,importBtn,input);lang.addEventListener('change',()=>setTimeout(translate,0))}importBtn.onclick=()=>input.click();templateBtn.onclick=template;input.onchange=async()=>{const file=input.files&&input.files[0];if(!file)return;importBtn.disabled=true;notice(tr().importing);try{const r=await importFile(file,profile.value);notice(tr().done(r.added,r.total,r.skipped,profile.options[profile.selectedIndex].text)+(r.errors.length?` ${r.errors.slice(0,3).join('; ')}`:''));$('refreshBtn')?.click()}catch(error){notice(`${tr().bad}: ${error.message||error}`,true)}finally{importBtn.disabled=false;input.value=''}};scannerDraft()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
