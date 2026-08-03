@@ -78,11 +78,11 @@
       adminNote=prompt('Внутреннее примечание к удалению — необязательно:', '')||'';
       if(!confirm('Последнее подтверждение: удалить аккаунт и связанные пользовательские данные без возможности восстановления?'))return;
     }
-    setBusy(true);
-    try{const result=await api('POST',{action,request_id:item.id,admin_note:adminNote,confirmation:action==='complete'?item.email:''});message(action==='complete'?`Аккаунт удалён. Пользовательских строк: ${Number(result.deleted_rows||0)}.`:'Запрос отклонён.');await load();}catch(error){message(error.message||error,true);}finally{setBusy(false);}
+    setBusy(true);let changed=false;
+    try{const result=await api('POST',{action,request_id:item.id,admin_note:adminNote,confirmation:action==='complete'?item.email:''});message(action==='complete'?`Аккаунт удалён. Пользовательских строк: ${Number(result.deleted_rows||0)}.`:'Запрос отклонён.');changed=true;}catch(error){message(error.message||error,true);}finally{setBusy(false);}
+    if(changed)await load();
   }
 
-  const originalLoad=typeof load==='function'?load:null;
   mount();
   document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(load,0));
   sb.auth.onAuthStateChange((_event,current)=>{if(current)setTimeout(load,0);else{last=null;document.getElementById('deletionAdminPanel')?.remove();}});
