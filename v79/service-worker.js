@@ -1,8 +1,21 @@
 'use strict';
-const CACHE='crypto-lab-v79-7928';
-const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./support-extension.js','./commercial-extension.js','./platform.css','./module-mobile.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./backtest-history.js','./scanner.html','./scanner-actions.js','./ai.html','./journal.html','./journal.js','./journal-import.js','./journal-analytics.js','./account.html','./account-actions.js','./registration-consent.js','./commercial.js','./subscription-lifecycle.js','./support.html','./admin.html','./admin-health.js','./admin-deletions.js','./admin-support.js','./admin-commercial.js','./admin-billing-events.js','./admin-provider-readiness.js','./admin-telemetry.js','./admin-ai-telemetry.js','./legal.js','./privacy.html','./terms.html','./risk-disclosure.html'];
+const CACHE='crypto-lab-v79-7929';
+const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./support-extension.js','./commercial-extension.js','./accessibility.js','./module-accessibility.js','./platform.css','./module-mobile.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./backtest-history.js','./scanner.html','./scanner-actions.js','./ai.html','./journal.html','./journal.js','./journal-import.js','./journal-analytics.js','./account.html','./account-actions.js','./session-security.js','./registration-consent.js','./commercial.js','./subscription-lifecycle.js','./support.html','./admin.html','./admin-health.js','./admin-deletions.js','./admin-support.js','./admin-commercial.js','./admin-billing-events.js','./admin-provider-readiness.js','./admin-audit.js','./admin-session-security.js','./admin-telemetry.js','./admin-ai-telemetry.js','./legal.js','./privacy.html','./terms.html','./risk-disclosure.html'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('crypto-lab-v79-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
-self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();if(event.data?.type==='CLEAR_OLD_CACHES')event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))))});
 function isApi(url){return url.hostname.includes('supabase.co')||url.hostname.includes('binance.com')||url.hostname.includes('binance.vision')||url.hostname.includes('jsdelivr.net')||url.hostname.includes('challenges.cloudflare.com')}
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(isApi(url))return;const same=url.origin===self.location.origin;if(!same)return;if(req.mode==='navigate'){event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));return res}).catch(async()=>await caches.match(req)||await caches.match('./offline.html')));return}event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return res}).catch(()=>caches.match('./offline.html'))))});
+async function cached(request){return caches.match(request,{ignoreSearch:true})}
+async function store(request,response){if(response?.ok){const copy=response.clone();await caches.open(CACHE).then(cache=>cache.put(request,copy))}return response}
+self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url);if(isApi(url)||url.origin!==self.location.origin)return;
+  if(req.mode==='navigate'){
+    event.respondWith(fetch(req).then(response=>store(req,response)).catch(async()=>{
+      const hit=await cached(req);if(hit)return hit;
+      if(url.pathname.endsWith('/v79/')||url.pathname.endsWith('/v79/index.html')||url.pathname.endsWith('/v79/app.html')){
+        const shell=await caches.match('./app.html',{ignoreSearch:true});if(shell)return shell;
+      }
+      return caches.match('./offline.html',{ignoreSearch:true});
+    }));return;
+  }
+  event.respondWith(cached(req).then(hit=>hit||fetch(req).then(response=>store(req,response)).catch(()=>caches.match('./offline.html',{ignoreSearch:true}))));
+});
