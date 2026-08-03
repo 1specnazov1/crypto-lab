@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7906';
+  const BUILD = '7907';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -9,13 +9,33 @@
   const originalFrameUrl = frameUrl;
   const originalOpen = open;
   const framed = new Set(['scanner', 'ai', 'backtest', 'journal', 'account']);
+  const journalKeys = ['symbol','direction','tf','entry','entryLow','entryHigh','stop','tp','tp2','tp3','sourceSignal','signalStatus','strength','signalTime'];
 
   frameUrl = function(route, signal) {
     const params = new URLSearchParams({ lang });
     if (route === 'scanner') return './scanner.html?' + params;
     if (route === 'ai') return './ai.html?' + params;
     if (route === 'backtest') return './backtest.html?' + params;
-    if (route === 'journal') return './journal.html?' + params;
+    if (route === 'journal') {
+      const source = signal ? new URLSearchParams() : new URLSearchParams(location.search);
+      if (signal) {
+        const low = Number(signal.entry_low), high = Number(signal.entry_high), last = Number(signal.last_price);
+        const hasLow = Number.isFinite(low) && low > 0, hasHigh = Number.isFinite(high) && high > 0, hasLast = Number.isFinite(last) && last > 0;
+        const midpoint = hasLow && hasHigh ? (low + high) / 2 : hasLow ? low : hasHigh ? high : hasLast ? last : null;
+        const entry = signal.entry_notified && hasLast ? last : midpoint;
+        source.set('symbol', signal.symbol || 'BTC');
+        source.set('direction', signal.direction || 'LONG');
+        source.set('tf', signal.timeframe || '1H');
+        source.set('sourceSignal', String(signal.id || ''));
+        source.set('signalStatus', signal.status || 'WAITING');
+        if (entry !== null) source.set('entry', String(entry));
+        [['entryLow',signal.entry_low],['entryHigh',signal.entry_high],['stop',signal.stop],['tp',signal.tp1],['tp2',signal.tp2],['tp3',signal.tp3],['strength',signal.strength]].forEach(([key,value])=>{if(value!==null&&value!==undefined&&value!=='')source.set(key,String(value))});
+        const signalTime = signal.activated_at || signal.created_at || signal.updated_at;
+        if (signalTime) source.set('signalTime', signalTime);
+      }
+      journalKeys.forEach(key => { if (source.has(key)) params.set(key, source.get(key)); });
+      return './journal.html?' + params;
+    }
     if (route === 'account') return './account.html?' + params;
     return originalFrameUrl(route, signal);
   };
@@ -88,24 +108,33 @@
     addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=' + BUILD, { scope: './' }).catch(error => console.warn('PWA registration failed', error)));
   }
 
+  function injectScript(doc, id, source) {
+    if (doc.getElementById(id)) return;
+    const script = doc.createElement('script');
+    script.id = id;
+    script.src = source + '?v=' + BUILD;
+    doc.head.appendChild(script);
+  }
+
   const frame = $('frame');
   const priorOnload = frame.onload;
   frame.onload = function(event) {
     if (typeof priorOnload === 'function') priorOnload.call(frame, event);
     try {
       const doc = frame.contentDocument;
+      const path = frame.contentWindow.location.pathname;
       if (!doc) return;
-      if (current === 'journal' && !doc.getElementById('journalPnlSignFix')) {
-        const style = doc.createElement('style');
-        style.id = 'journalPnlSignFix';
-        style.textContent = '#netPnl.neg::before,tbody td:nth-child(11).neg::before{content:"−"}';
-        doc.head.appendChild(style);
+      if (path.endsWith('/scanner.html')) injectScript(doc, 'scannerActionsScript', './scanner-actions.js');
+      if (path.endsWith('/journal.html')) {
+        if (!doc.getElementById('journalPnlSignFix')) {
+          const style = doc.createElement('style');
+          style.id = 'journalPnlSignFix';
+          style.textContent = '#netPnl.neg::before,tbody td:nth-child(11).neg::before{content:"−"}';
+          doc.head.appendChild(style);
+        }
+        injectScript(doc, 'journalImportScript', './journal-import.js');
       }
-      if (current !== 'account' || doc.getElementById('accountActionsScript')) return;
-      const script = doc.createElement('script');
-      script.id = 'accountActionsScript';
-      script.src = './account-actions.js?v=' + BUILD;
-      doc.head.appendChild(script);
+      if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
     } catch (error) {
       console.warn('Frame enhancements unavailable', error);
     }
@@ -115,5 +144,8 @@
   addEventListener('unhandledrejection', event => console.error('CRYPTO LAB promise error', event.reason));
   translate();
   const requestedRoute = new URLSearchParams(location.search).get('route');
-  if (requestedRoute && ROUTES.some(route => route[0] === requestedRoute)) setTimeout(() => open(requestedRoute), 0);
+  if (requestedRoute && ROUTES.some(route => route[0] === requestedRoute)) setTimeout(() => {
+    open(requestedRoute);
+    history.replaceState(null, '', location.pathname);
+  }, 0);
 })();
