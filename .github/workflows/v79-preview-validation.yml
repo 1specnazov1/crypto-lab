@@ -5,14 +5,23 @@ on:
     paths:
       - 'v79/**'
       - '.github/workflows/v79-preview-validation.yml'
+  pull_request:
+    paths:
+      - 'v79/**'
+      - '.github/workflows/v79-preview-validation.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: v79-preview-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,8 +39,8 @@ jobs:
 
           output = Path('/tmp/v79-inline')
           output.mkdir(parents=True, exist_ok=True)
-          count = 0
           pattern = re.compile(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', re.S | re.I)
+          count = 0
           for html in sorted(Path('v79').glob('*.html')):
               text = html.read_text(encoding='utf-8')
               for index, script in enumerate(pattern.findall(text), start=1):
@@ -41,53 +50,146 @@ jobs:
                   target.write_text(script, encoding='utf-8')
                   print(target)
                   count += 1
-          if count == 0:
-              raise SystemExit('No inline scripts found')
+          print(f'Extracted {count} inline scripts')
           PY
 
       - name: Check JavaScript syntax
         run: |
-          find v79 -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
-          find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          set -euo pipefail
+          find v79 -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
+          find /tmp/v79-inline -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
 
       - name: Validate manifest JSON
         run: node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
 
-      - name: Validate required modules and safety markers
+      - name: Validate release gate
         run: |
           python - <<'PY'
           from pathlib import Path
+          import json
+          import re
+          import sys
 
-          required = {
-              'v79/index.html': ['app.html?v=7907'],
-              'v79/app.html': ['app-extension.js?v=7907', 'viewport-fit=cover'],
-              'v79/app.js': ["['backtest','↺']", "['ai','✦']", "['journal','☷']"],
-              'v79/app-extension.js': ['scanner.html', 'scanner-actions.js', 'journal-import.js', 'ai.html', 'backtest.html', 'journal.html', 'account.html', 'service-worker.js', "BUILD = '7907'"],
-              'v79/backtest.html': ['crypto-lab-v79-backtest-data', 'get_crypto_feature_status', 'Profit Factor'],
-              'v79/scanner.html': ['crypto-lab-v79-scanner', 'Проверка доступа'],
-              'v79/scanner-actions.js': ['В журнал', 'sourceSignal', 'route'],
-              'v79/ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
-              'v79/journal.html': ['journal.js?v=7906', 'Журнал сделок', 'Profit Factor'],
-              'v79/journal.js': ['crypto_trade_journal', 'realized_pnl', 'r_multiple', 'persistSession'],
-              'v79/journal-import.js': ['import_fingerprint', 'SHA-256', 'crypto_trade_journal', 'MAX_ROWS'],
-              'v79/account.html': ['get_my_crypto_account'],
-              'v79/manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
-              'v79/service-worker.js': ['crypto-lab-v79-7907', 'scanner-actions.js', 'journal-import.js', 'offline.html'],
-              'v79/privacy.html': ['Уведомление о конфиденциальности'],
-              'v79/terms.html': ['Условия использования'],
-              'v79/risk-disclosure.html': ['Раскрытие рисков'],
-              'v79/chart.html': ['EMA20', 'RSI14'],
-              'v79/portfolio.html': ['portfolio'],
-              'v79/calculator.html': ['calculator'],
+          root = Path('v79')
+          errors = []
+
+          required_files = [
+              'index.html','app.html','app.css','app.js','app-extension.js',
+              'support-extension.js','commercial-extension.js','platform.css',
+              'module-mobile.css','manifest.webmanifest','icon.svg','offline.html',
+              'chart.html','portfolio.html','calculator.html','backtest.html',
+              'backtest-history.js','scanner.html','scanner-actions.js','ai.html',
+              'journal.html','journal.js','journal-import.js','journal-analytics.js',
+              'account.html','account-actions.js','registration-consent.js',
+              'commercial.js','subscription-lifecycle.js','support.html',
+              'admin.html','admin-health.js','admin-deletions.js','admin-support.js',
+              'admin-commercial.js','admin-billing-events.js','admin-telemetry.js',
+              'admin-ai-telemetry.js','legal.js','privacy.html','terms.html',
+              'risk-disclosure.html','service-worker.js'
+          ]
+          for name in required_files:
+              if not (root / name).is_file():
+                  errors.append(f'missing required file: v79/{name}')
+
+          def read(name):
+              path = root / name
+              return path.read_text(encoding='utf-8') if path.exists() else ''
+
+          index = read('index.html')
+          app = read('app.html')
+          commercial_extension = read('commercial-extension.js')
+          service_worker = read('service-worker.js')
+
+          match = re.search(r'app\.html\?v=(\d{4,})', index)
+          if not match:
+              errors.append('index.html does not declare a numeric v79 build')
+              build = None
+          else:
+              build = match.group(1)
+
+          if build:
+              if f'commercial-extension.js?v={build}' not in app:
+                  errors.append(f'app.html does not load commercial-extension build {build}')
+              if not re.search(rf"\bBUILD\s*=\s*['\"]{re.escape(build)}['\"]", commercial_extension):
+                  errors.append(f'commercial-extension.js BUILD is not {build}')
+              if f'crypto-lab-v79-{build}' not in service_worker:
+                  errors.append(f'service-worker cache is not build {build}')
+
+          structural_markers = {
+              'app.html': ['viewport-fit=cover', 'Content-Security-Policy', 'support-extension.js', 'commercial-extension.js'],
+              'app.js': ["['backtest','↺']", "['ai','✦']", "['journal','☷']"],
+              'app-extension.js': ['scanner.html', 'journal.html', 'account.html', 'service-worker.js'],
+              'support-extension.js': ['support.html', 'admin-support.js'],
+              'commercial-extension.js': ['subscription-lifecycle.js', 'admin-commercial.js', 'admin-billing-events.js'],
+              'backtest.html': ['crypto-lab-v79-backtest-data', 'get_crypto_feature_status', 'Profit Factor'],
+              'scanner.html': ['crypto-lab-v79-scanner'],
+              'ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
+              'journal.js': ['crypto_trade_journal', 'realized_pnl', 'r_multiple'],
+              'account.html': ['get_my_crypto_account'],
+              'support.html': ['get_my_crypto_support_tickets', 'create_crypto_support_ticket'],
+              'admin.html': ['get_crypto_admin_summary'],
+              'admin-billing-events.js': ['get_crypto_admin_billing_events', 'admin_review_crypto_billing_event'],
+              'manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
+              'service-worker.js': ['offline.html', 'admin-billing-events.js', 'subscription-lifecycle.js'],
+              'privacy.html': ['privacy'],
+              'terms.html': ['terms'],
+              'risk-disclosure.html': ['risk'],
+              'chart.html': ['EMA20', 'RSI14'],
+              'portfolio.html': ['portfolio'],
+              'calculator.html': ['calculator'],
           }
-          forbidden = ['SUPABASE_SERVICE_ROLE_KEY', 'MONITOR_SECRET', 'TELEGRAM_BOT_TOKEN', 'OPENAI_API_KEY=']
-          for filename, markers in required.items():
-              text = Path(filename).read_text(encoding='utf-8')
-              missing = [marker for marker in markers if marker not in text]
-              if missing:
-                  raise SystemExit(f'{filename}: missing {missing}')
-              leaked = [item for item in forbidden if item in text]
-              if leaked:
-                  raise SystemExit(f'{filename}: forbidden secret marker {leaked}')
-          print('v79 validation passed')
+          for name, markers in structural_markers.items():
+              text = read(name)
+              for marker in markers:
+                  if marker not in text:
+                      errors.append(f'v79/{name}: missing marker {marker!r}')
+
+          # Ensure local src/href references in HTML resolve to repository files.
+          attr_pattern = re.compile(r'(?:src|href)=["\'](\./[^"\']+)["\']', re.I)
+          for html in root.glob('*.html'):
+              for ref in attr_pattern.findall(html.read_text(encoding='utf-8')):
+                  clean = ref.split('?', 1)[0].split('#', 1)[0]
+                  if clean in ('./', ''):
+                      continue
+                  target = root / clean[2:]
+                  if not target.exists():
+                      errors.append(f'{html}: missing local reference {ref}')
+
+          # Ensure every service-worker shell entry exists.
+          shell_match = re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];', service_worker, re.S)
+          if not shell_match:
+              errors.append('service-worker.js: SHELL list not found')
+          else:
+              for ref in re.findall(r"['\"](\./[^'\"]+)['\"]", shell_match.group(1)):
+                  clean = ref.split('?', 1)[0].split('#', 1)[0]
+                  if clean == './':
+                      continue
+                  target = root / clean[2:]
+                  if not target.exists():
+                      errors.append(f'service-worker.js: missing cached file {ref}')
+
+          # Scan only deployable v79 assets for server-secret identifiers or key formats.
+          forbidden = [
+              'SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN',
+              'OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET',
+              'CRYPTO_TURNSTILE_SECRET_KEY','sb_secret_'
+          ]
+          for path in root.iterdir():
+              if not path.is_file() or path.suffix.lower() not in {'.html','.js','.css','.json','.webmanifest','.svg'}:
+                  continue
+              text = path.read_text(encoding='utf-8')
+              for marker in forbidden:
+                  if marker in text:
+                      errors.append(f'{path}: forbidden server-secret marker {marker}')
+
+          manifest = json.loads(read('manifest.webmanifest'))
+          if manifest.get('display') != 'standalone':
+              errors.append('manifest.webmanifest display must be standalone')
+          if not manifest.get('icons'):
+              errors.append('manifest.webmanifest requires at least one icon')
+
+          if errors:
+              print('\n'.join(f'ERROR: {item}' for item in errors))
+              sys.exit(1)
+          print(f'v79 release gate passed for build {build}')
           PY
