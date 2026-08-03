@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7921';
+  const BUILD = '7922';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -191,6 +191,7 @@
       if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
       if (path.endsWith('/admin.html')) {
         injectScript(doc, 'adminHealthScript', './admin-health.js');
+        injectScript(doc, 'adminDeletionScript', './admin-deletions.js');
         injectScript(doc, 'adminTelemetryScript', './admin-telemetry.js');
         injectScript(doc, 'adminAiTelemetryScript', './admin-ai-telemetry.js');
       }
