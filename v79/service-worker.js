@@ -1,5 +1,5 @@
 'use strict';
-const CACHE='crypto-lab-v79-7917';
+const CACHE='crypto-lab-v79-7918';
 const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./platform.css','./module-mobile.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./backtest-history.js','./scanner.html','./scanner-actions.js','./ai.html','./journal.html','./journal.js','./journal-import.js','./journal-analytics.js','./account.html','./account-actions.js','./admin.html','./admin-health.js','./admin-telemetry.js','./admin-ai-telemetry.js','./privacy.html','./terms.html','./risk-disclosure.html'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('crypto-lab-v79-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
