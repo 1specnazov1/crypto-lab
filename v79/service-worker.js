@@ -1,6 +1,6 @@
 'use strict';
-const CACHE='crypto-lab-v79-7912';
-const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./platform.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./backtest-history.js','./scanner.html','./scanner-actions.js','./ai.html','./journal.html','./journal.js','./journal-import.js','./journal-analytics.js','./account.html','./account-actions.js','./privacy.html','./terms.html','./risk-disclosure.html'];
+const CACHE='crypto-lab-v79-7913';
+const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./platform.css','./module-mobile.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./backtest-history.js','./scanner.html','./scanner-actions.js','./ai.html','./journal.html','./journal.js','./journal-import.js','./journal-analytics.js','./account.html','./account-actions.js','./admin.html','./admin-telemetry.js','./privacy.html','./terms.html','./risk-disclosure.html'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('crypto-lab-v79-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 function isApi(url){return url.hostname.includes('supabase.co')||url.hostname.includes('binance.com')||url.hostname.includes('binance.vision')||url.hostname.includes('jsdelivr.net')}
