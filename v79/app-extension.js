@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7916';
+  const BUILD = '7917';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -74,6 +74,7 @@
     tools.innerHTML = `
       <div class="platform-status"><span id="networkDot"></span><b id="networkText">ONLINE</b></div>
       <button id="installApp" hidden>Установить приложение</button>
+      <button id="updateApp" hidden>Обновить приложение</button>
       <div class="legal-links"><a href="./risk-disclosure.html" target="_blank" rel="noopener">Риски</a><a href="./privacy.html" target="_blank" rel="noopener">Privacy</a><a href="./terms.html" target="_blank" rel="noopener">Условия</a></div>`;
     foot.appendChild(tools);
   }
@@ -105,7 +106,35 @@
   };
 
   if ('serviceWorker' in navigator) {
-    addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js?v=' + BUILD, { scope: './' }).catch(error => console.warn('PWA registration failed', error)));
+    addEventListener('load', async () => {
+      const hadController = Boolean(navigator.serviceWorker.controller);
+      try {
+        const registration = await navigator.serviceWorker.register('./service-worker.js?v=' + BUILD, { scope: './', updateViaCache: 'none' });
+        const updateButton = document.getElementById('updateApp');
+        const showUpdate = () => { if (updateButton) updateButton.hidden = false; };
+        if (registration.waiting) showUpdate();
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          worker?.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdate();
+          });
+        });
+        if (updateButton) updateButton.onclick = () => {
+          updateButton.disabled = true;
+          if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          else registration.update();
+        };
+        let reloading = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || reloading) return;
+          reloading = true;
+          location.reload();
+        });
+        registration.update().catch(() => {});
+      } catch (error) {
+        console.warn('PWA registration failed', error);
+      }
+    });
   }
 
   function injectScript(doc, id, source) {
@@ -148,6 +177,7 @@
       }
       if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
       if (path.endsWith('/admin.html')) {
+        injectScript(doc, 'adminHealthScript', './admin-health.js');
         injectScript(doc, 'adminTelemetryScript', './admin-telemetry.js');
         injectScript(doc, 'adminAiTelemetryScript', './admin-ai-telemetry.js');
       }
