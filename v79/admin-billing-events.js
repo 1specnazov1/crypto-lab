@@ -1,0 +1,42 @@
+'use strict';
+(() => {
+  const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-billing-webhook';
+  const $=id=>document.getElementById(id);
+  const safe=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const when=value=>value?new Date(value).toLocaleString():'—';
+  const money=(minor,currency)=>minor==null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:currency||'USD'}).format(Number(minor)/100);
+  let busy=false,state=null,webhook={enabled:false},mounted=false;
+  function notify(value,bad=false){if(typeof message==='function')message(value,bad);}
+  function table(headers,rows){return rows.length?`<table><thead><tr>${headers.map(h=>`<th>${safe(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`:'<div class="muted">Нет данных</div>';}
+  function badge(ok,label){return `<span class="billing-pill ${ok?'ready':'blocked'}">${ok?'ГОТОВО':'БЛОК'} · ${safe(label)}</span>`;}
+
+  function mount(){
+    if(mounted||!$('dashboard'))return;mounted=true;
+    const style=document.createElement('style');style.id='adminBillingStyles';style.textContent='.billing-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.billing-status-grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px;margin-top:10px}.billing-stat{padding:10px;background:var(--p2);border:1px solid var(--line);border-radius:8px}.billing-stat span{display:block;color:var(--m);font-size:9px;text-transform:uppercase}.billing-stat b{display:block;font-size:18px;margin-top:5px}.billing-pill{display:inline-flex;padding:5px 8px;border-radius:999px;border:1px solid var(--line);font-size:9px;font-weight:850}.billing-pill.ready{color:#a7f3d0;border-color:#0ecb8155}.billing-pill.blocked{color:#ffc4cd;border-color:#f6465d55}.billing-grid{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr);gap:10px;margin-top:10px}.billing-review{padding:10px;background:var(--p2);border:1px solid var(--line);border-radius:8px;margin:8px 0}.billing-review p{white-space:pre-wrap;overflow-wrap:anywhere}.billing-table{overflow:auto;max-height:430px}.billing-table table{min-width:1100px}.billing-actions{display:flex;gap:6px;flex-wrap:wrap}.billing-actions button{min-height:34px}@media(max-width:1000px){.billing-status-grid{grid-template-columns:1fr 1fr}.billing-grid{grid-template-columns:1fr}}@media(max-width:520px){.billing-status-grid{grid-template-columns:1fr}.billing-head button{width:100%;min-height:42px}}';document.head.appendChild(style);
+    const section=document.createElement('section');section.id='adminBillingEvents';section.style.marginTop='10px';section.innerHTML='<div class="card"><div class="billing-head"><div><h3>Платёжные webhook-события</h3><div class="muted">Нормализованный контур принимает только подписанные события будущего провайдер-адаптера. Без webhook secret приём отключён.</div></div><button id="billingRefresh">Обновить</button></div><div id="billingWebhookState" style="margin-top:10px"></div><div id="billingStats" class="billing-status-grid"></div></div><div class="billing-grid"><div class="card"><h3>Требуют проверки</h3><div id="billingReviewQueue"></div></div><div class="card"><h3>Последние события</h3><div id="billingRecent" class="billing-table"></div></div></div>';
+    $('dashboard').appendChild(section);$('billingRefresh').onclick=load;
+  }
+
+  function setBusy(value){busy=value;document.querySelectorAll('#adminBillingEvents button,#adminBillingEvents select,#adminBillingEvents input').forEach(el=>el.disabled=value);}
+  async function rpc(name,args={}){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data;}
+  async function loadWebhook(){try{const response=await fetch(ENDPOINT,{cache:'no-store'});webhook=await response.json();if(!response.ok)webhook={enabled:false};}catch{webhook={enabled:false};}}
+
+  function render(){
+    mount();const counts=state?.counts||{},recent=Array.isArray(state?.recent_events)?state.recent_events:[],queue=Array.isArray(state?.review_queue)?state.review_queue:[],cron=state?.cron||{};
+    $('billingWebhookState').innerHTML=`${badge(Boolean(webhook.enabled),'Webhook secret')} ${badge(Boolean(cron.active),'Retry cron')} <span class="muted">${safe(cron.schedule||'—')} · ${safe(cron.last_status||'нет запусков')}</span>`;
+    const cards=[['received',counts.received],['processing',counts.processing],['processed',counts.processed],['failed',counts.failed],['review',state?.review_required]];
+    $('billingStats').innerHTML=cards.map(([label,value])=>`<div class="billing-stat"><span>${safe(label)}</span><b>${Number(value||0)}</b></div>`).join('');
+    $('billingReviewQueue').innerHTML=queue.length?queue.map(item=>`<article class="billing-review"><div class="request-head"><b>#${Number(item.id)} · ${safe(item.event_type)}</b><span class="neg">${safe(item.review_reason||item.error_code||'review')}</span></div><div class="muted">${safe(item.email||'—')} · ${safe(item.plan||'—')} · ${money(item.amount_minor,item.currency)} · ${when(item.created_at)}</div><p>${safe(item.error||'Проверьте доступ и политику возврата вручную.')}</p><div class="billing-actions"><button data-billing-retry="${Number(item.id)}">Повторить обработку</button><button class="gold" data-billing-review="${Number(item.id)}" data-resolution="access_retained">Доступ сохранить</button><button class="bad" data-billing-review="${Number(item.id)}" data-resolution="access_revoked">Доступ отозван</button><button data-billing-review="${Number(item.id)}" data-resolution="provider_reconciled">Сверено с провайдером</button></div></article>`).join(''):'<div class="muted">Нет событий, требующих проверки.</div>';
+    $('billingReviewQueue').querySelectorAll('[data-billing-retry]').forEach(button=>button.onclick=()=>retry(Number(button.dataset.billingRetry)));
+    $('billingReviewQueue').querySelectorAll('[data-billing-review]').forEach(button=>button.onclick=()=>review(Number(button.dataset.billingReview),button.dataset.resolution));
+    $('billingRecent').innerHTML=table(['Дата','ID','Provider','Event','Email','Plan','Amount','Order','Event state','Попытки','Ошибка'],recent.map(item=>`<tr><td>${when(item.created_at)}</td><td>${Number(item.id)}</td><td>${safe(item.provider)}</td><td>${safe(item.event_type)}</td><td>${safe(item.email||'—')}</td><td>${safe(item.plan||'—')}</td><td>${money(item.amount_minor,item.currency)}</td><td>${safe(item.order_status||'—')}</td><td class="${item.event_status==='failed'?'neg':item.event_status==='processed'?'pos':''}">${safe(item.event_status)}</td><td>${Number(item.processing_attempts||0)}</td><td>${safe(item.error_code||item.error||'—')}</td></tr>`));
+  }
+
+  async function load(){if(busy)return;mount();setBusy(true);try{const [data]=await Promise.all([rpc('get_crypto_admin_billing_dashboard'),loadWebhook()]);state=data||{};render();}catch(error){notify(error.message||error,true);}finally{setBusy(false);}}
+  async function retry(id){if(busy||!confirm(`Повторить серверную обработку платёжного события #${id}?`))return;setBusy(true);try{const result=await rpc('admin_retry_crypto_billing_event',{p_event_id:id});notify(result?.ok?'Событие обработано':'Событие снова поставлено на повтор',!result?.ok);await load();}catch(error){notify(error.message||error,true);}finally{setBusy(false);}}
+  async function review(id,resolution){if(busy)return;const note=prompt('Обязательное примечание к решению (минимум 3 символа):','');if(note===null)return;if(note.trim().length<3)return notify('Добавьте пояснение к решению',true);if(resolution==='access_revoked'&&!confirm('Подтвердить, что доступ уже отозван отдельной операцией подписки? Эта кнопка только фиксирует результат проверки.'))return;setBusy(true);try{await rpc('admin_review_crypto_billing_event',{p_event_id:id,p_resolution:resolution,p_note:note.trim()});notify('Проверка платёжного события зафиксирована');await load();}catch(error){notify(error.message||error,true);}finally{setBusy(false);}}
+
+  function boot(){mount();if(!$('dashboard')?.classList.contains('hide')&&!state)load();}
+  new MutationObserver(boot).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  $('refresh')?.addEventListener('click',()=>setTimeout(load,0));sb.auth.onAuthStateChange((_event,current)=>{state=null;if(current)setTimeout(load,0);});boot();
+})();
