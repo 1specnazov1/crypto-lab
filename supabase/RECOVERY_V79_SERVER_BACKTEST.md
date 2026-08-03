@@ -6,10 +6,10 @@ Applied to Supabase project `txhzxbizjpinowepfjkm` and GitHub Pages build `7911`
 
 The official v79 backtest no longer calculates strategy results in the browser.
 
-- `crypto-lab-v79-backtest-data` now validates parameters, checks the authenticated account quota, obtains closed Binance candles, consumes one backtest allowance, executes the EMA/RSI/ATR strategy, and returns only the result.
+- `crypto-lab-v79-backtest-data` validates parameters, checks the authenticated account quota, obtains closed Binance candles, consumes one backtest allowance, executes the EMA/RSI/ATR strategy, and returns only the result.
 - Raw candles and the calculation implementation are not returned to the browser.
 - The Edge Function requires a valid JWT.
-- `v79/backtest.html` is now a standalone server-backed user interface.
+- `v79/backtest.html` is a standalone server-backed user interface.
 - The legacy `v79/backtest-engine.html` client calculator was replaced with a redirect to the protected page.
 - The service worker no longer caches the legacy engine.
 
@@ -43,22 +43,49 @@ EMA Fast must be below EMA Slow. The RSI SHORT threshold must be below the RSI L
 - fees are deducted on entry and exit;
 - funding, slippage and execution latency remain excluded.
 
+## Persistent run ledger
+
+Migration `crypto_lab_v79_backtest_run_ledger` created `public.crypto_backtest_runs`.
+
+For each authenticated request the server records:
+
+- user and creation/completion timestamps;
+- completed, failed or rejected status;
+- symbol, interval, direction and requested candle count;
+- SHA-256 hash of the validated strategy parameters;
+- server strategy version and duration;
+- candles used and number of simulated trades;
+- net P&L, return, maximum drawdown, win rate and Profit Factor;
+- normalized error code and short error message;
+- plan, plan limit and remaining allowance.
+
+Raw candle data is not stored. Authenticated users may read only their own rows through RLS. Browser roles cannot insert, update or delete ledger rows. Service-role writes are performed only by the protected backtest Edge Function.
+
+Indexes cover user history, operational status/time and repeated parameter hashes.
+
 ## Verification
 
-A temporary confirmed Auth user was created and deleted automatically after validation.
+Temporary confirmed Auth users were created and deleted automatically after validation.
 
 Results:
 
 - authenticated server backtest returned HTTP 200;
-- response identified `engine: server` and contained result trades/equity curve;
+- response identified `engine: server`, returned a server run ID and contained result trades/equity curve;
 - raw candles were not present in the response;
 - FREE usage changed from 0/3 to 1/3 after one valid run;
 - an invalid EMA configuration returned HTTP 400 with `INVALID_STRATEGY` and did not consume another run;
 - unauthenticated invocation returned HTTP 401;
+- a valid test created one completed ledger row with a 64-character parameter hash, duration, 299 candles and six simulated trades;
+- the invalid test created one rejected row with `INVALID_STRATEGY`;
+- deleting the temporary Auth user cascaded to zero ledger rows;
 - GitHub Pages returned HTTP 200 for index, app shell, extension, service worker, server backtest and legacy redirect;
 - all JavaScript and embedded scripts passed syntax parsing;
 - build markers and PWA cache were verified as `7911`;
 - the temporary validator was restored to mandatory JWT protection.
+
+## Advisor status
+
+The new table introduced no new security advisor finding. Existing security warnings are limited to intentional authenticated application RPCs. Performance findings are informational unused-index notices, expected before production traffic accumulates.
 
 ## Isolation
 
@@ -66,4 +93,4 @@ The working v78 root application was not modified.
 
 ## Next recommended block
 
-Add a persistent server-side backtest-run ledger with duration, parameters hash, result summary and failure code. This will support abuse detection, support diagnostics, commercial analytics and later billing reconciliation without storing raw candle data.
+Expose the authenticated user's recent server backtest history inside the account or backtest screen and add commercial telemetry summaries for support: success rate, average duration, quota rejections and repeated parameter profiles.
