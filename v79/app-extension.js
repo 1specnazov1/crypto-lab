@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7912';
+  const BUILD = '7913';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -116,6 +116,15 @@
     doc.head.appendChild(script);
   }
 
+  function injectStylesheet(doc, id, source) {
+    if (doc.getElementById(id)) return;
+    const link = doc.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = source + '?v=' + BUILD;
+    doc.head.appendChild(link);
+  }
+
   const frame = $('frame');
   const priorOnload = frame.onload;
   frame.onload = function(event) {
@@ -124,6 +133,7 @@
       const doc = frame.contentDocument;
       const path = frame.contentWindow.location.pathname;
       if (!doc) return;
+      if (path.endsWith('.html')) injectStylesheet(doc, 'moduleMobileStyles', './module-mobile.css');
       if (path.endsWith('/scanner.html')) injectScript(doc, 'scannerActionsScript', './scanner-actions.js');
       if (path.endsWith('/backtest.html')) injectScript(doc, 'backtestHistoryScript', './backtest-history.js');
       if (path.endsWith('/journal.html')) {
@@ -137,6 +147,7 @@
         injectScript(doc, 'journalAnalyticsScript', './journal-analytics.js');
       }
       if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
+      if (path.endsWith('/admin.html')) injectScript(doc, 'adminTelemetryScript', './admin-telemetry.js');
     } catch (error) {
       console.warn('Frame enhancements unavailable', error);
     }
