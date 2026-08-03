@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7911';
+  const BUILD = '7912';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -125,6 +125,7 @@
       const path = frame.contentWindow.location.pathname;
       if (!doc) return;
       if (path.endsWith('/scanner.html')) injectScript(doc, 'scannerActionsScript', './scanner-actions.js');
+      if (path.endsWith('/backtest.html')) injectScript(doc, 'backtestHistoryScript', './backtest-history.js');
       if (path.endsWith('/journal.html')) {
         if (!doc.getElementById('journalPnlSignFix')) {
           const style = doc.createElement('style');
