@@ -1,5 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const mobileChrome = {
+  browserName: 'chromium',
+  userAgent: devices['Pixel 7'].userAgent,
+  deviceScaleFactor: 2.625,
+  isMobile: true,
+  hasTouch: true
+};
+
 export default defineConfig({
   testDir: './tests',
   testMatch: /v79-mobile-smoke\.spec\.js/,
@@ -17,8 +25,8 @@ export default defineConfig({
     serviceWorkers: 'allow'
   },
   projects: [
-    { name: 'mobile-390', use: { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } } },
-    { name: 'mobile-412', use: { ...devices['Pixel 7'], viewport: { width: 412, height: 915 } } },
-    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } }
+    { name: 'mobile-390', use: { ...mobileChrome, viewport: { width: 390, height: 844 } } },
+    { name: 'mobile-412', use: { ...mobileChrome, viewport: { width: 412, height: 915 } } },
+    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'], browserName: 'chromium', viewport: { width: 1440, height: 900 } } }
   ]
 });
