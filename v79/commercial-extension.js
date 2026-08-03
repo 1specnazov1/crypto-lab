@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7929';
+  const BUILD='7930';
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
@@ -19,6 +19,7 @@
         add(doc,'adminProviderReadinessScript','./admin-provider-readiness.js');
         add(doc,'adminAuditScript','./admin-audit.js');
         add(doc,'adminSessionSecurityScript','./admin-session-security.js');
+        add(doc,'adminReadinessScript','./admin-readiness.js');
       }
     }catch(error){console.warn('Commercial integration unavailable',error);}
   });
