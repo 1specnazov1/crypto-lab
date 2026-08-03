@@ -1,7 +1,7 @@
 {
   "name": "crypto-lab-v79-release-gate",
   "private": true,
-  "version": "79.29.0",
+  "version": "79.30.0",
   "type": "module",
   "scripts": {
     "test:v79:browser": "playwright test --config=playwright.config.mjs"
