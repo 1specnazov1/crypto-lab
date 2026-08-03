@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7919';
+  const BUILD = '7920';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -75,9 +75,22 @@
       <div class="platform-status"><span id="networkDot"></span><b id="networkText">ONLINE</b></div>
       <button id="installApp" hidden>Установить приложение</button>
       <button id="updateApp" hidden>Обновить приложение</button>
-      <div class="legal-links"><a href="./risk-disclosure.html" target="_blank" rel="noopener">Риски</a><a href="./privacy.html" target="_blank" rel="noopener">Privacy</a><a href="./terms.html" target="_blank" rel="noopener">Условия</a></div>`;
+      <div class="legal-links"><a id="riskLink" target="_blank" rel="noopener">Риски</a><a id="privacyLink" target="_blank" rel="noopener">Privacy</a><a id="termsLink" target="_blank" rel="noopener">Условия</a></div>`;
     foot.appendChild(tools);
   }
+
+  function updateLegalLinks() {
+    const labels = {
+      ru: { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия' },
+      uk: { risk:'Ризики', privacy:'Конфіденційність', terms:'Умови' },
+      en: { risk:'Risks', privacy:'Privacy', terms:'Terms' }
+    }[lang] || { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия' };
+    const params = '?lang=' + encodeURIComponent(lang);
+    const map = { riskLink:['./risk-disclosure.html' + params,labels.risk], privacyLink:['./privacy.html' + params,labels.privacy], termsLink:['./terms.html' + params,labels.terms] };
+    Object.entries(map).forEach(([id,[href,label]]) => { const link=document.getElementById(id); if(link){link.href=href;link.textContent=label;} });
+  }
+  updateLegalLinks();
+  document.getElementById('lang')?.addEventListener('change', () => setTimeout(updateLegalLinks, 0));
 
   function networkState() {
     const online = navigator.onLine;
@@ -189,6 +202,7 @@
   addEventListener('error', event => console.error('CRYPTO LAB UI error', event.error || event.message));
   addEventListener('unhandledrejection', event => console.error('CRYPTO LAB promise error', event.reason));
   translate();
+  updateLegalLinks();
   const requestedRoute = new URLSearchParams(location.search).get('route');
   if (requestedRoute && ROUTES.some(route => route[0] === requestedRoute)) setTimeout(() => {
     open(requestedRoute);
