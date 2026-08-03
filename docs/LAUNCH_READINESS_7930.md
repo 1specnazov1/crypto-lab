@@ -72,7 +72,8 @@ The 100/100 score means the currently automated non-commercial beta checks pass.
 
 - Browser/PWA/accessibility/offline smoke: run `30859406451` — success, 15 tests passed.
 - Dynamic release gate: run `30859439388` — success.
-- GitHub Pages deployment for the complete documentation head: run `30859529096` — success.
+- Public build-7930 assets were fetched after deployment and returned HTTP 200 with matching build markers.
+- The immutable final GitHub Pages deployment run is recorded in the protected release checkpoint.
 - Server validator: version 61, synchronized to build 7930.
 - Root v78 SHA: `4a278c891d37b3760ec1ac988690ea9ad587b24e`.
 
