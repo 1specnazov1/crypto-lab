@@ -127,9 +127,16 @@ test('manifest and service worker are installable assets', async ({ page, reques
   expect(workerResponse.ok()).toBeTruthy();
   const workerSource = await workerResponse.text();
   expect(workerSource).toContain('offline.html');
-  expect(workerSource).toContain('crypto-lab-v79-7929');
+  expect(workerSource).toContain('crypto-lab-v79-7930');
   expect(workerSource).toContain('session-security.js');
   expect(workerSource).toContain('admin-audit.js');
+  expect(workerSource).toContain('admin-readiness.js');
+
+  const readinessResponse = await request.get('/v79/admin-readiness.js');
+  expect(readinessResponse.ok()).toBeTruthy();
+  const readinessSource = await readinessResponse.text();
+  expect(readinessSource).toContain('get_crypto_launch_readiness');
+  expect(readinessSource).toContain('get_crypto_retention_preview');
 
   const registration = await page.evaluate(async () => {
     if (!('serviceWorker' in navigator)) return null;
