@@ -1,6 +1,6 @@
 'use strict';
-const CACHE='crypto-lab-v79-7905';
-const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./platform.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./scanner.html','./ai.html','./account.html','./account-actions.js','./privacy.html','./terms.html','./risk-disclosure.html'];
+const CACHE='crypto-lab-v79-7906';
+const SHELL=['./','./index.html','./app.html','./app.css','./app.js','./app-extension.js','./platform.css','./manifest.webmanifest','./icon.svg','./offline.html','./chart.html','./portfolio.html','./calculator.html','./backtest.html','./scanner.html','./ai.html','./journal.html','./journal.js','./account.html','./account-actions.js','./privacy.html','./terms.html','./risk-disclosure.html'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('crypto-lab-v79-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 function isApi(url){return url.hostname.includes('supabase.co')||url.hostname.includes('binance.com')||url.hostname.includes('binance.vision')||url.hostname.includes('jsdelivr.net')}
