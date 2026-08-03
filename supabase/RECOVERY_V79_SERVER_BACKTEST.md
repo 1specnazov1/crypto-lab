@@ -1,6 +1,6 @@
 # CRYPTO LAB v79 — Protected server backtest
 
-Applied to Supabase project `txhzxbizjpinowepfjkm` and GitHub Pages build `7911` on 2026-08-03.
+Applied to Supabase project `txhzxbizjpinowepfjkm` and GitHub Pages build `7912` on 2026-08-03.
 
 ## Architecture
 
@@ -63,6 +63,17 @@ Raw candle data is not stored. Authenticated users may read only their own rows 
 
 Indexes cover user history, operational status/time and repeated parameter hashes.
 
+## User history interface
+
+Build `7912` adds `v79/backtest-history.js` to the official terminal.
+
+- The last 20 server runs are shown below the backtest results.
+- The list includes date, completed/rejected/failed status, market, trade count, P&L, return, server duration and normalized error code.
+- RU, UA and EN labels are supported.
+- The query uses the signed-in Supabase session and RLS, so the user sees only their own records.
+- The history script is injected only into the backtest module by `app-extension.js`.
+- The PWA service worker includes the history interface in cache build `7912`.
+
 ## Verification
 
 Temporary confirmed Auth users were created and deleted automatically after validation.
@@ -78,9 +89,8 @@ Results:
 - a valid test created one completed ledger row with a 64-character parameter hash, duration, 299 candles and six simulated trades;
 - the invalid test created one rejected row with `INVALID_STRATEGY`;
 - deleting the temporary Auth user cascaded to zero ledger rows;
-- GitHub Pages returned HTTP 200 for index, app shell, extension, service worker, server backtest and legacy redirect;
-- all JavaScript and embedded scripts passed syntax parsing;
-- build markers and PWA cache were verified as `7911`;
+- GitHub Pages returned HTTP 200 for index, app shell, extension, service worker, server backtest, history script and legacy redirect;
+- build `7912` markers, history injection, history database query and PWA cache entry were verified;
 - the temporary validator was restored to mandatory JWT protection.
 
 ## Advisor status
@@ -93,4 +103,4 @@ The working v78 root application was not modified.
 
 ## Next recommended block
 
-Expose the authenticated user's recent server backtest history inside the account or backtest screen and add commercial telemetry summaries for support: success rate, average duration, quota rejections and repeated parameter profiles.
+Add commercial telemetry summaries for support and operations: success rate, average duration, quota rejections, failure distribution and repeated parameter profiles. Then expose a compact diagnostics panel only to the existing protected administrator role.
