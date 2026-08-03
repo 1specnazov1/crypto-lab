@@ -49,6 +49,7 @@
     const midpoint = low !== null && high !== null ? (low + high) / 2 : (low ?? high ?? last);
     const entry = signal.entry_notified && last !== null ? last : midpoint;
     const params = new URLSearchParams({
+      route: 'journal',
       lang,
       symbol: signal.symbol || 'BTC',
       direction: signal.direction || 'LONG',
@@ -62,7 +63,7 @@
     });
     const created = signal.activated_at || signal.created_at || signal.updated_at;
     if (created) params.set('signalTime', created);
-    return './journal.html?' + params.toString();
+    return './app.html?' + params.toString();
   }
 
   function addStyles() {
@@ -114,7 +115,7 @@
       journal.type = 'button';
       journal.className = 'journal';
       journal.textContent = text().journal;
-      journal.onclick = () => { location.href = journalUrl(signal); };
+      journal.onclick = () => { window.top.location.href = journalUrl(signal); };
       box.append(chart, journal);
       cell.appendChild(box);
     });
