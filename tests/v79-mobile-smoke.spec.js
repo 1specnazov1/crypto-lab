@@ -94,6 +94,8 @@ test('shell and module accessibility semantics are applied', async ({ page, isMo
     await page.keyboard.press('Escape');
     await expect(page.locator('#side')).not.toHaveClass(/open/);
     await expect(page.locator('#menu')).toBeFocused();
+    await page.locator('#menu').click();
+    await expect(page.locator('#side')).toHaveClass(/open/);
   }
 
   await page.locator('#nav button[data-route="calculator"]').click();
