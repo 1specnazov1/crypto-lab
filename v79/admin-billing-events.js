@@ -2,7 +2,7 @@
 (() => {
   const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-billing-webhook';
   const $=id=>document.getElementById(id);
-  const safe=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]));
+  const safe=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const when=value=>value?new Date(value).toLocaleString():'—';
   const money=(minor,currency)=>minor==null?'—':new Intl.NumberFormat('ru-RU',{style:'currency',currency:currency||'USD'}).format(Number(minor)/100);
   let busy=false,state=null,webhook={enabled:false},mounted=false;
