@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7905';
+  const BUILD = '7906';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -8,13 +8,14 @@
 
   const originalFrameUrl = frameUrl;
   const originalOpen = open;
-  const framed = new Set(['scanner', 'ai', 'backtest', 'account']);
+  const framed = new Set(['scanner', 'ai', 'backtest', 'journal', 'account']);
 
   frameUrl = function(route, signal) {
     const params = new URLSearchParams({ lang });
     if (route === 'scanner') return './scanner.html?' + params;
     if (route === 'ai') return './ai.html?' + params;
     if (route === 'backtest') return './backtest.html?' + params;
+    if (route === 'journal') return './journal.html?' + params;
     if (route === 'account') return './account.html?' + params;
     return originalFrameUrl(route, signal);
   };
