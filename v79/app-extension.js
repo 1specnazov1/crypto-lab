@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7915';
+  const BUILD = '7916';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
