@@ -121,14 +121,14 @@ jobs:
               'app-extension.js': ['scanner.html', 'journal.html', 'account.html', 'service-worker.js'],
               'support-extension.js': ['support.html', 'admin-support.js'],
               'commercial-extension.js': ['subscription-lifecycle.js', 'admin-commercial.js', 'admin-billing-events.js'],
-              'backtest.html': ['crypto-lab-v79-backtest-data', 'get_crypto_feature_status', 'Profit Factor'],
+              'backtest.html': ['Server Backtest', 'get_crypto_feature_status', 'Profit Factor', 'Stop-first'],
               'scanner.html': ['crypto-lab-v79-scanner'],
               'ai.html': ['crypto-ai-advisor', 'get_crypto_feature_status'],
               'journal.js': ['crypto_trade_journal', 'realized_pnl', 'r_multiple'],
               'account.html': ['get_my_crypto_account'],
               'support.html': ['get_my_crypto_support_tickets', 'create_crypto_support_ticket'],
               'admin.html': ['get_crypto_admin_summary'],
-              'admin-billing-events.js': ['get_crypto_admin_billing_events', 'admin_review_crypto_billing_event'],
+              'admin-billing-events.js': ['get_crypto_admin_billing_dashboard', 'admin_review_crypto_billing_event', 'admin_resolve_crypto_billing_anomaly'],
               'manifest.webmanifest': ['"display": "standalone"', 'icon.svg'],
               'service-worker.js': ['offline.html', 'admin-billing-events.js', 'subscription-lifecycle.js'],
               'privacy.html': ['privacy'],
@@ -144,7 +144,6 @@ jobs:
                   if marker not in text:
                       errors.append(f'v79/{name}: missing marker {marker!r}')
 
-          # Ensure local src/href references in HTML resolve to repository files.
           attr_pattern = re.compile(r'(?:src|href)=["\'](\./[^"\']+)["\']', re.I)
           for html in root.glob('*.html'):
               for ref in attr_pattern.findall(html.read_text(encoding='utf-8')):
@@ -155,7 +154,6 @@ jobs:
                   if not target.exists():
                       errors.append(f'{html}: missing local reference {ref}')
 
-          # Ensure every service-worker shell entry exists.
           shell_match = re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];', service_worker, re.S)
           if not shell_match:
               errors.append('service-worker.js: SHELL list not found')
@@ -168,7 +166,6 @@ jobs:
                   if not target.exists():
                       errors.append(f'service-worker.js: missing cached file {ref}')
 
-          # Scan only deployable v79 assets for server-secret identifiers or key formats.
           forbidden = [
               'SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN',
               'OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET',
