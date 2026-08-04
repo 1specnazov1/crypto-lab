@@ -21,10 +21,10 @@ This scorecard separates automated technical beta readiness from readiness for a
 |---|---:|---|---|
 | UI, responsive shell, PWA and accessibility | 20 | Pass | Chromium profiles 390×844, 412×915 and 1440×900; 15/15 tests passed in run `30859406451`. |
 | Database row-level security | 20 | Pass | All 33 CRYPTO LAB public tables use RLS. |
-| Scheduled operations | 15 | Pass | Six of six CRYPTO LAB cron jobs are active; no cron failure was found in the preceding 24 hours. |
+| Scheduled operations | 15 | Pass | Six of six CRYPTO LAB cron jobs are active and the latest recorded invocation of every job succeeded. |
 | Scanner and monitor freshness | 15 | Pass | Scanner completed successfully; monitor freshness remained within the defined operational window. |
 | Account, privacy and administrative controls | 15 | Pass | Session security, user export, deletion workflow, support workflow and protected administrative audit are present. |
-| Billing state integrity | 10 | Pass | No billing orders, events or unresolved billing anomalies exist before payment activation. |
+| Billing state integrity | 10 | Pass | No billing orders, pending billing events or unresolved billing anomalies exist before payment activation. |
 | Release and rollback controls | 5 | Pass | Dynamic GitHub release gate, Playwright smoke suite, server validator, release checkpoints and rollback checklist exist. |
 
 The 100/100 score means the currently automated non-commercial beta checks pass. It does not mean a public paid launch is authorized.
@@ -48,25 +48,32 @@ The 100/100 score means the currently automated non-commercial beta checks pass.
 - Registration and password recovery remain disabled.
 - The disabled publisher still returns HTTP 410 and cannot replace v78.
 
+## Public Edge safety state
+
+- `crypto-signal-register` version 7 accepts only the service-role or protected monitor-secret server paths; the public publishable-key browser path was removed.
+- `crypto-lab-v79-preview` version 5 exposes health-only counters and freshness data. Signal rows, trade levels, class-A payloads, history and error text are not public.
+- `crypto-lab-v79-chart` version 2 is retired and requires JWT; the supported chart is the versioned GitHub Pages module.
+- Registration and billing webhook functions remain unauthenticated only at the platform level because they implement explicit origin/secret controls and remain disabled until external configuration is complete.
+
 ## Security inventory
 
 - 33 of 33 CRYPTO LAB public tables use RLS.
-- 105 CRYPTO LAB functions exist across public and private schemas.
-- 60 functions use `SECURITY DEFINER` for server-side boundaries.
+- 107 CRYPTO LAB functions exist across public and private schemas.
+- 61 functions use `SECURITY DEFINER` for server-side boundaries.
 - No public `SECURITY DEFINER` function is directly executable by `anon` or `authenticated` roles.
 - Supabase Security Advisor reports zero security lints.
 - Performance Advisor reports only informational unused-index notices on new or low-traffic tables.
 
 ## Scheduled operations
 
-| Job | Schedule | State |
+| Job | Schedule | Latest recorded state |
 |---|---|---|
-| Signal monitor | Every minute | Active |
-| Market scanner | Every 15 minutes | Active |
-| Subscription lifecycle | Every 15 minutes | Active |
-| Billing event retry | Every 5 minutes | Active |
-| Billing reconciliation | At minute 7 each hour | Active |
-| Maintenance | 03:17 daily | Active |
+| Signal monitor | Every minute | Succeeded |
+| Market scanner | Every 15 minutes | Succeeded |
+| Subscription lifecycle | Every 15 minutes | Succeeded |
+| Billing event retry | Every 5 minutes | Succeeded |
+| Billing reconciliation | At minute 7 each hour | Succeeded |
+| Maintenance | 03:17 daily | Succeeded |
 
 ## Release evidence
 
@@ -75,6 +82,10 @@ The 100/100 score means the currently automated non-commercial beta checks pass.
 - Public build-7930 assets were fetched after deployment and returned HTTP 200 with matching build markers.
 - The immutable final GitHub Pages deployment run is recorded in the protected release checkpoint.
 - Server validator: version 61, synchronized to build 7930.
+- Public health endpoint verification: HTTP 200, `public_surface: health_only`, empty signal/history arrays.
+- Browser publishable-key signal-registration attempt: HTTP 401.
+- Protected monitor-secret validation path: authenticated and rejected an invalid symbol with HTTP 400 before insert.
+- Retired duplicate chart endpoint: unauthenticated HTTP 401.
 - Root v78 SHA: `4a278c891d37b3760ec1ac988690ea9ad587b24e`.
 
 ## Decision
