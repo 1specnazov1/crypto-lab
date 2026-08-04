@@ -3,14 +3,14 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-04T17:43:00Z",
+  "updated_at": "2026-08-04T17:55:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
   },
   "application": {
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
-    "evidence_commit": "f408711afa416a80375d6a0fe23aed270bbb0c7b",
+    "evidence_commit": "e4b9339b727c849102488f0fd3f792e5c9035326",
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
     "assets": [
       {"path":"v79/index.html","sha":"b92335b3a3d76e349f1845fd653e1c1021d6d7f6","marker":"app.html?v=7930"},
@@ -36,7 +36,8 @@
     {"version":"20260804171048","name":"crypto_release_drift_observation_shape_hardening","source":"supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql","source_commit":"6be2e93d3933ef6339b059978e24af891ef1fa83"},
     {"version":"20260804171147","name":"crypto_release_drift_observation_null_shape_fix","source":"supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql","source_commit":"6be2e93d3933ef6339b059978e24af891ef1fa83"},
     {"version":"20260804173006","name":"crypto_rollback_rehearsal_checkpoint_index","source":"supabase/migrations/202608041732_crypto_rollback_rehearsal_checkpoint_index.sql","source_commit":"8eba78ec5ee1539c6786b88f02a6721088575c56"},
-    {"version":"20260804174135","name":"crypto_maintenance_evidence_immutability_and_hash_verification","source":"supabase/migrations/202608041741_crypto_maintenance_evidence_immutability_and_hash_verification.sql","source_commit":"f408711afa416a80375d6a0fe23aed270bbb0c7b"}
+    {"version":"20260804174135","name":"crypto_maintenance_evidence_immutability_and_hash_verification","source":"supabase/migrations/202608041741_crypto_maintenance_evidence_immutability_and_hash_verification.sql","source_commit":"f408711afa416a80375d6a0fe23aed270bbb0c7b"},
+    {"version":"20260804175111","name":"crypto_maintenance_evidence_manifest_snapshot_stability","source":"supabase/migrations/202608041751_crypto_maintenance_evidence_manifest_snapshot_stability.sql","source_commit":"e4b9339b727c849102488f0fd3f792e5c9035326"}
   ],
   "edge_functions": [
     {"slug":"crypto-ai-advisor","version":9,"verify_jwt":true,"status":"ACTIVE"},
@@ -74,6 +75,7 @@
     "status": "pending",
     "hash_algorithm": "sha256-jsonb-v1",
     "immutable": true,
+    "manifest_snapshot_stable": true,
     "checkpoint_verification_required": true
   },
   "boundaries": {
