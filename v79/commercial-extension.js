@@ -20,7 +20,6 @@
         add(doc,'adminAuditScript','./admin-audit.js');
         add(doc,'adminSessionSecurityScript','./admin-session-security.js');
         add(doc,'adminReadinessScript','./admin-readiness.js');
-        add(doc,'adminSignalOutboxScript','./admin-signal-outbox.js');
       }
     }catch(error){console.warn('Commercial integration unavailable',error);}
   });
