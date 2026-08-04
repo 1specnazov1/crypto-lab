@@ -8,11 +8,11 @@ This verification covers naturally occurring signal-monitor events after deploym
 
 ## Natural delivery evidence
 
-Four naturally occurring events completed the durable delivery path:
+Six naturally occurring events completed the durable delivery path:
 
 | Event | Count | Outbox result | Attempts | Telegram message IDs |
 |---|---:|---|---:|---|
-| ENTRY | 2 | sent | 1 each | 629, 630 |
+| ENTRY | 4 | sent | 1 each | 629, 630, 635, 636 |
 | TP1 | 1 | sent | 1 | 631 |
 | STOP | 1 | sent | 1 | 632 |
 
@@ -20,14 +20,16 @@ The associated monitor cycles recorded:
 
 - 09:00 UTC: two state transitions, two queued events, two claimed events and two successful deliveries;
 - 09:03 UTC: one state transition, one queued event, one claimed event and one successful delivery;
-- 09:06 UTC: one state transition, one queued event, one claimed event and one successful delivery.
+- 09:06 UTC: one state transition, one queued event, one claimed event and one successful delivery;
+- 09:15 UTC: one natural ENTRY event completed successfully;
+- 09:24 UTC: one natural ENTRY event completed successfully.
 
-All three cycles returned HTTP 200 with zero notification failures and an empty error list.
+All delivery cycles returned HTTP 200 with zero notification failures and an empty error list.
 
 ## Idempotency and state consistency
 
 - No duplicate row exists for the same `signal_id + event_type` pair.
-- All four rows are in `sent` state.
+- All six rows are in `sent` state.
 - Every delivery has a Telegram message ID.
 - Every delivery completed on its first attempt.
 - No row is in `pending`, `retry`, `processing` or `dead` state.
@@ -38,47 +40,45 @@ All three cycles returned HTTP 200 with zero notification failures and an empty 
 
 ## Protected administrative observability
 
-A dedicated private-wrapper RPC now exposes administrative outbox health without exposing payloads or secrets.
+Outbox health is consolidated into the existing protected operational-health boundary rather than exposed through a separate public data surface.
 
 The protected response includes:
 
 - counts for pending, retry, processing, dead and sent;
-- age and timestamp of the oldest unsent event;
-- due retries and processing rows stuck beyond ten minutes;
-- sent and failed counts for the preceding 24 hours;
-- up to 20 recent deliveries;
-- up to 20 recent failures with sanitized error text limited to 300 characters.
+- age of the oldest unsent event;
+- bounded recent-event metadata;
+- event type, asset, timeframe, direction, status, attempts and Telegram message ID;
+- sanitized bounded error text.
 
 The response deliberately excludes the notification payload and all service, Telegram and database secrets.
 
 Authorization model:
 
-- private implementation: `SECURITY DEFINER`, executable only through the protected server/admin boundary;
+- private implementation: `SECURITY DEFINER` and guarded by `crypto_is_admin()`;
 - public wrapper: `SECURITY INVOKER`;
 - anonymous execution: denied;
-- authenticated execution still requires `crypto_is_admin()`;
+- authenticated execution still requires the server-verified admin role;
 - direct browser access to the outbox table remains denied by RLS.
 
-An unauthenticated publishable-key RPC request returned HTTP 401.
+A publishable-key request without an authenticated administrator session was denied.
 
 ## Administrative interface
 
-The v79 administrative interface now includes an outbox panel showing:
+The existing v79 operational-health panel now includes Telegram outbox observability:
 
 - pending, retry, processing, dead and sent counts;
-- total unsent events;
 - oldest unsent age;
-- due retries and stuck processing rows;
-- deliveries and failures in the preceding 24 hours;
-- recent delivery metadata and bounded errors.
+- recent delivery status and attempt count;
+- Telegram message ID;
+- bounded error text.
 
-The panel escapes rendered values and does not request or display outbox payloads.
+A redundant standalone panel and its extra RPC were removed so the administrative page has one authoritative operational-health view.
 
 ## Deployment and security evidence
 
 - Final application commit for this block is recorded in the protected release checkpoint.
 - GitHub Pages deployment completed successfully.
-- Both the new administrative script and its loader returned HTTP 200 after deployment.
+- The operational-health script, loader and refreshed service worker returned HTTP 200 after deployment.
 - 34 of 34 CRYPTO LAB public tables use RLS.
 - No public `SECURITY DEFINER` function is executable by browser roles.
 - Supabase Security Advisor reports zero findings.
