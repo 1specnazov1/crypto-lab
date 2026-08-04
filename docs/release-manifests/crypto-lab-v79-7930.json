@@ -3,7 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-04T16:14:00Z",
+  "updated_at": "2026-08-04T16:18:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -55,9 +55,9 @@
     {"slug":"crypto-lab-v79-billing-webhook","version":1,"verify_jwt":false,"status":"ACTIVE"}
   ],
   "release_evidence": {
-    "release_gate_run_id": "pending",
-    "browser_smoke_run_id": "pending",
-    "pages_run_id": "pending",
+    "release_gate_run_id": "30928316860",
+    "browser_smoke_run_id": "30927975044",
+    "pages_run_id": "30927974279",
     "technical_score": 100,
     "commercial_score": 60
   },
