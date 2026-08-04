@@ -1,0 +1,119 @@
+name: Validate v79 Maintenance Evidence
+
+on:
+  push:
+    paths:
+      - 'v79/admin-maintenance.js'
+      - 'v79/commercial-extension.js'
+      - 'v79/service-worker.js'
+      - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - 'supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql'
+      - 'supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql'
+      - 'supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql'
+      - '.github/workflows/v79-maintenance-evidence-validation.yml'
+  pull_request:
+    paths:
+      - 'v79/admin-maintenance.js'
+      - 'v79/commercial-extension.js'
+      - 'v79/service-worker.js'
+      - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - 'supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql'
+      - 'supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql'
+      - 'supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql'
+      - '.github/workflows/v79-maintenance-evidence-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-maintenance-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Validate maintenance evidence assets
+        run: |
+          set -euo pipefail
+          node --check v79/admin-maintenance.js
+          node --check v79/commercial-extension.js
+          node --check v79/service-worker.js
+          python - <<'PY'
+          from pathlib import Path
+          import json, re, subprocess, sys
+
+          errors=[]
+          manifest_path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
+          commercial=Path('v79/commercial-extension.js').read_text(encoding='utf-8')
+          worker=Path('v79/service-worker.js').read_text(encoding='utf-8')
+          panel=Path('v79/admin-maintenance.js').read_text(encoding='utf-8')
+
+          required_files=[
+            'v79/admin-maintenance.js',
+            'supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql',
+            'supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql',
+            'supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql',
+          ]
+          for name in required_files:
+            if not Path(name).is_file(): errors.append(f'missing required file: {name}')
+
+          required_markers={
+            'panel RPC':'get_crypto_admin_maintenance_evidence',
+            'panel root':'maintenanceEvidencePanel',
+            'loader id':'adminMaintenanceEvidenceScript',
+            'loader source':'admin-maintenance.js',
+            'worker cache asset':'./admin-maintenance.js',
+          }
+          if required_markers['panel RPC'] not in panel: errors.append('maintenance panel RPC marker missing')
+          if required_markers['panel root'] not in panel: errors.append('maintenance panel root marker missing')
+          if required_markers['loader id'] not in commercial: errors.append('maintenance loader id missing')
+          if required_markers['loader source'] not in commercial: errors.append('maintenance loader source missing')
+          if required_markers['worker cache asset'] not in worker: errors.append('maintenance panel not cached by service worker')
+
+          maintenance=manifest.get('maintenance_evidence',{})
+          if maintenance.get('seal_required') is not True: errors.append('maintenance seal is not required')
+          if maintenance.get('status') not in ('pending','passed','failed'): errors.append('invalid maintenance evidence status')
+          expected=maintenance.get('expected_after','')
+          if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z',expected): errors.append('invalid maintenance expected_after')
+
+          app=manifest.get('application',{})
+          cache=app.get('pwa_cache','')
+          if cache not in worker: errors.append('service worker cache does not match manifest')
+          assets={item.get('path'):item for item in app.get('assets',[])}
+          item=assets.get('v79/admin-maintenance.js')
+          if not item: errors.append('maintenance panel missing from manifest assets')
+          else:
+            actual=subprocess.check_output(['git','hash-object','v79/admin-maintenance.js'],text=True).strip()
+            if item.get('sha')!=actual: errors.append('maintenance panel blob SHA drift')
+            if item.get('marker','') not in panel: errors.append('maintenance panel manifest marker drift')
+
+          migration_names={(m.get('version'),m.get('name')) for m in manifest.get('migrations',[])}
+          expected_migrations={
+            ('20260804163552','crypto_maintenance_evidence_seal'),
+            ('20260804171048','crypto_release_drift_observation_shape_hardening'),
+            ('20260804171147','crypto_release_drift_observation_null_shape_fix'),
+          }
+          missing=expected_migrations-migration_names
+          if missing: errors.append(f'manifest migrations missing: {sorted(missing)}')
+
+          forbidden=['SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN','RESEND_API_KEY','STRIPE_SECRET_KEY','LIQPAY_PRIVATE_KEY','sb_secret_']
+          for marker in forbidden:
+            if marker in panel: errors.append(f'public panel contains forbidden marker: {marker}')
+
+          if errors:
+            print('\n'.join(f'ERROR: {item}' for item in errors))
+            sys.exit(1)
+          print('v79 maintenance evidence gate passed')
+          PY
