@@ -3,14 +3,14 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-04T22:23:00Z",
+  "updated_at": "2026-08-04T22:26:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
   },
   "application": {
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
-    "evidence_commit": "925bf0ed5f15f395f33ec686dc6111cd74caeec6",
+    "evidence_commit": "442476eb59483661e611571dc2f96099b493ce4e",
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
     "assets": [
       {
@@ -286,10 +286,10 @@
     }
   ],
   "release_evidence": {
-    "release_gate_run_id": "pending",
-    "maintenance_evidence_gate_run_id": "pending",
+    "release_gate_run_id": "30956243958",
+    "maintenance_evidence_gate_run_id": "30956244014",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "pending",
+    "pages_run_id": "30956243310",
     "technical_score": 100,
     "commercial_score": 60
   },
