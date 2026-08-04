@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-04T16:05:00Z",
+  "stable_root": {
+    "path": "index.html",
+    "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  },
+  "application": {
+    "application_commit": "bfa7875e34f51e47c134b4c570c141298d904ea7",
+    "evidence_commit": "cc1fc516e39ace6aedbfbf86adad080ab3da15cd",
+    "pwa_cache": "crypto-lab-v79-7930-integrity1",
+    "assets": [
+      {"path":"v79/index.html","sha":"b92335b3a3d76e349f1845fd653e1c1021d6d7f6","marker":"app.html?v=7930"},
+      {"path":"v79/app.html","sha":"432fe33542bf58b41bab590caf0fcf5d635f8da4","marker":"commercial-extension.js?v=7930"},
+      {"path":"v79/commercial-extension.js","sha":"794360f0aed722ab5b72e9305909f1bbe61388b0","marker":"adminDataIntegrityScript"},
+      {"path":"v79/service-worker.js","sha":"245f01bb2d2664ea953fb6724321faa3ef999081","marker":"crypto-lab-v79-7930-integrity1"},
+      {"path":"v79/admin-integrity.js","sha":"0e5fee3828021025e391cefbd2e5c12d56bed283","marker":"get_crypto_admin_data_integrity"},
+      {"path":"v79/admin-ops-summary.js","sha":"afab225a2029618ee0cde83f7fae1101f3a33fa9","marker":"get_crypto_admin_operational_summary"}
+    ]
+  },
+  "migrations": [
+    {"version":"20260804122547","name":"merge_crypto_operational_slo_maintenance_retention"},
+    {"version":"20260804123221","name":"consolidate_operational_slo_capture"},
+    {"version":"20260804132610","name":"harden_operational_http_reconciliation","source":"supabase/migrations/202608041324_harden_operational_http_reconciliation.sql","source_commit":"19378f9d439b4081e557eabda7a3d2290d5ccf94"},
+    {"version":"20260804145557","name":"crypto_operational_escalation_summary"},
+    {"version":"20260804145929","name":"fix_operational_summary_crypto_table_pattern"},
+    {"version":"20260804150038","name":"fix_operational_summary_false_positive_thresholds","source":"supabase/migrations/202608041500_crypto_operational_escalation_summary.sql","source_commit":"fa9f30432cb7c0e42fb4b8b15c0cf74d9d3e2dd9"},
+    {"version":"20260804154500","name":"crypto_admin_continuous_data_integrity","source":"supabase/migrations/202608041545_continuous_data_integrity.sql","source_commit":"360143002f5817edaa940a2197a2a88d4373c98a"}
+  ],
+  "edge_functions": [
+    {"slug":"crypto-ai-advisor","version":9,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-telegram-signal","version":5,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-signal-monitor","version":6,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-signal-register","version":7,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-market-scanner","version":12,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-preview","version":5,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-chart","version":2,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-publisher","version":5,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-validator","version":61,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-backtest-data","version":4,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-scanner","version":1,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-backtest","version":2,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-backtest-run","version":1,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-mail-dispatch","version":2,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-register","version":2,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-data-export","version":4,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-recover","version":1,"verify_jwt":false,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-admin-deletions","version":4,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-commercial","version":1,"verify_jwt":true,"status":"ACTIVE"},
+    {"slug":"crypto-lab-v79-billing-webhook","version":1,"verify_jwt":false,"status":"ACTIVE"}
+  ],
+  "release_evidence": {
+    "release_gate_run_id": "30926170428",
+    "browser_smoke_run_id": "30926174066",
+    "pages_run_id": "30926169393",
+    "technical_score": 100,
+    "commercial_score": 60
+  },
+  "boundaries": {
+    "registration_enabled": false,
+    "recovery_enabled": false,
+    "paid_prices_active": false,
+    "payment_provider_active": false,
+    "v79_published_over_v78": false
+  }
+}
