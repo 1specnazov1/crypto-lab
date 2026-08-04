@@ -1,254 +1,280 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
-const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID")!;
-const monitorSecret = Deno.env.get("MONITOR_SECRET")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
+const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID") || "";
+const MONITOR_SECRET = Deno.env.get("MONITOR_SECRET") || "";
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
-const supabase = createClient(supabaseUrl, serviceRoleKey);
+const SIGNAL_PAGE_SIZE = 250;
+const MAX_SIGNAL_PAGES = 40;
+const BINANCE_SYMBOL_CHUNK = 40;
+const RPC_UPDATE_CHUNK = 100;
+const NOTIFICATION_CLAIM_LIMIT = 20;
+const SELECT_FIELDS = "id,symbol,timeframe,direction,status,entry_low,entry_high,stop,tp1,tp2,tp3";
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-const toNumber = (value: unknown) => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+type Signal = {
+  id: string;
+  symbol: string;
+  timeframe: string;
+  direction: string;
+  status: string;
+  entry_low: number;
+  entry_high: number;
+  stop: number;
+  tp1: number | null;
+  tp2: number | null;
+  tp3: number | null;
 };
 
-const formatPrice = (value: number) =>
-  value.toLocaleString("en-US", {
-    maximumFractionDigits: value < 1 ? 8 : value < 10 ? 5 : 2,
+type PriceUpdate = { id: string; price: number };
+
+function json(body: unknown, status = 200) {
+  return Response.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
   });
+}
+
+function clean(value: unknown, max = 1000) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .trim()
+    .slice(0, max);
+}
+
+function chunks<T>(items: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    result.push(items.slice(index, index + size));
+  }
+  return result;
+}
+
+function formatPrice(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number.toLocaleString("en-US", {
+        maximumFractionDigits: number < 1 ? 8 : number < 10 ? 5 : 2,
+      })
+    : "—";
+}
+
+function messageFor(payload: Record<string, unknown>) {
+  const symbol = clean(payload.symbol, 20);
+  const timeframe = clean(payload.timeframe, 10);
+  const direction = clean(payload.direction, 10);
+  const event = clean(payload.event_type, 10);
+  const price = formatPrice(payload.price);
+  const head = event === "STOP" ? "🔴" : event === "TP3" ? "🏆" : event === "ENTRY" ? "🟡" : "✅";
+  const base = `${head} CRYPTO LAB 24/7\n\n${symbol}/USDT · ${timeframe}\nНаправление: ${direction}\nЦена Binance: ${price}`;
+  if (event === "ENTRY") {
+    return `${base}\nСобытие: ЦЕНА ДОСТИГЛА ВХОДА\nЗона входа: ${formatPrice(payload.entry_low)} – ${formatPrice(payload.entry_high)}`;
+  }
+  if (event === "TP1") return `${base}\nСобытие: TP1 ДОСТИГНУТ\nTP1: ${formatPrice(payload.tp1)}`;
+  if (event === "TP2") return `${base}\nСобытие: TP2 ДОСТИГНУТ\nTP2: ${formatPrice(payload.tp2)}`;
+  if (event === "TP3") return `${base}\nСобытие: TP3 ДОСТИГНУТ\nTP3: ${formatPrice(payload.tp3)}`;
+  const reached = [payload.tp1_previously_reached ? "TP1" : "", payload.tp2_previously_reached ? "TP2" : ""]
+    .filter(Boolean)
+    .join(", ");
+  return `${base}\nСобытие: STOP LOSS\nStop Loss: ${formatPrice(payload.stop)}\n${reached ? `До Stop были достигнуты: ${reached}` : "TP не достигнуты"}`;
+}
 
 async function sendTelegram(text: string) {
-  const response = await fetch(
-    `https://api.telegram.org/bot${telegramToken}/sendMessage`,
-    {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    throw new Error("Telegram configuration unavailable");
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: telegramChatId,
-        text,
-        disable_web_page_preview: true,
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Telegram error: ${response.status}`);
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, disable_web_page_preview: true }),
+      signal: controller.signal,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || body?.ok !== true) {
+      throw new Error(`Telegram ${response.status}: ${clean(body?.description || "send failed", 240)}`);
+    }
+    return String(body?.result?.message_id ?? "");
+  } finally {
+    clearTimeout(timer);
   }
 }
 
-Deno.serve(async (request) => {
-  if (request.method === "OPTIONS") {
-    return new Response("ok");
+async function fetchAllLiveSignals() {
+  const signals: Signal[] = [];
+  let expectedCount: number | null = null;
+  let pageCount = 0;
+
+  for (let page = 0; page < MAX_SIGNAL_PAGES; page += 1) {
+    const from = page * SIGNAL_PAGE_SIZE;
+    const to = from + SIGNAL_PAGE_SIZE - 1;
+    const { data, error, count } = await admin
+      .from("crypto_signal_monitors")
+      .select(SELECT_FIELDS, { count: page === 0 ? "exact" : undefined })
+      .in("status", ["WAITING", "ACTIVE"])
+      .order("id", { ascending: true })
+      .range(from, to);
+
+    if (error) throw error;
+    if (page === 0 && typeof count === "number") expectedCount = count;
+    const rows = (data || []) as Signal[];
+    signals.push(...rows);
+    pageCount += 1;
+
+    if (rows.length < SIGNAL_PAGE_SIZE) {
+      if (expectedCount !== null && signals.length !== expectedCount) {
+        throw new Error(`Signal pagination mismatch: expected ${expectedCount}, fetched ${signals.length}`);
+      }
+      return { signals, expectedCount: expectedCount ?? signals.length, pageCount };
+    }
   }
 
-  if (!monitorSecret) {
-    return json({ error: "MONITOR_SECRET не настроен" }, 500);
+  throw new Error(`Live signal set exceeds bounded capacity of ${SIGNAL_PAGE_SIZE * MAX_SIGNAL_PAGES}`);
+}
+
+async function fetchBinancePrices(symbols: string[]) {
+  const prices: Record<string, number> = {};
+  const symbolChunks = chunks(symbols, BINANCE_SYMBOL_CHUNK);
+
+  for (const symbolChunk of symbolChunks) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const encoded = encodeURIComponent(JSON.stringify(symbolChunk));
+      const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encoded}`, {
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error(`Binance ${response.status}`);
+      const rows = await response.json();
+      if (!Array.isArray(rows)) throw new Error("Invalid Binance response");
+      for (const row of rows) {
+        const value = Number(row?.price);
+        const symbol = String(row?.symbol || "");
+        if (symbol && Number.isFinite(value) && value > 0) prices[symbol] = value;
+      }
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
-  if (request.headers.get("x-monitor-secret") !== monitorSecret) {
-    return json({ error: "Недействительный ключ" }, 401);
+  const missing = symbols.filter((symbol) => !Number.isFinite(prices[symbol]) || prices[symbol] <= 0);
+  if (missing.length) {
+    throw new Error(`Missing Binance prices for ${missing.slice(0, 10).join(",")}${missing.length > 10 ? ",…" : ""}`);
+  }
+  return { prices, chunkCount: symbolChunks.length };
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { status: 204 });
+  if (req.method !== "POST") return json({ success: false, error: "POST only" }, 405);
+  if (!MONITOR_SECRET || req.headers.get("x-monitor-secret") !== MONITOR_SECRET) {
+    return json({ success: false, error: "Unauthorized" }, 401);
+  }
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    return json({ success: false, error: "Supabase configuration unavailable" }, 503);
   }
 
   try {
-    const { data: signals, error } = await supabase
-      .from("crypto_signal_monitors")
-      .select("*")
-      .in("status", ["WAITING", "ACTIVE"])
-      .limit(100);
+    const source = await fetchAllLiveSignals();
+    const activeSignals = source.signals;
+    const symbols = [...new Set(activeSignals.map((signal) => `${signal.symbol}USDT`))];
+    const priceResult = symbols.length
+      ? await fetchBinancePrices(symbols)
+      : { prices: {} as Record<string, number>, chunkCount: 0 };
 
-    if (error) throw error;
+    const updates: PriceUpdate[] = activeSignals.map((signal) => ({
+      id: signal.id,
+      price: priceResult.prices[`${signal.symbol}USDT`],
+    }));
 
-    if (!signals?.length) {
-      return json({ success: true, checked: 0, notifications: 0 });
+    let checked = 0;
+    let missing = 0;
+    let transitioned = 0;
+    let queued = 0;
+    const updateChunks = chunks(updates, RPC_UPDATE_CHUNK);
+
+    for (const updateChunk of updateChunks) {
+      const { data, error } = await admin.rpc("service_apply_crypto_signal_monitor_batch", {
+        p_updates: updateChunk,
+      });
+      if (error) throw error;
+      checked += Number(data?.checked || 0);
+      missing += Number(data?.missing || 0);
+      transitioned += Number(data?.transitioned || 0);
+      queued += Number(data?.queued || 0);
     }
 
-    const symbols = [
-      ...new Set(signals.map((signal) => `${signal.symbol}USDT`)),
-    ];
-
-    const binanceResponse = await fetch(
-      `https://api.binance.com/api/v3/ticker/price?symbols=${
-        encodeURIComponent(JSON.stringify(symbols))
-      }`,
-    );
-
-    if (!binanceResponse.ok) {
-      throw new Error(`Binance error: ${binanceResponse.status}`);
+    const unprocessed = activeSignals.length - checked - missing;
+    if (unprocessed !== 0) {
+      throw new Error(`Monitor coverage mismatch: fetched ${activeSignals.length}, checked ${checked}, missing ${missing}`);
     }
 
-    const binanceData = await binanceResponse.json();
-    const prices = Object.fromEntries(
-      binanceData.map((item: { symbol: string; price: string }) => [
-        item.symbol,
-        Number(item.price),
-      ]),
-    );
-
-    let notifications = 0;
+    const { data: claimed, error: claimError } = await admin.rpc("service_claim_crypto_signal_notifications", {
+      p_limit: NOTIFICATION_CLAIM_LIMIT,
+    });
+    if (claimError) throw claimError;
+    const notifications = Array.isArray(claimed) ? claimed : [];
+    let sent = 0;
+    let failed = 0;
     const errors: string[] = [];
 
-    for (const signal of signals) {
+    for (const notification of notifications) {
+      const id = String(notification?.id || "");
       try {
-        const price = prices[`${signal.symbol}USDT`];
-        if (!Number.isFinite(price)) continue;
-
-        const direction = signal.direction;
-        const entryLow = toNumber(signal.entry_low);
-        const entryHigh = toNumber(signal.entry_high);
-        const stop = toNumber(signal.stop);
-        const tp1 = toNumber(signal.tp1);
-        const tp2 = toNumber(signal.tp2);
-        const tp3 = toNumber(signal.tp3);
-        const previousPrice = toNumber(signal.last_price);
-        const now = new Date().toISOString();
-
-        const updates: Record<string, unknown> = {
-          last_price: price,
-          last_checked_at: now,
-          updated_at: now,
-        };
-
-        let message = "";
-
-        if (
-          signal.status === "WAITING" &&
-          entryLow !== null &&
-          entryHigh !== null
-        ) {
-          const low = Math.min(entryLow, entryHigh);
-          const high = Math.max(entryLow, entryHigh);
-
-          const inside = price >= low && price <= high;
-          const crossed = previousPrice !== null &&
-            Math.min(previousPrice, price) <= high &&
-            Math.max(previousPrice, price) >= low;
-
-          if (inside || crossed) {
-            updates.status = "ACTIVE";
-            updates.entry_notified = true;
-            updates.activated_at = now;
-
-            message =
-              `🟡 CRYPTO LAB 24/7\n\n` +
-              `${signal.symbol}/USDT · ${signal.timeframe}\n` +
-              `Событие: ЦЕНА ДОСТИГЛА ВХОДА\n` +
-              `Направление: ${direction}\n` +
-              `Цена Binance: ${formatPrice(price)}\n` +
-              `Зона входа: ${formatPrice(low)} – ${formatPrice(high)}`;
-          }
-        } else if (signal.status === "ACTIVE") {
-          const isLong = direction === "LONG";
-          const stopHit = stop !== null &&
-            (isLong ? price <= stop : price >= stop);
-
-          const tp3Hit = tp3 !== null &&
-            (isLong ? price >= tp3 : price <= tp3);
-
-          const tp2Hit = tp2 !== null &&
-            (isLong ? price >= tp2 : price <= tp2);
-
-          const tp1Hit = tp1 !== null &&
-            (isLong ? price >= tp1 : price <= tp1);
-
-          if (stopHit && !signal.stop_notified) {
-            updates.status = "CLOSED";
-            updates.stop_notified = true;
-            updates.closed_at = now;
-            updates.close_type = "STOP";
-
-            const reached = [
-              signal.tp1_notified ? "TP1" : "",
-              signal.tp2_notified ? "TP2" : "",
-            ].filter(Boolean).join(", ");
-
-            message =
-              `🔴 CRYPTO LAB 24/7\n\n` +
-              `${signal.symbol}/USDT · ${signal.timeframe}\n` +
-              `Событие: STOP LOSS\n` +
-              `Направление: ${direction}\n` +
-              `Цена Binance: ${formatPrice(price)}\n` +
-              `Stop Loss: ${formatPrice(stop!)}\n` +
-              `${reached ? `До Stop были достигнуты: ${reached}` : "TP не достигнуты"}`;
-          } else if (tp3Hit && !signal.tp3_notified) {
-            updates.status = "CLOSED";
-            updates.tp1_notified = true;
-            updates.tp2_notified = true;
-            updates.tp3_notified = true;
-            updates.closed_at = now;
-            updates.close_type = "TP3";
-
-            message =
-              `🏆 CRYPTO LAB 24/7\n\n` +
-              `${signal.symbol}/USDT · ${signal.timeframe}\n` +
-              `Событие: TP3 ДОСТИГНУТ\n` +
-              `Направление: ${direction}\n` +
-              `Цена Binance: ${formatPrice(price)}\n` +
-              `TP3: ${formatPrice(tp3!)}`;
-          } else if (tp2Hit && !signal.tp2_notified) {
-            updates.tp1_notified = true;
-            updates.tp2_notified = true;
-
-            message =
-              `✅ CRYPTO LAB 24/7\n\n` +
-              `${signal.symbol}/USDT · ${signal.timeframe}\n` +
-              `Событие: TP2 ДОСТИГНУТ\n` +
-              `Направление: ${direction}\n` +
-              `Цена Binance: ${formatPrice(price)}\n` +
-              `TP2: ${formatPrice(tp2!)}`;
-          } else if (tp1Hit && !signal.tp1_notified) {
-            updates.tp1_notified = true;
-
-            message =
-              `✅ CRYPTO LAB 24/7\n\n` +
-              `${signal.symbol}/USDT · ${signal.timeframe}\n` +
-              `Событие: TP1 ДОСТИГНУТ\n` +
-              `Направление: ${direction}\n` +
-              `Цена Binance: ${formatPrice(price)}\n` +
-              `TP1: ${formatPrice(tp1!)}`;
-          }
-        }
-
-        if (message) {
-          await sendTelegram(message);
-          notifications++;
-        }
-
-        const { error: updateError } = await supabase
-          .from("crypto_signal_monitors")
-          .update(updates)
-          .eq("id", signal.id);
-
-        if (updateError) throw updateError;
-      } catch (signalError) {
-        errors.push(
-          `${signal.symbol}: ${
-            signalError instanceof Error
-              ? signalError.message
-              : "неизвестная ошибка"
-          }`,
+        const telegramMessageId = await sendTelegram(
+          messageFor((notification?.payload || {}) as Record<string, unknown>),
         );
+        const { data: marked, error: markError } = await admin.rpc(
+          "service_mark_crypto_signal_notification_sent",
+          { p_id: id, p_telegram_message_id: telegramMessageId || null },
+        );
+        if (markError || marked !== true) {
+          throw markError || new Error("Notification sent but acknowledgement failed");
+        }
+        sent += 1;
+      } catch (error) {
+        failed += 1;
+        const message = clean(error instanceof Error ? error.message : String(error), 500);
+        errors.push(`${id}: ${message}`);
+        await admin.rpc("service_mark_crypto_signal_notification_failed", {
+          p_id: id,
+          p_error: message,
+        });
       }
     }
 
     return json({
       success: true,
-      checked: signals.length,
-      notifications,
+      monitor_version: 6,
+      source_count: source.expectedCount,
+      fetched: activeSignals.length,
+      signal_pages: source.pageCount,
+      unique_symbols: symbols.length,
+      binance_chunks: priceResult.chunkCount,
+      rpc_chunks: updateChunks.length,
+      checked,
+      missing,
+      transitioned,
+      queued,
+      notifications_claimed: notifications.length,
+      notifications_sent: sent,
+      notification_failures: failed,
       errors,
     });
   } catch (error) {
+    console.error("crypto-signal-monitor", error);
     return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Ошибка мониторинга",
-      },
+      { success: false, monitor_version: 6, error: clean(error instanceof Error ? error.message : String(error), 500) },
       500,
     );
   }
