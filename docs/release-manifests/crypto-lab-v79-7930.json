@@ -3,14 +3,14 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-04T17:55:00Z",
+  "updated_at": "2026-08-04T17:58:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
   },
   "application": {
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
-    "evidence_commit": "e4b9339b727c849102488f0fd3f792e5c9035326",
+    "evidence_commit": "1a47cd5e9add588c92eac0edfd475064ef919aa1",
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
     "assets": [
       {"path":"v79/index.html","sha":"b92335b3a3d76e349f1845fd653e1c1021d6d7f6","marker":"app.html?v=7930"},
@@ -62,10 +62,10 @@
     {"slug":"crypto-lab-v79-billing-webhook","version":1,"verify_jwt":false,"status":"ACTIVE"}
   ],
   "release_evidence": {
-    "release_gate_run_id": "pending",
-    "maintenance_evidence_gate_run_id": "pending",
+    "release_gate_run_id": "30936109918",
+    "maintenance_evidence_gate_run_id": "30936107199",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "pending",
+    "pages_run_id": "30936101650",
     "technical_score": 100,
     "commercial_score": 60
   },
