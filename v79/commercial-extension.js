@@ -23,6 +23,7 @@
         add(doc,'adminIncidentLedgerScript','./admin-incidents.js');
         add(doc,'adminOperationalSloScript','./admin-slo.js');
         add(doc,'adminOperationalSummaryScript','./admin-ops-summary.js');
+        add(doc,'adminDataIntegrityScript','./admin-integrity.js');
       }
     }catch(error){console.warn('Commercial integration unavailable',error);}
   });
