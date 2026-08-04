@@ -21,6 +21,7 @@
         add(doc,'adminSessionSecurityScript','./admin-session-security.js');
         add(doc,'adminReadinessScript','./admin-readiness.js');
         add(doc,'adminIncidentLedgerScript','./admin-incidents.js');
+        add(doc,'adminOperationalSloScript','./admin-slo.js');
       }
     }catch(error){console.warn('Commercial integration unavailable',error);}
   });
