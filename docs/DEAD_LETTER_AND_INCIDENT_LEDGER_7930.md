@@ -6,9 +6,9 @@ Verification date: 2026-08-04
 
 This block strengthens operational recovery without changing or publishing the working root v78 application.
 
-## Current signal-monitor baseline
+## Signal-monitor baseline
 
-`crypto-signal-monitor` is deployed as version 6 with bounded pagination:
+`crypto-signal-monitor` version 6 provides bounded complete coverage:
 
 - 250 live signals per page;
 - maximum 40 pages / 10,000 live signals per invocation;
@@ -17,12 +17,12 @@ This block strengthens operational recovery without changing or publishing the w
 - fail-closed count and missing-price checks;
 - durable notification outbox with uniqueness on `signal_id + event_type`.
 
-At the final check in this block, the outbox contained:
+Final outbox snapshot:
 
-- total events: 30;
-- sent: 30;
+- total events: 32;
+- sent: 32;
 - pending, processing, retry and dead: 0;
-- unique signal/event pairs: 30;
+- unique signal/event pairs: 32;
 - maximum attempts: 1;
 - rows due for 180-day retention cleanup: 0.
 
@@ -59,16 +59,17 @@ The v79 administration health panel exposes the requeue button only for `dead` a
 
 ## Operational incident ledger
 
-Two protected RLS tables were added:
+Protected RLS tables:
 
 - `crypto_operational_http_requests` — tracks pg_net request IDs for monitored Edge calls;
-- `crypto_operational_incidents` — stores deduplicated Edge and cron incidents.
+- `crypto_operational_incidents` — stores deduplicated Edge and cron incidents;
+- `crypto_operational_cursors` — stores the monotonic processed cron `runid` per source.
 
-Direct browser grants are revoked. The service role owns collection and reconciliation.
+Direct browser grants are revoked. The cursor table has a service-role-only RLS policy. Collection and reconciliation are service-only operations.
 
 ### Edge observations
 
-The scheduled monitor and scanner jobs now record the actual pg_net request ID. Reconciliation treats an observation as failed when:
+The scheduled monitor and scanner jobs record the actual pg_net request ID. Reconciliation treats an observation as failed when:
 
 - no response exists after two minutes;
 - the request timed out;
@@ -76,11 +77,21 @@ The scheduled monitor and scanner jobs now record the actual pg_net request ID. 
 - the HTTP response was outside 2xx;
 - the bounded response contains `success=false`.
 
-The fingerprint is stable per source, so repeated failures update one incident and increase `occurrences` instead of creating unlimited duplicate rows. A later successful response resolves the incident automatically.
+A stable fingerprint per source ensures repeated failures update one incident and increase `occurrences`. A later successful response resolves the incident automatically.
 
-### Cron observations
+### Cron observations and durable cursors
 
-The reconciler checks only the latest terminal cron state, `succeeded` or `failed`. Transient running states are ignored. A failed terminal execution opens or updates one incident for the job, and a later successful execution resolves it.
+The first reconciler inspected only the latest terminal cron execution. That design could miss a short failure followed by a recovery before the five-minute reconciliation.
+
+The corrected reconciler now:
+
+- processes every unprocessed terminal `succeeded` or `failed` run in ascending `runid` order;
+- handles up to 2,000 new cron observations per cycle;
+- advances each source cursor monotonically;
+- tracks the reconciliation job's own prior terminal runs;
+- increments one deduplicated incident for each distinct failure;
+- resolves it only after a later success;
+- ignores an already processed observation.
 
 Tracked jobs:
 
@@ -89,9 +100,8 @@ Tracked jobs:
 - daily maintenance;
 - subscription lifecycle;
 - billing-event retry;
-- billing reconciliation.
-
-A seventh cron job runs incident reconciliation every five minutes.
+- billing reconciliation;
+- incident reconciliation every five minutes.
 
 ### Retention
 
@@ -99,27 +109,31 @@ A seventh cron job runs incident reconciliation every five minutes.
 - resolved incidents: 180 days;
 - open incidents are not automatically deleted.
 
-## Incident state-machine verification
+## State-machine verification
 
-A rollback-only synthetic pg_net test used three local response rows:
+### Edge lifecycle
+
+A rollback-only pg_net test used three local responses:
 
 1. HTTP 503 opened an Edge incident;
 2. HTTP 500 updated the same fingerprint and raised occurrences to 2;
-3. HTTP 200 resolved the incident.
+3. HTTP 200 resolved it.
 
-Final in-transaction state:
+Final in-transaction state: `resolved`, occurrences 2, last HTTP status 200, error cleared, resolution note `Recovered on successful Edge response`.
 
-- status: `resolved`;
-- occurrences: 2;
-- last HTTP status: 200;
-- error cleared;
-- resolution note: `Recovered on successful Edge response`.
+### Cron lifecycle
 
-The transaction was rolled back, so no artificial incident remains.
+A separate rollback-only cursor test proved:
+
+1. failed run `900000000001` opened one incident;
+2. failed run `900000000002` reused the fingerprint and raised occurrences to 2;
+3. successful run `900000000003` resolved it;
+4. the source cursor advanced through all observations;
+5. rollback removed every synthetic run, cursor change and incident.
 
 ## Protected administrative observability
 
-A private-wrapper RPC returns only bounded incident metadata to an authenticated administrator:
+The single retained private-wrapper RPC `get_crypto_admin_operational_incidents()` returns bounded incident metadata only:
 
 - open and resolved counts;
 - open Edge and cron counts;
@@ -129,29 +143,27 @@ A private-wrapper RPC returns only bounded incident metadata to an authenticated
 - HTTP status;
 - error and resolution text bounded to 240 characters.
 
-It does not expose Edge payloads, tokens, secrets, request headers or raw response bodies.
+It never returns Edge payloads, request headers, tokens, credentials, secrets or notification payloads.
 
-Transactional authorization verification proved:
+Authorization verification proved:
 
-- an administrator received the bounded incident record;
+- an administrator received the bounded record;
 - a normal user was denied with SQLSTATE `42501`;
-- even an administrator could not directly select the RLS table from the browser role;
+- even an administrator could not directly select the RLS table using the browser role;
 - the returned error text was limited to 240 characters;
-- the transaction rolled back and test users did not remain.
+- rollback removed the test users and incident.
 
-The v79 admin panel now contains a read-only RU/UA/EN incident ledger. It is cached by the PWA shell and refreshes through the protected RPC.
+The v79 admin panel contains a read-only RU/UA/EN incident ledger loaded through this RPC and cached by the PWA shell.
 
-## Current operational state
-
-At the final production-state check:
+## Final operational state
 
 - open incidents: 0;
 - resolved incidents: 0;
-- pending tracked HTTP observations: 0;
-- all seven scheduled jobs were active;
-- the latest execution of every scheduled job was successful;
-- Security Advisor reported zero lints;
-- no temporary Auth users remained.
+- pending tracked HTTP observations: 0 after reconciliation;
+- all seven scheduled jobs active;
+- latest execution of every job successful;
+- Security Advisor: 0 lints;
+- temporary Auth users remaining: 0.
 
 Recent tracked request observations:
 
@@ -164,13 +176,12 @@ These measurements use pg_net request/response timestamps and are operational ev
 
 Application asset commit: `c9ceb710bfa7ef6374c9c221f8a23c9d7eaa89fa`.
 
-- dynamic release gate run `30906327415`: success;
+- release gate run `30906327415`: success;
+- browser/PWA smoke run `30906327518`: success;
 - public `admin-incidents.js`: HTTP 200 and expected RPC marker present;
 - public `commercial-extension.js`: HTTP 200 and incident-loader marker present;
 - public `service-worker.js`: HTTP 200 with `admin-incidents.js` and cache `crypto-lab-v79-7930-incident1`;
-- migration head Pages run `30906419476`: success.
-
-The browser-smoke run for the application asset commit was still installing the pinned Chromium dependencies when this evidence was consolidated; its final conclusion must be recorded separately rather than assumed.
+- Pages deployment for the consolidated evidence commit is recorded in the protected release checkpoint.
 
 ## Boundaries retained
 
