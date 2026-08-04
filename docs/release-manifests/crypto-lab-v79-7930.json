@@ -3,7 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-04T16:18:00Z",
+  "updated_at": "2026-08-04T16:40:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -30,7 +30,8 @@
     {"version":"20260804145929","name":"fix_operational_summary_crypto_table_pattern"},
     {"version":"20260804150038","name":"fix_operational_summary_false_positive_thresholds","source":"supabase/migrations/202608041500_crypto_operational_escalation_summary.sql","source_commit":"fa9f30432cb7c0e42fb4b8b15c0cf74d9d3e2dd9"},
     {"version":"20260804154500","name":"crypto_admin_continuous_data_integrity","source":"supabase/migrations/202608041545_continuous_data_integrity.sql","source_commit":"360143002f5817edaa940a2197a2a88d4373c98a"},
-    {"version":"20260804160848","name":"crypto_release_drift_and_rollback_readiness","source":"supabase/migrations/202608041605_release_drift_and_rollback_readiness.sql","source_commit":"92da574eeb2402217d2d6e7320b1b39b6965104a"}
+    {"version":"20260804160848","name":"crypto_release_drift_and_rollback_readiness","source":"supabase/migrations/202608041605_release_drift_and_rollback_readiness.sql","source_commit":"92da574eeb2402217d2d6e7320b1b39b6965104a"},
+    {"version":"20260804163552","name":"crypto_maintenance_evidence_seal","source":"supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql","source_commit":"e932a6676becd5e80fd73e91f9cfe4b355bea836"}
   ],
   "edge_functions": [
     {"slug":"crypto-ai-advisor","version":9,"verify_jwt":true,"status":"ACTIVE"},
@@ -60,6 +61,11 @@
     "pages_run_id": "30927974279",
     "technical_score": 100,
     "commercial_score": 60
+  },
+  "maintenance_evidence": {
+    "expected_after": "2026-08-05T03:17:00Z",
+    "seal_required": true,
+    "status": "pending"
   },
   "boundaries": {
     "registration_enabled": false,
