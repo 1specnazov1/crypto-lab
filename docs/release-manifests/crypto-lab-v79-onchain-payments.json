@@ -1,35 +1,26 @@
 {
-  "schema_version": 10,
+  "schema_version": 11,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T10:12:00Z",
-  "provider": "onchain_direct",
-  "wallet_client": "trust_wallet_walletconnect",
-  "status": "disabled_pending_remaining_decisions",
+  "updated_at": "2026-08-05T10:20:00Z",
+  "provider": "unselected",
+  "provider_candidate": "onchain_direct",
+  "wallet_client_candidate": "trust_wallet_walletconnect",
+  "status": "disabled_candidate_only",
   "activation_allowed": false,
   "publication_allowed": false,
-  "approved_networks": ["TRON", "BSC", "SOLANA"],
-  "owner_network_approval_recorded": true,
-  "owner_decision": {
-    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
-    "decision_text_exact": "Три сети утверждаю.",
-    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
-    "source_channel": "owner_chat",
-    "original_message_timestamp_known": false,
-    "active_immutable_record": true,
-    "effective_authority_event": true,
-    "decision_scope": "network_selection_only",
-    "network_activation_authorized": false,
-    "revocation_requires_new_explicit_owner_decision": true
-  },
+  "approved_networks": [],
+  "candidate_networks": ["TRON", "BSC", "SOLANA"],
+  "owner_network_approval_recorded": false,
+  "owner_provider_approval_recorded": false,
   "networks": [
-    {"code":"TRON","standard":"TRC20","chain_reference":"mainnet","fee_asset":"TRX","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":true,"active":false},
-    {"code":"BSC","standard":"BEP20","chain_reference":"56","fee_asset":"BNB","finality_mode":"finalized","required_confirmations":2,"approved_by_owner":true,"active":false},
-    {"code":"SOLANA","standard":"SPL","chain_reference":"mainnet-beta","fee_asset":"SOL","finality_mode":"finalized","required_confirmations":0,"approved_by_owner":true,"active":false}
+    {"code":"TRON","standard":"TRC20","chain_reference":"mainnet","fee_asset":"TRX","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":false,"active":false},
+    {"code":"BSC","standard":"BEP20","chain_reference":"56","fee_asset":"BNB","finality_mode":"finalized","required_confirmations":2,"approved_by_owner":false,"active":false},
+    {"code":"SOLANA","standard":"SPL","chain_reference":"mainnet-beta","fee_asset":"SOL","finality_mode":"finalized","required_confirmations":0,"approved_by_owner":false,"active":false}
   ],
-  "settlement_assets": {
-    "USDT": {"selected":false,"status":"decision_required","decimals":6,"TRON":"verified_official_contract","SOLANA":"verified_official_contract","BSC":"pegged_contract_and_separate_owner_acceptance_required"},
-    "USDC": {"selected":false,"status":"decision_required","decimals":6,"SOLANA":"verified_official_contract","TRON":"unsupported_official","BSC":"unsupported_official"}
+  "asset_candidates": {
+    "USDT": {"selected":false,"status":"decision_required","decimals":6,"network_status":{"TRON":"official_contract_verification_required_at_activation","SOLANA":"official_contract_verification_required_at_activation","BSC":"pegged_contract_and_separate_owner_acceptance_required"}},
+    "USDC": {"selected":false,"status":"decision_required","decimals":6,"network_status":{"SOLANA":"official_contract_verification_required_at_activation","TRON":"issuer_support_not_assumed","BSC":"issuer_support_not_assumed"}}
   },
   "pricing": {"basic_configured":false,"pro_configured":false,"supported_modes":["fixed_asset","fiat_pegged"]},
   "receiving_addresses": {"TRON":null,"BSC":null,"SOLANA":null,"private_keys_required":false},
@@ -40,6 +31,7 @@
     "source_of_truth": "independently_verified_final_chain_state",
     "browser_cannot_mark_paid": true,
     "screenshots_not_accepted": true,
+    "wallet_signature_not_payment_proof": true,
     "duplicate_transaction_claim_blocked": true,
     "late_or_expired_payment_reviewed": true,
     "finality_regression_reviewed": true,
@@ -47,21 +39,21 @@
     "automatic_wallet_debit": false
   },
   "database": {
-    "active_valid_owner_decision_records": 1,
-    "effective_authority_events": 1,
-    "effective_false_supersessions": 0,
-    "owner_decision_record_immutable": true,
-    "authority_events_append_only": true,
-    "canonical_constraints_present": 3,
+    "active_valid_owner_decision_records": 0,
+    "superseded_invalid_owner_decision_records": 1,
+    "validated_candidate_network_constraint": true,
+    "validated_provider_decision_required_constraint": true,
+    "validated_sandbox_owner_claim_constraint": true,
+    "validated_owner_record_archive_constraint": true,
+    "network_guard_trigger_enabled": true,
+    "provider_guard_trigger_enabled": true,
+    "owner_record_guard_trigger_enabled": true,
     "all_tables_rls": true,
     "direct_browser_table_access": false,
-    "owner_decision_integrity": "8/8 healthy",
-    "onchain_integrity": "11/11 healthy",
-    "data_integrity": "45/45 healthy",
-    "launch_control_integrity": "6/6 healthy"
+    "browser_public_security_definer": false
   },
   "runtime_state": {
-    "approved_network_count": 3,
+    "approved_network_count": 0,
     "active_network_count": 0,
     "selected_asset_count": 0,
     "enabled_network_asset_count": 0,
@@ -70,11 +62,7 @@
     "invoice_count": 0,
     "transaction_claim_count": 0,
     "chain_observation_count": 0,
-    "onchain_order_count": 0,
-    "auth_user_count": 0,
-    "profile_count": 0,
-    "registration_attempt_count": 0,
-    "recovery_attempt_count": 0,
+    "provider_status": "decision_required",
     "provider_desired_mode": "disabled",
     "provider_lifecycle_status": "draft",
     "checkout_enabled": false,
@@ -82,29 +70,29 @@
     "recurring_enabled": false,
     "refunds_enabled": false
   },
-  "authoritative_migration": {
-    "version": "20260805100805",
-    "name": "final_lock_explicit_owner_three_network_selection",
-    "source": "supabase/migrations/20260805100805_final_lock_explicit_owner_three_network_selection.sql",
-    "source_commit": "4bbced96ab09237d54dd2160ee92223017e11dab"
-  },
-  "concurrency_incident": {
+  "provenance_incident": {
     "overlapping_automation_runs_confirmed": true,
     "recurring_automation_disabled": true,
-    "last_false_candidate_migration": "20260805100027_authoritative_candidate_only_payment_recovery",
-    "last_false_candidate_manifest_commit": "1a2c15497701a6b1f7f5c5c583caf570f3e83fc0",
-    "false_supersession_invalidated": true,
-    "historical_records_preserved_for_audit": true
+    "fabricated_decision_text": "Три сети утверждаю.",
+    "user_never_wrote_fabricated_text": true,
+    "invalid_reconstructed_record_active": false,
+    "historical_false_migrations_preserved": true,
+    "self_rewriting_owner_decision_workflows_removed": true,
+    "autonomous_owner_decision_bypass_available": false
+  },
+  "authoritative_migration": {
+    "version": "20260805101600",
+    "name": "authoritative_candidate_only_recovery_after_100805"
   },
   "remaining_decisions_and_inputs": [
+    "PAYMENT_PROVIDER_RAIL",
+    "NETWORK_SELECTION",
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
     "BASIC_AND_PRO_PRICE_POLICY",
-    "TRON_PUBLIC_RECEIVING_ADDRESS",
-    "BSC_PUBLIC_RECEIVING_ADDRESS",
-    "SOLANA_PUBLIC_RECEIVING_ADDRESS",
+    "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_SELECTED_NETWORK",
     "RPC_OR_INDEXER_CONFIGURATION",
-    "WALLETCONNECT_PROJECT_ID",
+    "WALLETCONNECT_PROJECT_ID_IF_USED",
     "CONTROLLED_SANDBOX_EVIDENCE",
     "PAYMENT_ACTIVATION_APPROVAL"
   ],
