@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crypto-lab.invalid/schemas/crypto-mail-relay-request-v1.schema.json",
+  "title": "CRYPTO LAB Mail Relay Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "to",
+    "template",
+    "locale",
+    "action_url",
+    "idempotency_key"
+  ],
+  "properties": {
+    "to": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 254
+    },
+    "template": {
+      "type": "string",
+      "enum": [
+        "signup_confirmation",
+        "password_recovery"
+      ]
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "ru",
+        "uk",
+        "en"
+      ]
+    },
+    "action_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://",
+      "maxLength": 4096
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{8,160}$",
+      "maxLength": 160
+    }
+  }
+}
