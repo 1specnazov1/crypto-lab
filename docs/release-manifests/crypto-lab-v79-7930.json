@@ -3,7 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-05T00:25:00Z",
+  "updated_at": "2026-08-05T00:28:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -43,7 +43,7 @@
     {"version":"20260804192752","name":"crypto_checkpoint_pending_evidence_transition_guard","source":"supabase/migrations/20260804192752_crypto_checkpoint_pending_evidence_transition_guard.sql","source_commit":"6e48112fda99598611bf1952976f0ec3f0751419"},
     {"version":"20260804212027","name":"crypto_checkpoint_evidence_transition_validation","source":"supabase/migrations/20260804212027_crypto_checkpoint_evidence_transition_validation.sql","source_commit":"21cb9afb2cdd652294324512f80c6f9b77f147f1"},
     {"version":"20260804222129","name":"crypto_maintenance_run_origin_lockdown","source":"supabase/migrations/20260804222129_crypto_maintenance_run_origin_lockdown.sql","source_commit":"925bf0ed5f15f395f33ec686dc6111cd74caeec6"},
-    {"version":"20260804231916","name":"crypto_maintenance_concurrency_guards","source":"supabase/migrations/20260804231916_crypto_maintenance_concurrency_guards.sql","source_commit":"c76c24b6683e43424143e19b1bbde7fc9a500663"},
+    {"version":"20260804231916","name":"crypto_maintenance_concurrency_guards","source":"supabase/migrations/202608042319_crypto_maintenance_concurrency_guards.sql","source_commit":"c76c24b6683e43424143e19b1bbde7fc9a500663"},
     {"version":"20260805002217","name":"crypto_maintenance_checkpoint_target_binding","source":"supabase/migrations/20260805002217_crypto_maintenance_checkpoint_target_binding.sql","source_commit":"79058e305522b7974087a4fbcf9e3c6e3635c529"}
   ],
   "edge_functions": [
