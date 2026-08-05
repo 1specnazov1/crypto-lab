@@ -58,13 +58,23 @@ jobs:
 
       - name: Validate repair evidence document
         run: |
-          set -euo pipefail
-          grep -F 'PUBLIC: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
-          grep -F 'anon: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
-          grep -F 'authenticated: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
-          grep -F 'service_role: execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
-          grep -F 'data-integrity state: healthy' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
-          grep -F 'live publishing was disabled' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          text=Path('docs/SECURITY_ACL_REPAIR_7930.md').read_text(encoding='utf-8')
+          required=[
+            '`PUBLIC`: no execute',
+            '`anon`: no execute',
+            '`authenticated`: no execute',
+            '`service_role`: execute',
+            'data-integrity state: healthy',
+            'live publishing was disabled'
+          ]
+          missing=[item for item in required if item not in text]
+          if missing:
+            print('\n'.join(f'ERROR: missing evidence marker {item}' for item in missing));sys.exit(1)
+          print('security repair evidence document passed')
+          PY
 
       - name: Preserve stable and public release hashes
         run: |
