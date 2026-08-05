@@ -15,6 +15,8 @@ on:
       - 'supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - 'v79/commercial-extension.js'
+      - 'v79/commercial.js'
+      - 'v79/commercial-core.js'
       - 'v79/pricing-overlay.js'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
@@ -34,12 +36,14 @@ jobs:
       - uses: actions/checkout@v6
       - name: Validate owner-approved inactive USD pricing
         run: python scripts/v79_validate_onchain_foundation.py
-      - name: Preserve public release hashes
+      - name: Preserve public release hashes and pricing loader
         run: |
           test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
           test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
           test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
           test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
-          test "$(git hash-object v79/commercial-extension.js)" = "a0298baf91cf105f209f8ae85ba8dded7e0c5dd0"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/commercial.js)" = "5eac2ad843d207794b31344666cfb3af4b7f3c10"
+          test "$(git hash-object v79/commercial-core.js)" = "5b746a4d272485fd5259e2740c3362ba4c38a3a5"
           test "$(git hash-object v79/pricing-overlay.js)" = "4a481e4bff74fc58cbd60f669bd83c6897a3006d"
           test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
