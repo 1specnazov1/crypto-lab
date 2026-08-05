@@ -1,0 +1,95 @@
+name: Validate v79 Identity and Payment Preparation
+
+on:
+  push:
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json'
+      - 'docs/release-manifests/crypto-lab-v79-payment-adapter-map.json'
+      - 'docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json'
+      - 'docs/TURNSTILE_REAL_ADMIN_RUNBOOK_7930.md'
+      - 'docs/PAYMENT_ADAPTER_MAPPING_7930.md'
+      - 'tests/validate_v79_identity_payment_preparation.py'
+      - '.github/workflows/v79-identity-payment-preparation.yml'
+  pull_request:
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json'
+      - 'docs/release-manifests/crypto-lab-v79-payment-adapter-map.json'
+      - 'docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json'
+      - 'docs/TURNSTILE_REAL_ADMIN_RUNBOOK_7930.md'
+      - 'docs/PAYMENT_ADAPTER_MAPPING_7930.md'
+      - 'tests/validate_v79_identity_payment_preparation.py'
+      - '.github/workflows/v79-identity-payment-preparation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-identity-payment-preparation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate disabled identity and payment contracts
+        run: python tests/validate_v79_identity_payment_preparation.py
+
+      - name: Validate JSON parsing
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in [
+              Path('docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json'),
+              Path('docs/release-manifests/crypto-lab-v79-payment-adapter-map.json'),
+              Path('docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json'),
+          ]:
+              json.loads(path.read_text(encoding='utf-8'))
+              print(f'parsed {path}')
+          PY
+
+      - name: Preserve stable and public release boundaries
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
+          grep -F "crypto-lab-v79-7930-auth1" v79/service-worker.js >/dev/null
+
+      - name: Confirm no activation or credential material
+        run: |
+          set -euo pipefail
+          ! grep -R -E 'sb_secret_[A-Za-z0-9_-]{12,}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|postgres(ql)?://[^ ]+:[^ ]+@' \
+            docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json \
+            docs/release-manifests/crypto-lab-v79-payment-adapter-map.json \
+            docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json \
+            docs/TURNSTILE_REAL_ADMIN_RUNBOOK_7930.md \
+            docs/PAYMENT_ADAPTER_MAPPING_7930.md
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          identity=json.loads(Path('docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json').read_text())
+          payment=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-adapter-map.json').read_text())
+          assert identity['activation_allowed'] is False
+          assert identity['real_admin']['assignment_allowed'] is False
+          assert all(flow['enabled'] is False for flow in identity['turnstile']['flows'])
+          assert payment['provider_selected'] is False
+          assert payment['checkout_activation_allowed'] is False
+          assert payment['real_money_allowed'] is False
+          assert payment['normalized_event_schema']['runtime_v2_migration_applied'] is False
+          assert all(adapter['activation_allowed'] is False for adapter in payment['candidate_adapters'])
+          print('Identity and payment preparation remains non-activating')
+          PY
