@@ -3,6 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-05T06:20:00Z",
+  "updated_at": "2026-08-05T06:28:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -27,6 +28,12 @@
       "name": "crypto_launch_requirements_explicit_deny_policy",
       "source": "supabase/migrations/20260805061806_crypto_launch_requirements_explicit_deny_policy.sql",
       "source_commit": "d0adde9465849372f64ee9a0fb37c52b06608702"
+    },
+    {
+      "version": "20260805062632",
+      "name": "crypto_release_checkpoint_sequence_guard",
+      "source": "supabase/migrations/20260805062632_crypto_release_checkpoint_sequence_guard.sql",
+      "source_commit": "d94efed8ff975603eb081d8c621728a2cad3656a"
     }
   ],
   "requirements": [
@@ -65,7 +72,8 @@
     "service_update_only": true,
     "sensitive_values_stored": false,
     "sensitive_json_key_guard": true,
-    "audit_enabled": true
+    "audit_enabled": true,
+    "checkpoint_sequence_guard": true
   },
   "boundaries": {
     "registration_enabled": false,
