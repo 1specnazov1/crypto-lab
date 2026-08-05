@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
+      - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
       - 'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
       - 'supabase/migrations/20260805085503_crypto_billing_onchain_adapter_contract.sql'
       - 'supabase/migrations/20260805085615_crypto_three_network_onchain_catalog.sql'
@@ -16,104 +17,159 @@ on:
       - 'supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql'
       - 'supabase/migrations/20260805091915_guard_onchain_owner_decision_provenance.sql'
       - 'supabase/migrations/20260805092040_clear_fabricated_onchain_owner_decision_timestamp.sql'
+      - 'supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: v79-onchain-payment-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v6
-      - name: Validate disabled on-chain candidate foundation
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate approved but disabled on-chain foundation
         run: |
           python - <<'PY'
-          import json, pathlib, re, sys
+          import hashlib
+          import json
+          import pathlib
+          import re
+          import sys
+
           root=pathlib.Path('.')
-          path=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+          onchain_path=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
           matrix_path=root/'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
+          decision_path=root/'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
           evidence_path=root/'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
-          data=json.loads(path.read_text(encoding='utf-8'))
+          onchain=json.loads(onchain_path.read_text(encoding='utf-8'))
           matrix=json.loads(matrix_path.read_text(encoding='utf-8'))
-          errors=[]
-          if data.get('schema_version')!=1 or data.get('project_ref')!='txhzxbizjpinowepfjkm' or data.get('build')!='7930': errors.append('manifest identity')
-          if data.get('provider_candidate')!='onchain_direct' or data.get('wallet_client_candidate')!='trust_wallet_walletconnect': errors.append('provider or wallet candidate')
-          if data.get('status')!='disabled_pending_decisions' or data.get('activation_allowed') is not False: errors.append('activation boundary')
-          if data.get('candidate_networks')!=['TRON','BSC','SOLANA']: errors.append('candidate networks')
-          if data.get('owner_network_approval_recorded') is not False: errors.append('owner network approval fabricated')
-          networks={n['code']:n for n in data.get('networks',[])}
-          if set(networks)!={'TRON','BSC','SOLANA'}: errors.append('network inventory')
-          for code,item in networks.items():
-            if item.get('active') is not False or item.get('approved_by_owner') is not False: errors.append(f'{code} must be inactive and unapproved')
-            if item.get('finality_mode') not in {'solidified','finalized'}: errors.append(f'{code} finality')
-          assets=data.get('asset_candidates',{})
-          if set(assets)!={'USDT','USDC'} or any(item.get('selected') is not False for item in assets.values()): errors.append('asset candidates')
-          if assets.get('USDT',{}).get('network_status',{}).get('BSC')!='pegged_token_contract_and_owner_acceptance_required': errors.append('BSC USDT risk')
-          pricing=data.get('pricing',{})
-          if set(pricing.get('supported_modes',[]))!={'fixed_asset','fiat_pegged'} or pricing.get('basic_configured') or pricing.get('pro_configured'): errors.append('pricing boundary')
-          addresses=data.get('receiving_addresses',{})
-          if any(addresses.get(code) is not None for code in ('TRON','BSC','SOLANA')) or addresses.get('private_keys_required') is not False: errors.append('address or key boundary')
-          entitlement=data.get('automatic_entitlement',{})
-          required_true=['browser_cannot_mark_paid','screenshot_not_accepted','duplicate_transaction_claim_blocked','wrong_network_blocked','wrong_asset_blocked','underpayment_reviewed','overpayment_reviewed','unfinalized_transaction_not_credited']
-          for key in required_true:
-            if entitlement.get(key) is not True: errors.append(key)
-          if entitlement.get('enabled') is not False or entitlement.get('automatic_wallet_debit') is not False: errors.append('entitlement activation')
-          db=data.get('database',{})
-          if db.get('tables')!=9: errors.append('table count')
-          for key in ['all_tables_rls','immutable_chain_observations','transaction_claim_lifecycle_hardened','service_only_invoice_creation','service_only_chain_ingestion','adapter_activation_guarded']:
-            if db.get(key) is not True: errors.append(key)
-          for key in ['direct_browser_table_access','browser_public_security_definer']:
-            if db.get(key) is not False: errors.append(key)
-          provenance=data.get('decision_provenance',{})
-          if provenance.get('fabricated_approval_detected') is not True: errors.append('fabricated approval not documented')
-          if provenance.get('historical_inaccurate_migration_version')!='20260805091540': errors.append('historical migration reference')
-          if provenance.get('corrective_migration_version')!='20260805091915': errors.append('corrective migration reference')
-          if provenance.get('timestamp_cleanup_migration_version')!='20260805092040': errors.append('timestamp cleanup reference')
-          if provenance.get('owner_decision_authorization_setting')!='app.crypto_owner_decision_authorized': errors.append('owner authorization setting')
-          if provenance.get('network_approval_guard_installed') is not True or provenance.get('launch_requirement_guard_installed') is not True or provenance.get('owner_approval_recorded') is not False: errors.append('decision provenance guards')
-          expected_state=data.get('runtime_state_expected',{})
-          for key in ['active_network_count','selected_asset_count','active_price_count','receiving_address_count','invoice_count','chain_observation_count','credited_transaction_claim_count']:
-            if expected_state.get(key)!=0: errors.append(f'expected runtime state {key}')
-          migrations=data.get('migrations',[])
-          expected=['20260805085503','20260805085615','20260805085735','20260805085807','20260805091147','20260805091434','20260805091540','20260805091915','20260805092040']
-          if [m.get('version') for m in migrations]!=expected: errors.append('migration versions')
-          for m in migrations:
-            source=root/m.get('source','')
-            if not source.is_file(): errors.append(f'missing {source}')
-            if not re.fullmatch(r'[0-9a-f]{40}',str(m.get('source_commit',''))): errors.append(f'bad source commit {source}')
-          if next((m for m in migrations if m.get('version')=='20260805091540'),{}).get('superseded_by')!='20260805091915': errors.append('inaccurate migration not superseded')
-          decisions=set(data.get('required_decisions',[]))
-          if not {'PAYMENT_PROVIDER_RAIL','NETWORK_SELECTION','SETTLEMENT_ASSET_USDT_OR_USDC','PUBLIC_RECEIVING_ADDRESS_FOR_EACH_SELECTED_NETWORK'} <= decisions: errors.append('required decisions incomplete')
-
-          if matrix.get('schema_version')!=2 or matrix.get('mode')!='disabled' or matrix.get('activation_allowed') is not False: errors.append('sandbox matrix identity')
-          if matrix.get('provider_candidate')!='onchain_direct' or matrix.get('candidate_networks')!=['TRON','BSC','SOLANA'] or matrix.get('owner_network_approval_recorded') is not False: errors.append('sandbox candidate boundary')
-          if matrix.get('settlement_asset')!='decision_required': errors.append('settlement asset prematurely selected')
-          scenarios=matrix.get('scenarios',[]); codes=[s.get('code') for s in scenarios]
-          required_scenarios={'PAYMENT_SUCCESS_FINALIZED','WRONG_NETWORK','WRONG_ASSET_OR_CONTRACT','WRONG_RECIPIENT','UNDERPAYMENT','OVERPAYMENT','UNFINALIZED_TRANSACTION','FAILED_OR_REVERTED_TRANSACTION','DUPLICATE_TRANSACTION_HASH','LATE_PAYMENT_AFTER_EXPIRY','REORG_OR_FINALITY_REGRESSION','RECEIVING_ADDRESS_NOT_VERIFIED','TOKEN_CONTRACT_NOT_VERIFIED','VERIFIER_UNAVAILABLE','MALFORMED_OR_SECRET_BEARING_OBSERVATION'}
-          if len(codes)!=len(set(codes)) or not required_scenarios.issubset(set(codes)) or len(scenarios)<24 or any(s.get('required') is not True for s in scenarios): errors.append('sandbox scenarios')
-          matrix_invariants=matrix.get('invariants',{})
-          for key in ['blockchain_finality_is_source_of_truth','transaction_hash_single_claim','entitlement_changes_server_side_only','private_keys_not_required','seed_phrase_not_stored']:
-            if matrix_invariants.get(key) is not True: errors.append(f'matrix invariant {key}')
-          if matrix_invariants.get('automatic_wallet_debit') is not False: errors.append('automatic wallet debit')
-
+          decision=json.loads(decision_path.read_text(encoding='utf-8'))
           evidence=evidence_path.read_text(encoding='utf-8')
-          for marker in ['No such network-selection decision existed','approved_by_owner=false','app.crypto_owner_decision_authorized=true','The inaccurate migration remains in the immutable migration history']:
-            if marker not in evidence: errors.append(f'evidence marker {marker}')
+          errors=[]
 
-          combined='\n'.join((root/m['source']).read_text(encoding='utf-8') for m in migrations)+path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')+evidence
-          required_markers=['crypto_onchain_tx_claims','crypto_onchain_adapter_activation_guard','guard_crypto_onchain_owner_approval','guard_crypto_payment_owner_decision_provenance','app.crypto_owner_decision_authorized','owner_approval_recorded']
-          for marker in required_markers:
+          exact='Три сети утверждаю.'
+          decision_hash=hashlib.sha256(exact.encode('utf-8')).hexdigest()
+          approved=['TRON','BSC','SOLANA']
+
+          if onchain.get('schema_version')!=1 or onchain.get('project_ref')!='txhzxbizjpinowepfjkm' or onchain.get('build')!='7930':
+            errors.append('on-chain manifest identity')
+          if onchain.get('provider')!='onchain_direct' or onchain.get('wallet_client')!='trust_wallet_walletconnect':
+            errors.append('provider or wallet')
+          if onchain.get('status')!='disabled_pending_external_inputs' or onchain.get('activation_allowed') is not False:
+            errors.append('activation boundary')
+          if onchain.get('owner_approved_networks')!=approved or onchain.get('owner_network_approval_recorded') is not True:
+            errors.append('owner-approved network set')
+          if 'candidate_networks' in onchain or 'provider_candidate' in onchain:
+            errors.append('stale candidate-only evidence')
+
+          networks={n.get('code'):n for n in onchain.get('networks',[])}
+          if set(networks)!=set(approved): errors.append('network inventory')
+          for code in approved:
+            item=networks.get(code,{})
+            if item.get('approved_by_owner') is not True or item.get('active') is not False:
+              errors.append(f'{code} approval/activation')
+            if item.get('finality_mode') not in {'solidified','finalized'}:
+              errors.append(f'{code} finality')
+
+          assets=onchain.get('asset_candidates',{})
+          if set(assets)!={'USDT','USDC'} or any(item.get('selected') is not False for item in assets.values()):
+            errors.append('settlement asset remains undecided')
+          pricing=onchain.get('pricing',{})
+          if pricing.get('basic_configured') or pricing.get('pro_configured'):
+            errors.append('pricing prematurely configured')
+          addresses=onchain.get('receiving_addresses',{})
+          if any(addresses.get(code) is not None for code in approved) or addresses.get('private_keys_required') is not False:
+            errors.append('address/private-key boundary')
+
+          entitlement=onchain.get('automatic_entitlement',{})
+          for key in ['browser_cannot_mark_paid','screenshot_not_accepted','duplicate_transaction_claim_blocked','wrong_network_blocked','wrong_asset_blocked','underpayment_reviewed','overpayment_reviewed','unfinalized_transaction_not_credited']:
+            if entitlement.get(key) is not True: errors.append(f'entitlement control {key}')
+          if entitlement.get('enabled') is not False or entitlement.get('automatic_wallet_debit') is not False:
+            errors.append('entitlement activation')
+
+          db=onchain.get('database',{})
+          if db.get('tables')!=9: errors.append('on-chain table count')
+          for key in ['all_tables_rls','immutable_chain_observations','transaction_claim_lifecycle_hardened','service_only_invoice_creation','service_only_chain_ingestion','adapter_activation_guarded']:
+            if db.get(key) is not True: errors.append(f'database control {key}')
+          for key in ['direct_browser_table_access','browser_public_security_definer']:
+            if db.get(key) is not False: errors.append(f'database boundary {key}')
+
+          provenance=onchain.get('decision_provenance',{})
+          if provenance.get('decision_code')!='ONCHAIN_THREE_NETWORK_SELECTION': errors.append('decision code')
+          if provenance.get('decision_text_exact')!=exact: errors.append('decision text')
+          if provenance.get('decision_hash_sha256')!=decision_hash: errors.append('decision hash')
+          if provenance.get('network_approval_recorded') is not True: errors.append('network decision record')
+          if provenance.get('network_activation_authorized') is not False: errors.append('network activation authorization')
+          if provenance.get('original_message_timestamp_known') is not False: errors.append('timestamp provenance')
+
+          required_versions={
+            '20260805085503','20260805085615','20260805085735','20260805085807',
+            '20260805091147','20260805091434','20260805091540','20260805091915',
+            '20260805092040','20260805092421'
+          }
+          migrations=onchain.get('migrations',[])
+          by_version={m.get('version'):m for m in migrations}
+          if not required_versions.issubset(by_version): errors.append('migration inventory')
+          for version in required_versions:
+            item=by_version.get(version,{})
+            source=root/item.get('source','')
+            if not source.is_file(): errors.append(f'missing migration source {version}')
+            if not re.fullmatch(r'[0-9a-f]{40}',str(item.get('source_commit',''))): errors.append(f'missing migration commit {version}')
+
+          decisions=set(onchain.get('required_decisions',[]))
+          if 'NETWORK_SELECTION' in decisions or 'PAYMENT_PROVIDER_RAIL' in decisions:
+            errors.append('already completed decision still required')
+          for required in ['SETTLEMENT_ASSET_USDT_OR_USDC','BASIC_PRICING_MODE_AND_AMOUNT','PRO_PRICING_MODE_AND_AMOUNT','PUBLIC_RECEIVING_ADDRESS_FOR_EACH_APPROVED_NETWORK','RPC_OR_INDEXER_CONFIGURATION','CONTROLLED_SANDBOX_EVIDENCE','PAYMENT_ACTIVATION_APPROVAL']:
+            if required not in decisions: errors.append(f'missing required input {required}')
+
+          if matrix.get('schema_version')!=2 or matrix.get('mode')!='disabled' or matrix.get('activation_allowed') is not False:
+            errors.append('sandbox matrix identity')
+          if matrix.get('provider')!='onchain_direct' or matrix.get('approved_networks')!=approved or matrix.get('owner_network_approval_recorded') is not True:
+            errors.append('sandbox approved-network boundary')
+          if 'provider_candidate' in matrix or 'candidate_networks' in matrix:
+            errors.append('stale sandbox candidate evidence')
+          if matrix.get('settlement_asset')!='decision_required': errors.append('settlement asset prematurely selected')
+          scenarios=matrix.get('scenarios',[])
+          codes=[s.get('code') for s in scenarios]
+          required_scenarios={'PAYMENT_SUCCESS_FINALIZED','WRONG_NETWORK','WRONG_ASSET_OR_CONTRACT','WRONG_RECIPIENT','UNDERPAYMENT','OVERPAYMENT','UNFINALIZED_TRANSACTION','FAILED_OR_REVERTED_TRANSACTION','DUPLICATE_TRANSACTION_HASH','LATE_PAYMENT_AFTER_EXPIRY','REORG_OR_FINALITY_REGRESSION','RECEIVING_ADDRESS_NOT_VERIFIED','TOKEN_CONTRACT_NOT_VERIFIED','VERIFIER_UNAVAILABLE','MALFORMED_OR_SECRET_BEARING_OBSERVATION'}
+          if len(codes)!=len(set(codes)) or not required_scenarios.issubset(set(codes)) or len(scenarios)<24 or any(s.get('required') is not True for s in scenarios):
+            errors.append('sandbox scenarios')
+
+          if decision.get('decision_text_exact')!=exact or decision.get('decision_hash_sha256')!=decision_hash:
+            errors.append('decision evidence manifest')
+          if [n.get('network_code') for n in decision.get('approved_networks',[])]!=approved:
+            errors.append('decision evidence networks')
+          if decision.get('activation_allowed') is not False or decision.get('publication_allowed') is not False:
+            errors.append('decision evidence activation')
+
+          if 'No such network-selection decision existed in the conversation' in evidence:
+            errors.append('stale false provenance statement')
+          if exact not in evidence or decision_hash not in evidence:
+            errors.append('provenance document markers')
+
+          combined='\n'.join((root/by_version[v]['source']).read_text(encoding='utf-8') for v in required_versions)+onchain_path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')+decision_path.read_text(encoding='utf-8')+evidence
+          for marker in ['crypto_onchain_tx_claims','crypto_onchain_adapter_activation_guard','guard_crypto_onchain_owner_approval','guard_crypto_payment_owner_decision_provenance','crypto_owner_decision_records','ONCHAIN_THREE_NETWORK_SELECTION']:
             if marker not in combined: errors.append(f'missing marker {marker}')
-          forbidden=[r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\s*:',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']
-          for pattern in forbidden:
+          for pattern in [r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\s*:',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']:
             if re.search(pattern,combined,re.I): errors.append(f'forbidden secret pattern {pattern}')
-          if data.get('stable_root_v78_sha')!='4a278c891d37b3760ec1ac988690ea9ad587b24e': errors.append('v78 boundary')
+
+          if onchain.get('stable_root_v78_sha')!='4a278c891d37b3760ec1ac988690ea9ad587b24e': errors.append('v78 boundary')
           if errors:
-            print('\n'.join('ERROR: '+e for e in errors));sys.exit(1)
-          print(f'Disabled on-chain foundation, lifecycle and provenance guards with {len(scenarios)} scenarios: OK')
+            print('\n'.join('ERROR: '+e for e in errors))
+            sys.exit(1)
+          print(f'Owner-approved but disabled three-network foundation with {len(scenarios)} sandbox scenarios: OK')
           PY
 
       - name: Preserve public release hashes
