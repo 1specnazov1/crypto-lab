@@ -1,8 +1,8 @@
 {
-  "schema_version": 11,
+  "schema_version": 12,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T10:20:00Z",
+  "updated_at": "2026-08-05T10:21:00Z",
   "provider": "unselected",
   "provider_candidate": "onchain_direct",
   "wallet_client_candidate": "trust_wallet_walletconnect",
@@ -40,14 +40,18 @@
   },
   "database": {
     "active_valid_owner_decision_records": 0,
+    "effective_payment_authority_events": 0,
     "superseded_invalid_owner_decision_records": 1,
+    "superseded_invalid_authority_events": 1,
     "validated_candidate_network_constraint": true,
     "validated_provider_decision_required_constraint": true,
     "validated_sandbox_owner_claim_constraint": true,
     "validated_owner_record_archive_constraint": true,
+    "validated_authority_event_archive_constraint": true,
     "network_guard_trigger_enabled": true,
     "provider_guard_trigger_enabled": true,
     "owner_record_guard_trigger_enabled": true,
+    "authority_event_guard_trigger_enabled": true,
     "all_tables_rls": true,
     "direct_browser_table_access": false,
     "browser_public_security_definer": false
@@ -76,13 +80,16 @@
     "fabricated_decision_text": "Три сети утверждаю.",
     "user_never_wrote_fabricated_text": true,
     "invalid_reconstructed_record_active": false,
+    "invalid_reconstructed_authority_event_effective": false,
     "historical_false_migrations_preserved": true,
     "self_rewriting_owner_decision_workflows_removed": true,
     "autonomous_owner_decision_bypass_available": false
   },
   "authoritative_migration": {
     "version": "20260805101600",
-    "name": "authoritative_candidate_only_recovery_after_100805"
+    "name": "authoritative_candidate_only_recovery_after_100805",
+    "source": "supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql",
+    "source_commit": "09dfd70b1ee55fc48023b019309e6e5f41798fc6"
   },
   "remaining_decisions_and_inputs": [
     "PAYMENT_PROVIDER_RAIL",
