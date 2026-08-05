@@ -170,7 +170,7 @@
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
     }
   ],
-  "updated_at": "2026-08-05T02:57:16Z",
+  "updated_at": "2026-08-05T03:44:08Z",
   "application": {
     "assets": [
       {
@@ -215,7 +215,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
-    "evidence_commit": "74d99eb0231bc40092c55ddd53909dde4dce78a8",
+    "evidence_commit": "c0f66490cb15a68f5e17608acc8e3acb6407e7de",
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -347,16 +347,16 @@
   ],
   "schema_version": 1,
   "release_evidence": {
-    "release_gate_run_id": "30970687924",
-    "maintenance_evidence_gate_run_id": "30970684782",
+    "release_gate_run_id": "pending",
+    "maintenance_evidence_gate_run_id": "pending",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "30970687594",
+    "pages_run_id": "pending",
     "technical_score": 100,
     "commercial_score": 60
   },
   "maintenance_evidence": {
     "scope": "first_run_after_threshold",
-    "status": "pending",
+    "status": "passed",
     "immutable": true,
     "seal_required": true,
     "expected_after": "2026-08-05T03:17:00Z",
@@ -393,7 +393,37 @@
     "daily_cron_mutable_search_path_surface_removed": true,
     "retention_counter_contract_complete": true,
     "retention_counter_expected_keys": 14,
-    "retention_counter_invalid_value_rejected": true
+    "retention_counter_invalid_value_rejected": true,
+    "seal_id": 1,
+    "maintenance_run_id": 9,
+    "release_checkpoint_id": 25,
+    "evidence_hash": "9338d3b82655aced17cf1ee5f0e0671c9236e76406c7f7aa9d98acdeab9ba8fb",
+    "sealed_at": "2026-08-05T03:27:00.056255Z",
+    "run_started_at": "2026-08-05T03:17:00.181894Z",
+    "run_completed_at": "2026-08-05T03:17:00.262410Z",
+    "duration_ms": 81,
+    "cron_run_id": 12239,
+    "sealer_cron_run_id": 12254,
+    "payload_verified": true,
+    "hash_verified": true,
+    "checkpoint_verified": true,
+    "idempotent_verified": true,
+    "retention_counters": {
+      "stale_ai_marked": 0,
+      "stale_backtests_marked": 0,
+      "expired_leases_deleted": 0,
+      "registration_attempts_deleted": 0,
+      "old_maintenance_rows_deleted": 0,
+      "rate_events_deleted": 0,
+      "recovery_attempts_deleted": 0,
+      "scanner_runs_deleted": 0,
+      "notification_outbox_deleted": 0,
+      "operational_requests_deleted": 0,
+      "operational_observations_deleted": 0,
+      "resolved_incidents_deleted": 0,
+      "operational_incidents_deleted": 0,
+      "operational_cursors_deleted": 0
+    }
   },
   "operational_hardening": {
     "signal_notification_flags_exact": true,
