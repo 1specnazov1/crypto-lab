@@ -350,9 +350,15 @@
       "name": "authoritative_candidate_only_payment_recovery",
       "source": "supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql",
       "source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08"
+    },
+    {
+      "version": "20260805101117",
+      "name": "explicit_deny_policies_for_service_only_audit_tables",
+      "source": "supabase/migrations/20260805101117_explicit_deny_policies_for_service_only_audit_tables.sql",
+      "source_commit": "fb5783add02ef266f6bc28e54ed5692f15422a47"
     }
   ],
-  "updated_at": "2026-08-05T10:08:00Z",
+  "updated_at": "2026-08-05T10:13:00Z",
   "application": {
     "assets": [
       {
@@ -402,7 +408,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "f5f4db108bcef9ee02a54fbfd74bb2b44a448276",
+    "evidence_commit": "3188e112165ce805b770d3e429505c826df0f047",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -681,6 +687,13 @@
     "onchain_automatic_entitlement_enabled": false,
     "onchain_automatic_wallet_debit": false,
     "onchain_sandbox_scenario_count": 29,
-    "direct_onchain_payment_activation_allowed": false
+    "direct_onchain_payment_activation_allowed": false,
+    "security_advisor_lints": 0,
+    "service_only_audit_tables_explicit_deny_policies": true,
+    "service_only_audit_policy_migration_version": "20260805101117",
+    "service_only_audit_policy_source_commit": "fb5783add02ef266f6bc28e54ed5692f15422a47",
+    "owner_decision_failclosed_gate_run_id": "30996348458",
+    "onchain_payment_gate_run_id": "30996205989",
+    "release_manifest_contract_run_id": "30996204473"
   }
 }
