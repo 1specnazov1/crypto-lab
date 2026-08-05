@@ -8,7 +8,7 @@ on:
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
       - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
-      - 'supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql'
+      - 'supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
