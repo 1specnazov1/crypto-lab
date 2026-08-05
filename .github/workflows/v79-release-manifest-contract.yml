@@ -37,15 +37,19 @@ jobs:
             seen.add(key)
             if item.get('source'):
               assert Path(item['source']).is_file(),item['source']
-          assert onchain['schema_version']==11
+          assert onchain['schema_version']==12
           assert onchain['authoritative_migration']['version']=='20260805180435'
+          assert [x['version'] for x in onchain['preparation_migrations']]==['20260805183433','20260805183530']
+          assert all(Path(x['source']).is_file() for x in onchain['preparation_migrations'])
           assert onchain['approved_networks']==['ETHEREUM','TRON','SOLANA']
           assert onchain['selected_assets']==['USDT','USDC']
-          assert onchain['runtime_state']['approved_network_count']==3
-          assert onchain['runtime_state']['active_network_count']==0
-          assert onchain['runtime_state']['selected_asset_count']==2
-          assert onchain['runtime_state']['enabled_network_asset_count']==0
+          runtime=onchain['runtime_state']
+          assert runtime['approved_network_count']==3 and runtime['active_network_count']==0
+          assert runtime['selected_asset_count']==2 and runtime['official_supported_pair_count']==5
+          assert runtime['draft_price_count']==4 and runtime['active_price_count']==0
+          assert runtime['enabled_network_asset_count']==0 and runtime['receiving_address_count']==0
+          assert runtime['configuration_ready'] is False and runtime['activation_ready'] is False
           assert onchain['activation_allowed'] is False and onchain['publication_allowed'] is False
           assert owner['decision_hash_sha256']=='df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750'
-          print('Release contract and owner payment overlay: OK')
+          print('Release contract and disabled preactivation overlay: OK')
           PY

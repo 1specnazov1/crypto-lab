@@ -8,7 +8,9 @@ on:
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
       - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
-      - 'supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql'
+      - 'supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql'
+      - 'supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql'
+      - 'supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
@@ -26,7 +28,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
-      - name: Validate exact owner-approved inactive foundation
+      - name: Validate inactive multi-asset preactivation foundation
         run: python scripts/v79_validate_onchain_foundation.py
       - name: Preserve public release hashes
         run: |

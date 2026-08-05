@@ -1,25 +1,16 @@
 {
-  "schema_version": 11,
+  "schema_version": 12,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T18:04:35Z",
+  "updated_at": "2026-08-05T18:35:30Z",
   "provider": "onchain_direct",
   "wallet_client": "trust_wallet_walletconnect",
-  "status": "disabled_owner_selected_networks_and_assets",
+  "status": "disabled_preactivation_prepared",
   "activation_allowed": false,
   "publication_allowed": false,
-  "approved_networks": [
-    "ETHEREUM",
-    "TRON",
-    "SOLANA"
-  ],
-  "superseded_networks": [
-    "BSC"
-  ],
-  "selected_assets": [
-    "USDT",
-    "USDC"
-  ],
+  "approved_networks": ["ETHEREUM", "TRON", "SOLANA"],
+  "superseded_networks": ["BSC"],
+  "selected_assets": ["USDT", "USDC"],
   "owner_network_approval_recorded": true,
   "owner_asset_selection_recorded": true,
   "owner_provider_approval_recorded": false,
@@ -33,97 +24,54 @@
     "source_channel": "owner_chat"
   },
   "networks": [
-    {
-      "code": "ETHEREUM",
-      "standard": "ERC20",
-      "finality_mode": "finalized",
-      "required_confirmations": 12,
-      "approved_by_owner": true,
-      "active": false
-    },
-    {
-      "code": "TRON",
-      "standard": "TRC20",
-      "finality_mode": "solidified",
-      "required_confirmations": 19,
-      "approved_by_owner": true,
-      "active": false
-    },
-    {
-      "code": "SOLANA",
-      "standard": "SPL",
-      "finality_mode": "finalized",
-      "required_confirmations": 0,
-      "approved_by_owner": true,
-      "active": false
-    },
-    {
-      "code": "BSC",
-      "standard": "BEP20",
-      "approved_by_owner": false,
-      "active": false,
-      "status": "superseded"
-    }
+    {"code":"ETHEREUM","standard":"ERC20","finality_mode":"finalized","required_confirmations":12,"approved_by_owner":true,"active":false},
+    {"code":"TRON","standard":"TRC20","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":true,"active":false},
+    {"code":"SOLANA","standard":"SPL","finality_mode":"finalized","required_confirmations":0,"approved_by_owner":true,"active":false},
+    {"code":"BSC","standard":"BEP20","approved_by_owner":false,"active":false,"status":"superseded"}
   ],
   "asset_matrix": [
-    {
-      "network_code": "ETHEREUM",
-      "asset_code": "USDT",
-      "standard": "ERC20",
-      "token_identifier": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      "availability_status": "available_verified",
-      "enabled": false
-    },
-    {
-      "network_code": "ETHEREUM",
-      "asset_code": "USDC",
-      "standard": "ERC20",
-      "token_identifier": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      "availability_status": "available_verified",
-      "enabled": false
-    },
-    {
-      "network_code": "TRON",
-      "asset_code": "USDT",
-      "standard": "TRC20",
-      "token_identifier": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-      "availability_status": "available_verified",
-      "enabled": false
-    },
-    {
-      "network_code": "TRON",
-      "asset_code": "USDC",
-      "standard": "TRC20",
-      "token_identifier": null,
-      "availability_status": "unsupported_official",
-      "enabled": false
-    },
-    {
-      "network_code": "SOLANA",
-      "asset_code": "USDT",
-      "standard": "SPL",
-      "token_identifier": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-      "availability_status": "available_verified",
-      "enabled": false
-    },
-    {
-      "network_code": "SOLANA",
-      "asset_code": "USDC",
-      "standard": "SPL",
-      "token_identifier": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "availability_status": "available_verified",
-      "enabled": false
-    }
+    {"network_code":"ETHEREUM","asset_code":"USDT","standard":"ERC20","token_identifier":"0xdAC17F958D2ee523a2206206994597C13D831ec7","availability_status":"available_verified","enabled":false},
+    {"network_code":"ETHEREUM","asset_code":"USDC","standard":"ERC20","token_identifier":"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48","availability_status":"available_verified","enabled":false},
+    {"network_code":"TRON","asset_code":"USDT","standard":"TRC20","token_identifier":"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t","availability_status":"available_verified","enabled":false},
+    {"network_code":"TRON","asset_code":"USDC","standard":"TRC20","token_identifier":null,"availability_status":"unsupported_official","enabled":false},
+    {"network_code":"SOLANA","asset_code":"USDT","standard":"SPL","token_identifier":"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB","availability_status":"available_verified","enabled":false},
+    {"network_code":"SOLANA","asset_code":"USDC","standard":"SPL","token_identifier":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","availability_status":"available_verified","enabled":false}
   ],
+  "routing_policy": {
+    "explicit_network_and_asset_selection": true,
+    "silent_fallback_allowed": false,
+    "invoice_pair_immutable": true,
+    "legacy_three_argument_service_fail_closed": true,
+    "official_supported_pair_count": 5,
+    "unsupported_official_pairs": ["TRON_USDC"]
+  },
   "pricing": {
-    "basic_configured": false,
-    "pro_configured": false
+    "proposal_prepared": true,
+    "owner_approved": false,
+    "currency": "UAH",
+    "billing_interval": "month",
+    "pricing_mode": "fiat_pegged",
+    "basic_amount_minor": 39900,
+    "pro_amount_minor": 79900,
+    "draft_row_count": 4,
+    "active_row_count": 0,
+    "annual_deferred": true
   },
   "receiving_addresses": {
     "ETHEREUM": null,
     "TRON": null,
     "SOLANA": null,
+    "public_addresses_are_not_secrets": true,
     "private_keys_required": false
+  },
+  "preactivation_preparation": {
+    "multi_asset_invoice_service_prepared": true,
+    "ethereum_address_validation_prepared": true,
+    "ethereum_transaction_validation_prepared": true,
+    "transaction_identity_triggers_enabled": true,
+    "foreign_key_indexes_added": 7,
+    "owner_integrity_checks": "11/11 healthy",
+    "onchain_integrity_checks": "11/11 healthy"
   },
   "automatic_entitlement": {
     "prepared": true,
@@ -139,31 +87,27 @@
     "effective_authority_events": 1,
     "multi_asset_selection_supported": true,
     "selected_asset_count": 2,
-    "canonical_owner_decision_constraint": true,
-    "canonical_network_constraint": true,
-    "selected_asset_constraint": true,
-    "selected_pair_disabled_constraint": true,
+    "pricing_activation_denied_constraint": true,
+    "paid_plan_activation_denied_constraint": true,
+    "receiving_address_activation_denied_constraint": true,
     "adapter_activation_denied_constraint": true,
-    "network_guard_trigger_enabled": true,
-    "launch_requirement_guard_trigger_enabled": true,
-    "owner_record_immutable_trigger_enabled": true,
-    "authority_event_immutable_trigger_enabled": true,
-    "all_tables_rls": true,
     "direct_browser_table_access": false
   },
   "runtime_state": {
     "approved_network_count": 3,
     "active_network_count": 0,
     "selected_asset_count": 2,
+    "official_supported_pair_count": 5,
     "enabled_network_asset_count": 0,
+    "draft_price_count": 4,
     "active_price_count": 0,
     "receiving_address_count": 0,
     "invoice_count": 0,
     "transaction_claim_count": 0,
     "chain_observation_count": 0,
-    "auth_user_count": 0,
-    "registration_attempt_count": 0,
-    "recovery_attempt_count": 0,
+    "configuration_ready": false,
+    "activation_ready": false,
+    "payment_activation_authorized": false,
     "provider_status": "in_progress_disabled",
     "provider_desired_mode": "disabled",
     "provider_lifecycle_status": "draft",
@@ -180,21 +124,24 @@
   "authoritative_migration": {
     "version": "20260805180435",
     "name": "record_owner_ethereum_tron_solana_usdt_usdc_selection",
-    "source": "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql",
-    "source_commit": null
+    "source": "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql"
   },
+  "preparation_migrations": [
+    {"version":"20260805183433","name":"prepare_multi_asset_onchain_checkout_and_draft_pricing","source":"supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql"},
+    {"version":"20260805183530","name":"index_onchain_payment_foreign_keys","source":"supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql"}
+  ],
   "remaining_decisions_and_inputs": [
     "BASIC_AND_PRO_PRICE_POLICY",
+    "REFUND_POLICY_APPROVAL",
     "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_APPROVED_NETWORK",
     "RPC_OR_INDEXER_CONFIGURATION",
-    "MULTI_ASSET_INVOICE_ROUTING_DESIGN",
     "WALLETCONNECT_PROJECT_ID_IF_USED",
     "CONTROLLED_SANDBOX_EVIDENCE",
     "EXPLICIT_PAYMENT_ACTIVATION_APPROVAL"
   ],
   "repository_sync": {
     "payment_manifests_aligned": true,
-    "sandbox_matrix_schema_version": 11,
+    "sandbox_matrix_schema_version": 12,
     "foundation_workflow_aligned": true,
     "main_release_manifest_payment_overlay_pending": true,
     "automation_resume_allowed": false

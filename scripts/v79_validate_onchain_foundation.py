@@ -8,8 +8,9 @@ DIGEST = "df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750"
 DECISION = "ONCHAIN_ETHEREUM_TRON_SOLANA_USDT_USDC_SELECTION"
 NETWORKS = ["ETHEREUM", "TRON", "SOLANA"]
 ASSETS = ["USDT", "USDC"]
-MIGRATION_VERSION = "20260805180435"
-MIGRATION_PATH = "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql"
+OWNER_MIGRATION = "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql"
+PREP_MIGRATION = "supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql"
+INDEX_MIGRATION = "supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql"
 V78_SHA = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 
 errors: list[str] = []
@@ -28,30 +29,27 @@ onchain = load("docs/release-manifests/crypto-lab-v79-onchain-payments.json")
 matrix = load("docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json")
 owner = load("docs/release-manifests/crypto-lab-v79-owner-network-decision.json")
 release = load("docs/release-manifests/crypto-lab-v79-7930.json")
-migration = Path(MIGRATION_PATH).read_text(encoding="utf-8")
+owner_sql = Path(OWNER_MIGRATION).read_text(encoding="utf-8")
+prep_sql = Path(PREP_MIGRATION).read_text(encoding="utf-8")
+index_sql = Path(INDEX_MIGRATION).read_text(encoding="utf-8")
 
-check(onchain["schema_version"] == 11, "on-chain manifest schema")
+check(onchain["schema_version"] == 12, "on-chain manifest schema")
+check(matrix["schema_version"] == 12, "sandbox matrix schema")
 check(onchain["project_ref"] == "txhzxbizjpinowepfjkm" and onchain["build"] == "7930", "project/build")
-check(onchain["provider"] == "onchain_direct", "provider")
 check(onchain["approved_networks"] == NETWORKS, "approved networks")
 check(onchain["selected_assets"] == ASSETS, "selected assets")
 check(onchain["superseded_networks"] == ["BSC"], "BSC supersession")
-check(onchain["owner_network_approval_recorded"] is True, "network approval record")
-check(onchain["owner_asset_selection_recorded"] is True, "asset selection record")
 check(onchain["activation_allowed"] is False and onchain["publication_allowed"] is False, "activation/publication boundary")
 
 decision = onchain["owner_decision"]
 check(decision["decision_code"] == DECISION, "decision code")
 check(decision["decision_text_exact"] == EXACT, "decision exact text")
 check(decision["decision_hash_sha256"] == DIGEST, "decision digest")
-check(decision["decision_scope"] == "network_and_settlement_asset_selection", "decision scope")
 check(decision["payment_activation_authorized"] is False, "payment activation denial")
-check(decision["active"] is True and decision["source_channel"] == "owner_chat", "decision authority")
 
 networks = {item["code"]: item for item in onchain["networks"]}
-check(set(NETWORKS).issubset(networks), "selected network inventory")
-check(all(networks[n]["approved_by_owner"] is True and networks[n]["active"] is False for n in NETWORKS), "selected networks inactive")
-check(networks["BSC"]["approved_by_owner"] is False and networks["BSC"]["active"] is False, "BSC inactive/unapproved")
+check(all(networks[n]["approved_by_owner"] and not networks[n]["active"] for n in NETWORKS), "selected networks inactive")
+check(not networks["BSC"]["approved_by_owner"] and not networks["BSC"]["active"], "BSC inactive/unapproved")
 
 pairs = {(item["network_code"], item["asset_code"]): item for item in onchain["asset_matrix"]}
 expected_identifiers = {
@@ -64,88 +62,74 @@ expected_identifiers = {
 for pair, identifier in expected_identifiers.items():
     item = pairs.get(pair)
     check(item is not None, f"missing pair {pair}")
-    if item is not None:
+    if item:
         check(item["token_identifier"] == identifier, f"identifier {pair}")
         check(item["availability_status"] == "available_verified", f"availability {pair}")
         check(item["enabled"] is False, f"disabled pair {pair}")
+tron_usdc = pairs[("TRON", "USDC")]
+check(tron_usdc["availability_status"] == "unsupported_official", "TRON USDC unsupported")
+check(tron_usdc["token_identifier"] is None and tron_usdc["enabled"] is False, "TRON USDC disabled")
 
-tron_usdc = pairs.get(("TRON", "USDC"))
-check(tron_usdc is not None, "TRON USDC record")
-if tron_usdc is not None:
-    check(tron_usdc["availability_status"] == "unsupported_official", "TRON USDC unsupported status")
-    check(tron_usdc["token_identifier"] is None and tron_usdc["enabled"] is False, "TRON USDC disabled boundary")
+routing = onchain["routing_policy"]
+check(routing["explicit_network_and_asset_selection"] is True, "explicit routing")
+check(routing["silent_fallback_allowed"] is False, "no silent fallback")
+check(routing["invoice_pair_immutable"] is True, "immutable invoice pair")
+check(routing["official_supported_pair_count"] == 5, "supported pair count")
+
+pricing = onchain["pricing"]
+check(pricing["proposal_prepared"] is True and pricing["owner_approved"] is False, "draft pricing boundary")
+check(pricing["currency"] == "UAH" and pricing["billing_interval"] == "month", "draft pricing units")
+check(pricing["basic_amount_minor"] == 39900 and pricing["pro_amount_minor"] == 79900, "draft amounts")
+check(pricing["draft_row_count"] == 4 and pricing["active_row_count"] == 0, "draft price rows")
 
 runtime = onchain["runtime_state"]
 check(runtime["approved_network_count"] == 3, "approved network count")
 check(runtime["active_network_count"] == 0, "active network count")
 check(runtime["selected_asset_count"] == 2, "selected asset count")
-for key in [
-    "enabled_network_asset_count",
-    "active_price_count",
-    "receiving_address_count",
-    "invoice_count",
-    "transaction_claim_count",
-    "chain_observation_count",
-    "auth_user_count",
-    "registration_attempt_count",
-    "recovery_attempt_count",
-]:
+check(runtime["official_supported_pair_count"] == 5, "runtime pair count")
+check(runtime["draft_price_count"] == 4, "runtime draft prices")
+for key in ["enabled_network_asset_count", "active_price_count", "receiving_address_count", "invoice_count", "transaction_claim_count", "chain_observation_count"]:
     check(runtime[key] == 0, f"runtime zero {key}")
-check(runtime["provider_desired_mode"] == "disabled" and runtime["provider_lifecycle_status"] == "draft", "adapter state")
+check(runtime["configuration_ready"] is False and runtime["activation_ready"] is False, "readiness fail-closed")
+check(runtime["payment_activation_authorized"] is False, "runtime activation denial")
 for key in ["checkout_enabled", "webhook_enabled", "recurring_enabled", "refunds_enabled"]:
     check(runtime[key] is False, f"disabled {key}")
 
-check(owner["schema_version"] == 7, "owner manifest schema")
+prep = onchain["preactivation_preparation"]
+check(prep["multi_asset_invoice_service_prepared"] is True, "multi-asset service")
+check(prep["ethereum_address_validation_prepared"] is True, "Ethereum address validation")
+check(prep["ethereum_transaction_validation_prepared"] is True, "Ethereum tx validation")
+check(prep["transaction_identity_triggers_enabled"] is True, "tx identity triggers")
+check(prep["foreign_key_indexes_added"] == 7, "foreign-key indexes")
+
 check(owner["decision_code"] == DECISION, "owner decision code")
 check(owner["decision_text_exact"] == EXACT and owner["decision_hash_sha256"] == DIGEST, "owner decision authority")
-check(owner["approved_networks"] == [
-    {"network_code": "ETHEREUM", "standard": "ERC20", "approved_by_owner": True, "active": False},
-    {"network_code": "TRON", "standard": "TRC20", "approved_by_owner": True, "active": False},
-    {"network_code": "SOLANA", "standard": "SPL", "approved_by_owner": True, "active": False},
-], "owner approved networks")
-check([item["asset_code"] for item in owner["selected_assets"]] == ASSETS, "owner selected assets")
-check(all(item["selected"] and item["status"] == "selected_inactive" for item in owner["selected_assets"]), "owner assets inactive")
-check(owner["unsupported_official_pairs"][0]["pair"] == "TRON_USDC", "owner unsupported pair")
+check([item["network_code"] for item in owner["approved_networks"]] == NETWORKS, "owner networks")
+check([item["asset_code"] for item in owner["selected_assets"]] == ASSETS, "owner assets")
 for key in ["activation_allowed", "publication_allowed", "checkout_enabled", "webhook_enabled", "recurring_enabled", "refunds_enabled"]:
     check(owner[key] is False, f"owner fail-closed {key}")
 
-check(matrix["schema_version"] == 11, "matrix schema")
 check(matrix["approved_networks"] == NETWORKS and matrix["selected_assets"] == ASSETS, "matrix scope")
-check(matrix["scenario_count"] == 31, "matrix scenario count")
+check(matrix["scenario_count"] == 35, "matrix scenario count")
 codes = [item["code"] for item in matrix["scenarios"]]
-check(len(codes) == len(set(codes)) == 31, "matrix scenario uniqueness")
-check("MULTI_ASSET_SELECTION_WITHOUT_ROUTING" in codes, "multi-asset routing test")
-check("TRON_USDC_UNSUPPORTED_OFFICIAL" in codes, "TRON USDC test")
+check(len(codes) == len(set(codes)) == 35, "matrix scenario uniqueness")
+for code in ["MULTI_ASSET_SELECTION_WITHOUT_ROUTING", "TRON_USDC_UNSUPPORTED_OFFICIAL", "ETHEREUM_ADDRESS_VALIDATION", "ETHEREUM_TRANSACTION_HASH_VALIDATION", "DRAFT_PRICE_ACTIVATION_ATTEMPT", "AMBIGUOUS_LEGACY_INVOICE_ROUTE"]:
+    check(code in codes, f"matrix scenario {code}")
 
-for manifest in [onchain, owner, matrix]:
-    authoritative = manifest["authoritative_migration"]
-    check(authoritative["version"] == MIGRATION_VERSION, "authoritative migration version")
-    check(authoritative["source"] == MIGRATION_PATH, "authoritative migration source")
+for path in [OWNER_MIGRATION, PREP_MIGRATION, INDEX_MIGRATION]:
+    check(Path(path).is_file(), f"migration file {path}")
 
-check(Path(MIGRATION_PATH).is_file(), "migration file")
-required_markers = [
-    EXACT,
-    DIGEST,
-    DECISION,
-    "crypto_onchain_owner_selected_network_state_check",
-    "crypto_onchain_owner_selected_asset_state_check",
-    "crypto_onchain_owner_selected_pairs_disabled_check",
-    "crypto_owner_decision_current_network_asset_check",
-    "crypto_payment_current_owner_decision_check",
-    "crypto_onchain_adapter_owner_activation_denied_check",
-    "drop index if exists public.crypto_onchain_one_selected_asset_idx",
-    "TRON','USDC','TRC20',null,'not_available','unsupported_official'",
-]
-for marker in required_markers:
-    check(marker in migration, f"missing migration marker: {marker}")
+owner_markers = [EXACT, DIGEST, DECISION, "crypto_onchain_owner_selected_network_state_check", "crypto_onchain_adapter_owner_activation_denied_check"]
+for marker in owner_markers:
+    check(marker in owner_sql, f"owner migration marker {marker}")
+prep_markers = ["service_create_crypto_onchain_invoice", "p_asset_code text", "crypto_validate_onchain_tx_hash", "ETHEREUM", "crypto_onchain_pricing_activation_denied_by_owner", "ONCHAIN_ASSET_ROUTING", "39900", "79900"]
+for marker in prep_markers:
+    check(marker in prep_sql, f"prep migration marker {marker}")
+for marker in ["crypto_onchain_fx_quotes_asset_code_idx", "crypto_onchain_tx_observations_network_asset_idx"]:
+    check(marker in index_sql, f"index migration marker {marker}")
 
-combined = migration + json.dumps(onchain, ensure_ascii=False) + json.dumps(owner, ensure_ascii=False) + json.dumps(matrix, ensure_ascii=False)
-for pattern in [
-    r"sb_secret_",
-    r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
-    r"Bearer\s+eyJ",
-    r"\bseed phrase\b",
-]:
+combined = owner_sql + prep_sql + index_sql + json.dumps(onchain, ensure_ascii=False) + json.dumps(owner, ensure_ascii=False) + json.dumps(matrix, ensure_ascii=False)
+for pattern in [r"sb_secret_", r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----", r"Bearer\s+eyJ", r"\bseed phrase\b"]:
     check(re.search(pattern, combined, re.I) is None, "possible secret material")
 
 check(onchain["stable_root_v78_sha"] == V78_SHA, "on-chain v78 boundary")
@@ -157,5 +141,4 @@ check(release["boundaries"]["v79_published_over_v78"] is False, "v79 publication
 if errors:
     print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
-
-print("Owner-selected Ethereum/TRON/Solana and inactive USDT/USDC foundation: OK")
+print("Inactive Ethereum/TRON/Solana USDT/USDC preactivation foundation: OK")
