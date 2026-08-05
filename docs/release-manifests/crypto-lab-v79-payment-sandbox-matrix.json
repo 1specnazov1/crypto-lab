@@ -2,17 +2,20 @@
   "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T09:10:00Z",
-  "provider": "onchain",
+  "updated_at": "2026-08-05T09:14:00Z",
+  "provider_candidate": "onchain_direct",
   "mode": "disabled",
   "activation_allowed": false,
-  "approved_networks": ["TRON", "BSC", "SOLANA"],
+  "candidate_networks": ["TRON", "BSC", "SOLANA"],
+  "owner_network_approval_recorded": false,
   "settlement_asset": "decision_required",
   "prerequisites": [
+    "PAYMENT_PROVIDER_RAIL",
+    "NETWORK_SELECTION",
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_TOKEN_ACCEPTANCE_AND_CONTRACT_VERIFICATION",
     "BASIC_PRO_CRYPTO_PRICING",
-    "THREE_PUBLIC_RECEIVING_ADDRESSES",
+    "PUBLIC_RECEIVING_ADDRESSES_FOR_SELECTED_NETWORKS",
     "CHAIN_VERIFIER_CONFIGURATION",
     "REFUND_POLICY",
     "REAL_ADMIN"
@@ -36,7 +39,7 @@
     "refund_requires_audit": true,
     "automatic_wallet_debit": false
   },
-  "network_finality": {
+  "network_finality_candidates": {
     "TRON": {"required_state": "solidified", "minimum_confirmations": 19},
     "BSC": {"required_state": "finalized", "minimum_confirmations": 2},
     "SOLANA": {"required_state": "finalized", "minimum_confirmations": 0}
