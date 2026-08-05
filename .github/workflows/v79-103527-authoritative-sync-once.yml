@@ -1,0 +1,147 @@
+name: Authoritative 103527 Evidence Sync Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-103527-authoritative-sync-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: v79-authoritative-103527-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Synchronize authoritative candidate-only state
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('.')
+          version='20260805103527'
+          name='authoritative_candidate_only_recovery_after_103010'
+          source='supabase/migrations/20260805103527_authoritative_candidate_only_recovery_after_103010.sql'
+          source_commit='acd3dd1c2af698e98cb74c7c70538f298d1dab94'
+          false_version='20260805103010'
+          false_name='restore_exact_owner_three_network_authority_after_stale_cycle'
+
+          p=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+          data=json.loads(p.read_text(encoding='utf-8'))
+          data['schema_version']=13
+          data['updated_at']='2026-08-05T10:40:00Z'
+          data['approved_networks']=[]
+          data['owner_network_approval_recorded']=False
+          data['owner_provider_approval_recorded']=False
+          data['authoritative_migration']={'version':version,'name':name,'source':source,'source_commit':source_commit}
+          incident=data.setdefault('provenance_incident',{})
+          incident['last_false_authority_migration']=false_version+'_'+false_name
+          incident['last_false_authority_migration_superseded']=True
+          incident['invalid_reconstructed_record_active']=False
+          incident['invalid_reconstructed_authority_event_effective']=False
+          data['database']['active_valid_owner_decision_records']=0
+          data['database']['effective_payment_authority_events']=0
+          data['runtime_state']['approved_network_count']=0
+          data['runtime_state']['active_network_count']=0
+          data['runtime_state']['provider_status']='decision_required'
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          p=root/'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
+          matrix=json.loads(p.read_text(encoding='utf-8'))
+          matrix['schema_version']=10
+          matrix['updated_at']='2026-08-05T10:40:00Z'
+          matrix['approved_networks']=[]
+          matrix['owner_network_approval_recorded']=False
+          matrix['authoritative_migration']={'version':version,'name':name,'source':source,'source_commit':source_commit}
+          p.write_text(json.dumps(matrix,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          p=root/'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
+          text=p.read_text(encoding='utf-8')
+          text=text.replace('20260805100805_final_lock_explicit_owner_three_network_selection','20260805103010_restore_exact_owner_three_network_authority_after_stale_cycle')
+          text=text.replace('20260805101600_authoritative_candidate_only_recovery_after_100805','20260805103527_authoritative_candidate_only_recovery_after_103010')
+          text=text.replace('supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql',source)
+          text=text.replace('09dfd70b1ee55fc48023b019309e6e5f41798fc6',source_commit)
+          text=text.replace('last false-authority migration was:', 'last false-authority migration was:')
+          p.write_text(text,encoding='utf-8')
+
+          replacements={
+            '20260805101600_authoritative_candidate_only_recovery_after_100805.sql':'20260805103527_authoritative_candidate_only_recovery_after_103010.sql',
+            '20260805101600_authoritative_candidate_only_recovery_after_100805':'20260805103527_authoritative_candidate_only_recovery_after_103010',
+            '20260805101600':'20260805103527',
+            '09dfd70b1ee55fc48023b019309e6e5f41798fc6':source_commit,
+            '20260805100805_final_lock_explicit_owner_three_network_selection':'20260805103010_restore_exact_owner_three_network_authority_after_stale_cycle',
+            "onchain['schema_version']==12":"onchain['schema_version']==13",
+            "matrix['schema_version']==9":"matrix['schema_version']==10",
+            "manifest.get('schema_version')==12":"manifest.get('schema_version')==13",
+          }
+          for rel in ['.github/workflows/v79-onchain-payment-foundation-validation.yml','.github/workflows/v79-owner-decision-failclosed-validation.yml']:
+            fp=root/rel
+            text=fp.read_text(encoding='utf-8')
+            for old,new in replacements.items(): text=text.replace(old,new)
+            fp.write_text(text,encoding='utf-8')
+
+          p=root/'docs/release-manifests/crypto-lab-v79-7930.json'
+          manifest=json.loads(p.read_text(encoding='utf-8'))
+          additions=[
+            {'version':false_version,'name':false_name},
+            {'version':version,'name':name,'source':source,'source_commit':source_commit},
+          ]
+          keyed={(m.get('version'),m.get('name')):m for m in manifest.setdefault('migrations',[])}
+          for item in additions:
+            key=(item['version'],item['name'])
+            if key in keyed: keyed[key].update(item)
+            else: manifest['migrations'].append(item)
+          for item in manifest['migrations']:
+            for extra in list(item):
+              if extra not in {'version','name','source','source_commit'}: item.pop(extra,None)
+          manifest['updated_at']='2026-08-05T10:40:00Z'
+          release=manifest.setdefault('release_evidence',{})
+          for key in list(release):
+            if key not in {'release_gate_run_id','maintenance_evidence_gate_run_id','browser_smoke_run_id','pages_run_id','technical_score','commercial_score'}: release.pop(key,None)
+          release['release_gate_run_id']='pending';release['browser_smoke_run_id']='pending';release['pages_run_id']='pending'
+          op=manifest.setdefault('operational_hardening',{})
+          op.update({
+            'onchain_authoritative_migration_version':version,
+            'onchain_authoritative_migration_name':name,
+            'onchain_authoritative_migration_source_commit':source_commit,
+            'onchain_last_false_authority_migration_version':false_version,
+            'onchain_last_false_authority_migration_superseded':True,
+            'onchain_approved_network_count':0,
+            'onchain_active_network_count':0,
+            'onchain_active_owner_decision_record_count':0,
+            'onchain_effective_payment_authority_event_count':0,
+            'onchain_owner_approval_recorded':False,
+            'onchain_provider_decision_recorded':False,
+            'onchain_validated_candidate_only_constraint_count':5,
+            'direct_onchain_payment_activation_allowed':False,
+            'onchain_sandbox_scenario_count':30,
+          })
+          manifest.setdefault('boundaries',{})['payment_provider_active']=False
+          manifest['boundaries']['paid_prices_active']=False
+          manifest['boundaries']['v79_published_over_v78']=False
+          p.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          rm .github/workflows/v79-103527-authoritative-sync-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/release-manifests/crypto-lab-v79-onchain-payments.json docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-onchain-payment-foundation-validation.yml .github/workflows/v79-owner-decision-failclosed-validation.yml .github/workflows/v79-103527-authoritative-sync-once.yml
+          git commit -m 'Bind authoritative candidate-only recovery after 103010'
+          git push
+      - name: Dispatch final validation gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-owner-decision-failclosed-validation.yml --ref main
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-browser-smoke.yml --ref main
