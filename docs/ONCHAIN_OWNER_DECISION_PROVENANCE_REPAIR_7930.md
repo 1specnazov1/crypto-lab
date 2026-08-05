@@ -48,6 +48,8 @@ A fresh database applying the complete ordered migration history ends in the saf
 
 ## Fail-closed controls
 
+The active owner-decision boundary is fail-closed.
+
 `20260805092723_fail_closed_onchain_owner_decision_gate` intentionally removes the autonomous GUC override path. Until a future explicit manual migration replaces the guard:
 
 - `approved_by_owner=true` is always rejected;
