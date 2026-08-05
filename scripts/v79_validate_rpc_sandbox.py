@@ -12,9 +12,11 @@ DENO_CONFIG = Path("supabase/functions/crypto-lab-v79-chain-verifier/deno.json")
 
 errors: list[str] = []
 
+
 def check(value: bool, message: str) -> None:
     if not value:
         errors.append(message)
+
 
 for path in [MANIFEST, MIGRATION, INDEX_MIGRATION, FUNCTION, DENO_CONFIG]:
     check(path.is_file(), f"missing file: {path}")
@@ -34,38 +36,92 @@ if not errors:
     edge = manifest["edge_function"]
     check(edge["slug"] == "crypto-lab-v79-chain-verifier", "edge slug")
     check(edge["version"] == 1 and edge["verify_jwt"] is True, "edge auth")
-    check(edge["admin_only"] is True and edge["read_only_chain_access"] is True, "edge boundary")
+    check(
+        edge["admin_only"] is True and edge["read_only_chain_access"] is True,
+        "edge boundary",
+    )
     check(edge["verifier_version"] == "7930-rpc1", "verifier version")
 
-    profiles = {(p["network_code"], p["environment"]): p for p in manifest["profiles"]}
-    check(set(profiles) == {("ETHEREUM", "sandbox"), ("TRON", "sandbox"), ("SOLANA", "sandbox")}, "sandbox profiles")
-    check(profiles[("ETHEREUM", "sandbox")]["enabled"] is False, "Ethereum sandbox disabled")
-    check(profiles[("TRON", "sandbox")]["enabled"] is True, "TRON sandbox enabled")
-    check(profiles[("SOLANA", "sandbox")]["enabled"] is True, "Solana sandbox enabled")
-    check(manifest["production_profiles"]["enabled_count"] == 0, "production profiles disabled")
+    profiles = {
+        (profile["network_code"], profile["environment"]): profile
+        for profile in manifest["profiles"]
+    }
+    check(
+        set(profiles)
+        == {
+            ("ETHEREUM", "sandbox"),
+            ("TRON", "sandbox"),
+            ("SOLANA", "sandbox"),
+        },
+        "sandbox profiles",
+    )
+    check(
+        profiles[("ETHEREUM", "sandbox")]["enabled"] is False,
+        "Ethereum sandbox disabled",
+    )
+    check(
+        profiles[("TRON", "sandbox")]["enabled"] is True,
+        "TRON sandbox enabled",
+    )
+    check(
+        profiles[("SOLANA", "sandbox")]["enabled"] is True,
+        "Solana sandbox enabled",
+    )
+    check(
+        manifest["production_profiles"]["enabled_count"] == 0,
+        "production profiles disabled",
+    )
 
-    health = {x["network_code"]: x for x in manifest["health_evidence"]}
+    health = {item["network_code"]: item for item in manifest["health_evidence"]}
     check(health["ETHEREUM"]["healthy"] is False, "Ethereum health state")
-    check(health["TRON"]["healthy"] is True and health["TRON"]["http_status"] == 200, "TRON health")
-    check(health["SOLANA"]["healthy"] is True and health["SOLANA"]["health"] == "ok", "Solana health")
+    check(
+        health["TRON"]["healthy"] is True
+        and health["TRON"]["http_status"] == 200,
+        "TRON health",
+    )
+    check(
+        health["SOLANA"]["healthy"] is True
+        and health["SOLANA"]["health"] == "ok",
+        "Solana health",
+    )
     check(len(manifest["sandbox_cases"]) == 5, "sandbox case count")
-    check(manifest["isolation"]["can_grant_entitlement"] is False, "entitlement isolation")
+    check(
+        manifest["isolation"]["can_grant_entitlement"] is False,
+        "entitlement isolation",
+    )
     check(manifest["isolation"]["billing_foreign_keys"] == 0, "billing FK isolation")
-    check(manifest["isolation"]["subscription_foreign_keys"] == 0, "subscription FK isolation")
+    check(
+        manifest["isolation"]["subscription_foreign_keys"] == 0,
+        "subscription FK isolation",
+    )
 
     runtime = manifest["runtime_counts"]
     for key in [
-        "sandbox_runs", "production_invoices", "production_claims", "production_observations",
-        "active_addresses", "active_prices", "active_networks", "enabled_network_asset_pairs",
+        "sandbox_runs",
+        "production_invoices",
+        "production_claims",
+        "production_observations",
+        "active_addresses",
+        "active_prices",
+        "active_networks",
+        "enabled_network_asset_pairs",
     ]:
         check(runtime[key] == 0, f"runtime zero: {key}")
     check(runtime["health_runs"] == 3, "health run count")
 
     boundary = manifest["activation_boundary"]
-    check(boundary["payment_sandbox_status"] == "blocked_dependency", "sandbox owner boundary")
+    check(
+        boundary["payment_sandbox_status"] == "blocked_dependency",
+        "sandbox owner boundary",
+    )
     for key in [
-        "live_transfer_execution_authorized", "payment_activation_authorized", "checkout_enabled",
-        "webhook_enabled", "recurring_enabled", "refunds_enabled", "v79_published_over_v78",
+        "live_transfer_execution_authorized",
+        "payment_activation_authorized",
+        "checkout_enabled",
+        "webhook_enabled",
+        "recurring_enabled",
+        "refunds_enabled",
+        "v79_published_over_v78",
     ]:
         check(boundary[key] is False, f"disabled boundary: {key}")
 
@@ -83,7 +139,10 @@ if not errors:
     ]
     for marker in migration_markers:
         check(marker in migration, f"migration marker: {marker}")
-    check("crypto_onchain_sandbox_cases_profile_idx" in index_sql, "FK index marker")
+    check(
+        "crypto_onchain_sandbox_cases_profile_idx" in index_sql,
+        "FK index marker",
+    )
 
     function_markers = [
         'VERIFIER_VERSION = "7930-rpc1"',
@@ -91,8 +150,6 @@ if not errors:
         "service_record_crypto_onchain_verifier_health",
         "service_record_crypto_onchain_sandbox_run",
         "verify_sandbox_transaction",
-        "production_touched:false",
-        "entitlement_changed:false",
         "eth_getTransactionReceipt",
         "walletsolidity/gettransactioninfobyid",
         "getTransaction",
@@ -103,17 +160,32 @@ if not errors:
     for marker in function_markers:
         check(marker in function, f"function marker: {marker}")
 
-    combined = migration + index_sql + function + json.dumps(manifest, ensure_ascii=False)
+    check(
+        re.search(r"production_touched\s*:\s*false", function) is not None,
+        "function boundary: production_touched false",
+    )
+    check(
+        re.search(r"entitlement_changed\s*:\s*false", function) is not None,
+        "function boundary: entitlement_changed false",
+    )
+
+    combined = migration + index_sql + function + json.dumps(
+        manifest,
+        ensure_ascii=False,
+    )
     for pattern in [
         r"sb_secret_",
         r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
         r"Bearer\s+eyJ",
         r"seed phrase",
     ]:
-        check(re.search(pattern, combined, re.I) is None, f"secret-like material: {pattern}")
+        check(
+            re.search(pattern, combined, re.I) is None,
+            f"secret-like material: {pattern}",
+        )
 
 if errors:
-    print("\n".join(f"ERROR: {e}" for e in errors))
+    print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
 
 print("Isolated multichain RPC sandbox and fail-closed boundaries: OK")
