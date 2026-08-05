@@ -1,0 +1,64 @@
+name: Synchronize v79 Owner Authority 105743 Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-sync-105743-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: v79-sync-owner-authority-105743-once
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Commit the exact owner-approved inactive state
+        run: |
+          set -euo pipefail
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          pushed=false
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/v79_sync_105743.py
+            python scripts/v79_validate_onchain_foundation.py
+            git rm --ignore-unmatch \
+              .github/workflows/v79-sync-105743-once.yml \
+              scripts/v79_sync_105743.py
+            git add -A
+            git commit -m 'Synchronize final owner-approved inactive payment state'
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "Push attempt ${attempt} conflicted; retrying from latest main"
+            sleep 3
+          done
+          test "$pushed" = true
+
+      - name: Dispatch final gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sleep 8
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-onchain-lifecycle-hardening-validation.yml --ref main
+          gh workflow run v79-owner-network-decision-validation.yml --ref main
+          gh workflow run v79-owner-decision-failclosed-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-browser-smoke.yml --ref main
