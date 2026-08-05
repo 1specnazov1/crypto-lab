@@ -1,3 +1,4 @@
+// CRYPTO LAB v79 build 7930 validation rerun after owner-authority synchronization.
 import { defineConfig, devices } from '@playwright/test';
 
 const mobileChrome = {
