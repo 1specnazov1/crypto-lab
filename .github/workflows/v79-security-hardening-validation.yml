@@ -4,12 +4,16 @@ on:
   push:
     paths:
       - 'supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql'
+      - 'supabase/migrations/20260805090706_guard_crypto_x_cost_and_live_activation.sql'
       - 'docs/SECURITY_ACL_REPAIR_7930.md'
+      - 'docs/X_COST_ACTIVATION_GUARD_7930.md'
       - '.github/workflows/v79-security-hardening-validation.yml'
   pull_request:
     paths:
       - 'supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql'
+      - 'supabase/migrations/20260805090706_guard_crypto_x_cost_and_live_activation.sql'
       - 'docs/SECURITY_ACL_REPAIR_7930.md'
+      - 'docs/X_COST_ACTIVATION_GUARD_7930.md'
       - '.github/workflows/v79-security-hardening-validation.yml'
   workflow_dispatch:
 
@@ -27,53 +31,69 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate service-only function ACL migration
+      - name: Validate service-only ACL and activation guard migrations
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
           import sys
 
-          path=Path('supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql')
-          text=path.read_text(encoding='utf-8')
-          normalized=re.sub(r'\s+',' ',text.lower())
-          required=[
-            'revoke all on function public.crypto_x_claim_publish_job() from public;',
-            'revoke all on function public.crypto_x_claim_publish_job() from anon;',
-            'revoke all on function public.crypto_x_claim_publish_job() from authenticated;',
-            'grant execute on function public.crypto_x_claim_publish_job() to service_role;',
-            'alter function public.crypto_x_claim_publish_job() set search_path = public, pg_temp;'
-          ]
-          errors=[item for item in required if item not in normalized]
-          forbidden=[
-            'grant execute on function public.crypto_x_claim_publish_job() to public',
-            'grant execute on function public.crypto_x_claim_publish_job() to anon',
-            'grant execute on function public.crypto_x_claim_publish_job() to authenticated'
-          ]
-          errors.extend(item for item in forbidden if item in normalized)
+          checks={
+            Path('supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql'):[
+              'revoke all on function public.crypto_x_claim_publish_job() from public;',
+              'revoke all on function public.crypto_x_claim_publish_job() from anon;',
+              'revoke all on function public.crypto_x_claim_publish_job() from authenticated;',
+              'grant execute on function public.crypto_x_claim_publish_job() to service_role;',
+              'alter function public.crypto_x_claim_publish_job() set search_path = public, pg_temp;'
+            ],
+            Path('supabase/migrations/20260805090706_guard_crypto_x_cost_and_live_activation.sql'):[
+              'create or replace function private.guard_crypto_x_activation()',
+              "current_setting('app.crypto_x_activation_authorized', true)",
+              "raise exception 'crypto x activation requires an explicit authorized transaction'",
+              'revoke all on function private.guard_crypto_x_activation() from public;',
+              'revoke all on function private.guard_crypto_x_activation() from anon;',
+              'revoke all on function private.guard_crypto_x_activation() from authenticated;',
+              'revoke all on function private.guard_crypto_x_activation() from service_role;',
+              'create trigger crypto_x_settings_activation_guard'
+            ]
+          }
+          errors=[]
+          for path,required in checks.items():
+            normalized=re.sub(r'\s+',' ',path.read_text(encoding='utf-8').lower())
+            errors.extend(f'{path}: missing {item}' for item in required if item not in normalized)
+          first=checks.keys().__iter__().__next__().read_text(encoding='utf-8').lower()
+          for role in ('public','anon','authenticated'):
+            marker=f'grant execute on function public.crypto_x_claim_publish_job() to {role}'
+            if marker in first: errors.append(f'forbidden browser grant: {role}')
           if errors:
             print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
-          print('service-only ACL migration contract passed')
+          print('service-only ACL and activation guard contracts passed')
           PY
 
-      - name: Validate repair evidence document
+      - name: Validate repair evidence documents
         run: |
           python - <<'PY'
           from pathlib import Path
           import sys
-          text=Path('docs/SECURITY_ACL_REPAIR_7930.md').read_text(encoding='utf-8')
-          required=[
-            '`PUBLIC`: no execute',
-            '`anon`: no execute',
-            '`authenticated`: no execute',
-            '`service_role`: execute',
-            'data-integrity state: healthy',
-            'live publishing was disabled'
-          ]
-          missing=[item for item in required if item not in text]
-          if missing:
-            print('\n'.join(f'ERROR: missing evidence marker {item}' for item in missing));sys.exit(1)
-          print('security repair evidence document passed')
+          documents={
+            Path('docs/SECURITY_ACL_REPAIR_7930.md'):[
+              '`PUBLIC`: no execute','`anon`: no execute','`authenticated`: no execute',
+              '`service_role`: execute','data-integrity state: healthy','live publishing was disabled'
+            ],
+            Path('docs/X_COST_ACTIVATION_GUARD_7930.md'):[
+              'Two draft images were generated','no X post was sent',
+              '`automation_enabled=false`','`live_publish_enabled=false`','`dry_run=true`',
+              'app.crypto_x_activation_authorized=true','rejected with SQLSTATE `42501`',
+              'requires an explicit owner decision'
+            ]
+          }
+          errors=[]
+          for path,required in documents.items():
+            text=path.read_text(encoding='utf-8')
+            errors.extend(f'{path}: missing {item}' for item in required if item not in text)
+          if errors:
+            print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
+          print('security evidence documents passed')
           PY
 
       - name: Preserve stable and public release hashes
