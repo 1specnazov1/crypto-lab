@@ -1,0 +1,24 @@
+name: Dispatch v79 Post-Sync Gates
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v79-post-sync-gate-dispatch.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch current-main gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-maintenance-evidence-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
