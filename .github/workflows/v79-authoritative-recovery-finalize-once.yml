@@ -1,0 +1,148 @@
+name: Finalize v79 Authoritative Recovery Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-authoritative-recovery-finalize-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Bind complete migration and recovery evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          manifest['updated_at']='2026-08-05T10:07:00Z'
+          manifest['application']['evidence_commit']='f5f4db108bcef9ee02a54fbfd74bb2b44a448276'
+          manifest['boundaries'].update({
+            'registration_enabled':False,
+            'recovery_enabled':False,
+            'paid_prices_active':False,
+            'payment_provider_active':False,
+            'v79_published_over_v78':False
+          })
+
+          applied=[
+            ('20260805085106','secure_and_schedule_crypto_x_pipeline_v2'),
+            ('20260805085155','route_crypto_x_cron_through_dispatcher'),
+            ('20260805085208','harden_crypto_x_claim_publish_job_execution'),
+            ('20260805085304','harden_crypto_x_schema'),
+            ('20260805085451','index_crypto_x_foreign_keys'),
+            ('20260805085503','crypto_billing_onchain_adapter_contract'),
+            ('20260805085615','crypto_three_network_onchain_catalog'),
+            ('20260805085735','crypto_three_network_onchain_services'),
+            ('20260805085807','crypto_three_network_onchain_security_and_launch_control'),
+            ('20260805085925','add_crypto_x_market_trigger_stage'),
+            ('20260805090423','allow_crypto_x_auth_check_dispatch'),
+            ('20260805090631','allow_crypto_x_preview_dispatch'),
+            ('20260805090706','guard_crypto_x_cost_and_live_activation'),
+            ('20260805091147','correct_onchain_candidate_network_approval_evidence'),
+            ('20260805091434','harden_crypto_onchain_observation_lifecycle'),
+            ('20260805091540','record_owner_approved_three_onchain_networks'),
+            ('20260805091915','guard_onchain_owner_decision_provenance'),
+            ('20260805092040','clear_fabricated_onchain_owner_decision_timestamp'),
+            ('20260805092421','record_explicit_owner_three_network_decision'),
+            ('20260805092441','authorize_recorded_owner_three_network_decision'),
+            ('20260805092723','fail_closed_onchain_owner_decision_gate'),
+            ('20260805092826','harden_candidate_network_metadata_provenance'),
+            ('20260805093023','enforce_explicit_owner_three_network_decision_record'),
+            ('20260805093151','enforce_recorded_owner_three_network_decision'),
+            ('20260805093547','add_owner_decision_supersession_audit'),
+            ('20260805093613','restore_onchain_candidate_only_state'),
+            ('20260805093641','install_fail_closed_payment_owner_decision_guards'),
+            ('20260805093754','enforce_fail_closed_owner_decision_constraints'),
+            ('20260805094250','archive_and_block_payment_owner_decision_records'),
+            ('20260805094607','supersede_false_network_decision_denial_with_exact_owner_record'),
+            ('20260805094628','restore_canonical_owner_three_network_authority'),
+            ('20260805095124','final_restore_candidate_only_after_false_owner_authority'),
+            ('20260805095447','finalize_explicit_three_network_owner_authority_after_concurrency'),
+            ('20260805095547','finalize_explicit_owner_three_network_selection_after_race'),
+            ('20260805100027','authoritative_candidate_only_payment_recovery')
+          ]
+          old={(str(x.get('version')),str(x.get('name'))):x for x in manifest.get('migrations',[])}
+          merged=[]
+          seen=set()
+          for item in manifest.get('migrations',[]):
+            key=(str(item.get('version')),str(item.get('name')))
+            if key not in seen:
+              merged.append(item);seen.add(key)
+          for version,name in applied:
+            key=(version,name)
+            if key in seen: continue
+            item={'version':version,'name':name}
+            if version=='20260805100027':
+              item.update({
+                'source':'supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql',
+                'source_commit':'83ca5ebc71e68e25f881344d93ec39d38125aa08'
+              })
+            merged.append(item);seen.add(key)
+          manifest['migrations']=merged
+
+          hardening=manifest.setdefault('operational_hardening',{})
+          hardening.update({
+            'authoritative_payment_recovery_migration':'20260805100027',
+            'authoritative_payment_recovery_source_commit':'83ca5ebc71e68e25f881344d93ec39d38125aa08',
+            'payment_provider_status':'decision_required',
+            'approved_onchain_network_count':0,
+            'active_onchain_network_count':0,
+            'selected_onchain_asset_count':0,
+            'active_onchain_price_count':0,
+            'active_onchain_address_count':0,
+            'onchain_invoice_count':0,
+            'onchain_observation_count':0,
+            'onchain_credited_claim_count':0,
+            'active_payment_owner_decision_records':0,
+            'superseded_invalid_owner_decision_records':1,
+            'owner_decision_constraints_validated':True,
+            'owner_decision_negative_probes_passed':True,
+            'fabricated_owner_decision_incident_document':'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md',
+            'fabricated_owner_decision_text':'Три сети утверждаю.',
+            'fabricated_text_was_not_user_content':True,
+            'overlapping_recurring_automation_disabled':True,
+            'self_rewriting_owner_decision_workflows_removed':True,
+            'onchain_manifest_schema_version':8,
+            'payment_sandbox_matrix_schema_version':8,
+            'onchain_payment_activation_allowed':False,
+            'automatic_wallet_debit':False,
+            'crypto_x_cost_activation_guarded':True,
+            'crypto_x_live_publish_enabled':False,
+            'registration_enabled':False,
+            'recovery_enabled':False,
+            'v79_publication_authorized':False
+          })
+          path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+
+          rm .github/workflows/v79-authoritative-recovery-finalize-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-authoritative-recovery-finalize-once.yml
+          git commit -m 'Bind authoritative candidate-only payment recovery'
+          git push
+
+      - name: Dispatch final gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sleep 20
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-identity-payment-preparation.yml --ref main
+          gh workflow run v79-security-hardening-validation.yml --ref main
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
