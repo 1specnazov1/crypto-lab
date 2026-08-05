@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "checkpoint_id": 32,
+  "status": "protected",
+  "created_at": "2026-08-05",
+  "purpose": "final_owner_network_authority_after_concurrency_repair",
+  "source_commit": "4bbced96ab09237d54dd2160ee92223017e11dab",
+  "authoritative_migration": {
+    "version": "20260805100805",
+    "name": "final_lock_explicit_owner_three_network_selection",
+    "source": "supabase/migrations/20260805100805_final_lock_explicit_owner_three_network_selection.sql"
+  },
+  "owner_decision": {
+    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "decision_text_exact": "Три сети утверждаю.",
+    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "approved_networks": ["TRON", "BSC", "SOLANA"],
+    "network_activation_authorized": false
+  },
+  "integrity": {
+    "owner_decision": "8/8 healthy",
+    "onchain": "11/11 healthy",
+    "data": "45/45 healthy",
+    "launch_control": "6/6 healthy"
+  },
+  "negative_tests": {
+    "remove_network_approval": "blocked",
+    "activate_network": "blocked",
+    "update_decision_record": "blocked",
+    "delete_decision_record": "blocked",
+    "reactivate_false_supersession": "blocked",
+    "revert_payment_requirement": "blocked"
+  },
+  "ci": {
+    "Validate v79 On-chain Payment Foundation": "success",
+    "Validate v79 Owner Network Decision": "success",
+    "independent_fresh_clone_assertions": "success"
+  },
+  "runtime_state": {
+    "provider_mode": "disabled",
+    "provider_lifecycle": "draft",
+    "checkout_enabled": false,
+    "webhook_enabled": false,
+    "recurring_enabled": false,
+    "refunds_enabled": false,
+    "approved_network_count": 3,
+    "active_network_count": 0,
+    "selected_asset_count": 0,
+    "active_price_count": 0,
+    "receiving_address_count": 0,
+    "invoice_count": 0,
+    "transaction_claim_count": 0,
+    "observation_count": 0,
+    "onchain_order_count": 0,
+    "auth_user_count": 0,
+    "profile_count": 0,
+    "registration_attempt_count": 0,
+    "recovery_attempt_count": 0
+  },
+  "activation_allowed": false,
+  "publication_allowed": false,
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "public_application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191",
+  "pwa_cache": "crypto-lab-v79-7930-auth1"
+}
