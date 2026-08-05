@@ -10,6 +10,7 @@ on:
       - 'supabase/migrations/20260805085615_crypto_three_network_onchain_catalog.sql'
       - 'supabase/migrations/20260805085735_crypto_three_network_onchain_services.sql'
       - 'supabase/migrations/20260805085807_crypto_three_network_onchain_security_and_launch_control.sql'
+      - 'supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
@@ -22,7 +23,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Validate on-chain payment contract
+      - name: Validate disabled on-chain candidate foundation
         run: |
           python - <<'PY'
           import json, pathlib, re, sys
@@ -35,20 +36,21 @@ jobs:
           if data.get('schema_version')!=1: errors.append('schema_version')
           if data.get('project_ref')!='txhzxbizjpinowepfjkm': errors.append('project_ref')
           if data.get('build')!='7930': errors.append('build')
-          if data.get('provider')!='onchain': errors.append('provider')
+          if data.get('provider_candidate')!='onchain_direct': errors.append('provider candidate')
+          if data.get('wallet_client_candidate')!='trust_wallet_walletconnect': errors.append('wallet candidate')
           if data.get('status')!='disabled_pending_decisions': errors.append('status')
-          if data.get('owner_approved_networks')!=['TRON','BSC','SOLANA']: errors.append('networks')
+          if data.get('candidate_networks')!=['TRON','BSC','SOLANA']: errors.append('candidate networks')
+          if data.get('owner_network_approval_recorded') is not False: errors.append('owner network approval fabricated')
           networks={n['code']:n for n in data.get('networks',[])}
           if set(networks)!={'TRON','BSC','SOLANA'}: errors.append('network inventory')
           for code,item in networks.items():
             if item.get('active') is not False: errors.append(f'{code} active')
+            if item.get('approved_by_owner') is not False: errors.append(f'{code} owner approval')
             if item.get('finality_mode') not in {'solidified','finalized'}: errors.append(f'{code} finality')
           assets=data.get('asset_candidates',{})
           if set(assets)!={'USDT','USDC'}: errors.append('asset candidates')
-          if assets.get('USDT',{}).get('selected') is not False or assets.get('USDC',{}).get('selected') is not False: errors.append('asset selected before decision')
+          if any(item.get('selected') is not False for item in assets.values()): errors.append('asset selected before decision')
           if assets.get('USDT',{}).get('network_status',{}).get('BSC')!='pegged_token_contract_and_owner_acceptance_required': errors.append('BSC USDT risk not explicit')
-          if assets.get('USDC',{}).get('network_status',{}).get('TRON')!='not_listed_by_circle': errors.append('TRON USDC status')
-          if assets.get('USDC',{}).get('network_status',{}).get('BSC')!='not_listed_by_circle': errors.append('BSC USDC status')
           pricing=data.get('pricing',{})
           if set(pricing.get('supported_modes',[]))!={'fixed_asset','fiat_pegged'}: errors.append('pricing modes')
           if pricing.get('basic_configured') or pricing.get('pro_configured'): errors.append('pricing activated')
@@ -67,15 +69,23 @@ jobs:
             if db.get(key) is not True: errors.append(key)
           for key in ['direct_browser_table_access','browser_public_security_definer']:
             if db.get(key) is not False: errors.append(key)
+          expected_state=data.get('runtime_state_expected',{})
+          for key in ['active_network_count','selected_asset_count','active_price_count','receiving_address_count','invoice_count','chain_observation_count']:
+            if expected_state.get(key)!=0: errors.append(f'expected runtime state {key}')
           migrations=data.get('migrations',[])
-          expected=['20260805085503','20260805085615','20260805085735','20260805085807']
+          expected=['20260805085503','20260805085615','20260805085735','20260805085807','20260805091147']
           if [m.get('version') for m in migrations]!=expected: errors.append('migration versions')
           for m in migrations:
             source=root/m.get('source','')
             if not source.is_file(): errors.append(f'missing {source}')
             if not re.fullmatch(r'[0-9a-f]{40}',str(m.get('source_commit',''))): errors.append(f'bad source commit {source}')
-          if matrix.get('schema_version')!=2 or matrix.get('provider')!='onchain' or matrix.get('mode')!='disabled': errors.append('sandbox matrix identity')
-          if matrix.get('approved_networks')!=['TRON','BSC','SOLANA']: errors.append('sandbox matrix networks')
+          decisions=set(data.get('required_decisions',[]))
+          if not {'PAYMENT_PROVIDER_RAIL','NETWORK_SELECTION','SETTLEMENT_ASSET_USDT_OR_USDC','PUBLIC_RECEIVING_ADDRESS_FOR_EACH_SELECTED_NETWORK'} <= decisions: errors.append('required decisions incomplete')
+
+          if matrix.get('schema_version')!=2 or matrix.get('mode')!='disabled': errors.append('sandbox matrix identity')
+          if matrix.get('provider_candidate')!='onchain_direct': errors.append('sandbox provider candidate')
+          if matrix.get('candidate_networks')!=['TRON','BSC','SOLANA']: errors.append('sandbox candidate networks')
+          if matrix.get('owner_network_approval_recorded') is not False: errors.append('sandbox owner network approval')
           if matrix.get('settlement_asset')!='decision_required': errors.append('settlement asset prematurely selected')
           scenarios=matrix.get('scenarios',[])
           codes=[s.get('code') for s in scenarios]
@@ -86,8 +96,9 @@ jobs:
           for key in ['blockchain_finality_is_source_of_truth','transaction_hash_single_claim','entitlement_changes_server_side_only','private_keys_not_required','seed_phrase_not_stored']:
             if matrix_invariants.get(key) is not True: errors.append(f'matrix invariant {key}')
           if matrix_invariants.get('automatic_wallet_debit') is not False: errors.append('automatic wallet debit enabled')
+
           combined='\n'.join((root/m['source']).read_text(encoding='utf-8') for m in migrations)+path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')
-          required_markers=['crypto_onchain_networks','crypto_onchain_assets','crypto_onchain_invoices','crypto_onchain_tx_observations','service_create_crypto_onchain_invoice','service_record_crypto_onchain_observation','verified_chain_observation','wallet_transaction']
+          required_markers=['crypto_onchain_networks','crypto_onchain_assets','crypto_onchain_invoices','crypto_onchain_tx_observations','service_create_crypto_onchain_invoice','service_record_crypto_onchain_observation','verified_chain_observation','wallet_transaction','owner_approval_recorded']
           for marker in required_markers:
             if marker not in combined: errors.append(f'missing marker {marker}')
           forbidden=[r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\s*:',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']
@@ -97,5 +108,15 @@ jobs:
           if data.get('stable_root_v78_sha')!='4a278c891d37b3760ec1ac988690ea9ad587b24e': errors.append('v78 boundary')
           if errors:
             print('\n'.join('ERROR: '+e for e in errors));sys.exit(1)
-          print(f'Three-network on-chain foundation and {len(scenarios)}-scenario matrix: OK')
+          print(f'Disabled on-chain candidate foundation and {len(scenarios)}-scenario matrix: OK')
           PY
+
+      - name: Preserve public release hashes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
