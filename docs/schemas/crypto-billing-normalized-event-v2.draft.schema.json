@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://1specnazov1.github.io/crypto-lab/docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json",
+  "title": "CRYPTO LAB Normalized Billing Event v2 Draft",
+  "description": "Non-production draft. No runtime component consumes this schema until an explicit migration and provider decision are approved.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provider",
+    "provider_event_id",
+    "event_type",
+    "order_id",
+    "source_created_at",
+    "verification",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["liqpay", "stripe", "onchain"]
+    },
+    "provider_event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "payment.pending",
+        "payment.confirming",
+        "payment.succeeded",
+        "payment.failed",
+        "payment.expired",
+        "payment.canceled",
+        "payment.refunded",
+        "payment.partially_refunded",
+        "payment.disputed",
+        "subscription.renewed",
+        "subscription.cancel_at_period_end",
+        "subscription.canceled"
+      ]
+    },
+    "order_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source_created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_verified", "idempotency_verified"],
+      "properties": {
+        "source_verified": {"type": "boolean"},
+        "signature_verified": {"type": ["boolean", "null"]},
+        "idempotency_verified": {"type": "boolean"},
+        "chain_finality_verified": {"type": ["boolean", "null"]},
+        "confirmation_count": {"type": ["integer", "null"], "minimum": 0},
+        "required_confirmations": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_order_id", "plan", "billing_interval"],
+      "properties": {
+        "provider_order_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["FREE", "BASIC", "PRO"]
+        },
+        "billing_interval": {
+          "type": "string",
+          "enum": ["month", "year", "prepaid_30d"]
+        },
+        "amount_minor": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "currency": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Z]{3}$"
+        },
+        "asset_symbol": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Z0-9]{2,12}$"
+        },
+        "amount_atomic": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{1,120}$"
+        },
+        "asset_decimals": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 36
+        },
+        "network_namespace": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z0-9_-]{2,32}$"
+        },
+        "network_reference": {
+          "type": ["string", "null"],
+          "maxLength": 80
+        },
+        "token_contract": {
+          "type": ["string", "null"],
+          "maxLength": 160
+        },
+        "transaction_hash": {
+          "type": ["string", "null"],
+          "maxLength": 180
+        },
+        "sender_address": {
+          "type": ["string", "null"],
+          "maxLength": 180
+        },
+        "recipient_address": {
+          "type": ["string", "null"],
+          "maxLength": 180
+        },
+        "period_start": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "period_end": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "provider_customer_id": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        },
+        "provider_subscription_id": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        },
+        "provider_status": {
+          "type": ["string", "null"],
+          "maxLength": 120
+        },
+        "failure_code": {
+          "type": ["string", "null"],
+          "maxLength": 120
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"provider": {"const": "onchain"}}},
+      "then": {
+        "properties": {
+          "verification": {
+            "required": [
+              "source_verified",
+              "idempotency_verified",
+              "chain_finality_verified",
+              "confirmation_count",
+              "required_confirmations"
+            ]
+          },
+          "payload": {
+            "required": [
+              "provider_order_id",
+              "plan",
+              "billing_interval",
+              "asset_symbol",
+              "amount_atomic",
+              "asset_decimals",
+              "network_namespace",
+              "network_reference",
+              "transaction_hash",
+              "recipient_address"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "payment.succeeded",
+              "payment.refunded",
+              "payment.partially_refunded",
+              "subscription.renewed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "anyOf": [
+          {"properties": {"payload": {"required": ["amount_minor", "currency"]}}},
+          {"properties": {"payload": {"required": ["amount_atomic", "asset_symbol"]}}}
+        ]
+      }
+    }
+  ]
+}
