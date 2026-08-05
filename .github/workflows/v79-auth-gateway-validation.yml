@@ -1,0 +1,87 @@
+name: Validate v79 Protected Auth Gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v79/auth-gateway.js'
+      - 'v79/registration-consent.js'
+      - 'v79/commercial-extension.js'
+      - 'v79/service-worker.js'
+      - 'docs/AUTH_GATEWAY_HARDENING_7930.md'
+      - '.github/workflows/v79-auth-gateway-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate static auth gateway
+        run: |
+          node --check v79/auth-gateway.js
+          node --check v79/registration-consent.js
+          node --check v79/commercial-extension.js
+          node --check v79/service-worker.js
+          grep -F "protectedAuthGatewayScript" v79/commercial-extension.js
+          grep -F "./auth-gateway.js" v79/service-worker.js
+          grep -F "crypto-lab-v79-7930-auth1" v79/service-worker.js
+          grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
+          grep -F "crypto_register" v79/auth-gateway.js
+          grep -F "crypto_recover" v79/auth-gateway.js
+
+      - name: Verify live disabled registration and recovery readiness
+        run: |
+          curl --fail --silent --show-error \
+            -H 'Origin: https://1specnazov1.github.io' \
+            'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register' \
+            -o /tmp/register.json
+          curl --fail --silent --show-error \
+            -H 'Origin: https://1specnazov1.github.io' \
+            'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover' \
+            -o /tmp/recover.json
+          python - <<'PY'
+          import json
+          register=json.load(open('/tmp/register.json'))
+          recover=json.load(open('/tmp/recover.json'))
+          assert register['ok'] is True
+          assert register['enabled'] is False
+          assert register['site_key'] is None
+          assert register['captcha_provider']=='turnstile'
+          assert register['captcha_action']=='crypto_register'
+          assert register['password_min_length']==10
+          assert len(register['documents'])==3
+          assert register['readiness']['feature_flag'] is False
+          assert register['readiness']['turnstile'] is False
+          assert register['readiness']['mail_relay'] is False
+          assert recover['ok'] is True
+          assert recover['enabled'] is False
+          assert recover['site_key'] is None
+          assert recover['captcha_provider']=='turnstile'
+          assert recover['captcha_action']=='crypto_recover'
+          assert recover['email_enumeration_safe'] is True
+          assert recover['readiness']['feature_flag'] is False
+          assert recover['readiness']['turnstile'] is False
+          assert recover['readiness']['mail_relay'] is False
+          print('Protected auth gateway readiness: OK')
+          PY
+
+      - name: Verify release boundaries and public-secret safety
+        run: |
+          test "$(git hash-object index.html)" = '4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          python - <<'PY'
+          import pathlib,re
+          files=[pathlib.Path('v79/auth-gateway.js'),pathlib.Path('v79/commercial-extension.js'),pathlib.Path('v79/service-worker.js'),pathlib.Path('docs/AUTH_GATEWAY_HARDENING_7930.md')]
+          text='\n'.join(p.read_text(encoding='utf-8') for p in files)
+          forbidden=[r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'Bearer\s+eyJ']
+          for pattern in forbidden:
+            assert not re.search(pattern,text,re.I),pattern
+          assert 'CRYPTO_PUBLIC_REGISTRATION_ENABLED' not in pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
+          assert 'CRYPTO_TURNSTILE_SECRET_KEY' not in pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
+          print('Auth release boundaries: OK')
+          PY
