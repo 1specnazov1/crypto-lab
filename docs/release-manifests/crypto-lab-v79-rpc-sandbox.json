@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "updated_at": "2026-08-05T20:49:00Z",
+  "status": "prepared_blocked_by_owner_boundary",
+  "edge_function": {
+    "slug": "crypto-lab-v79-chain-verifier",
+    "version": 1,
+    "verify_jwt": true,
+    "deployed": true,
+    "ezbr_sha256": "8448819c84a383af800ba1750f1c1f9b5b198d4a660a609e0c29668a1ed5b95f",
+    "verifier_version": "7930-rpc1",
+    "admin_only": true,
+    "read_only_chain_access": true
+  },
+  "migrations": [
+    {
+      "version": "20260805204216",
+      "name": "prepare_multichain_rpc_verifier_and_isolated_sandbox",
+      "source": "supabase/migrations/20260805204216_prepare_multichain_rpc_verifier_and_isolated_sandbox.sql"
+    },
+    {
+      "version": "20260805204521",
+      "name": "index_multichain_sandbox_profile_fk",
+      "source": "supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql"
+    }
+  ],
+  "profiles": [
+    {
+      "network_code": "ETHEREUM",
+      "environment": "sandbox",
+      "network_name": "Sepolia",
+      "chain_reference": "11155111",
+      "provider": "ethereum_json_rpc",
+      "endpoint_secret_name": "ETHEREUM_SEPOLIA_RPC_URL",
+      "enabled": false,
+      "status": "external_input_required"
+    },
+    {
+      "network_code": "TRON",
+      "environment": "sandbox",
+      "network_name": "Nile",
+      "chain_reference": "nile",
+      "provider": "trongrid",
+      "public_endpoint": "https://nile.trongrid.io",
+      "enabled": true,
+      "status": "ready"
+    },
+    {
+      "network_code": "SOLANA",
+      "environment": "sandbox",
+      "network_name": "Devnet",
+      "chain_reference": "devnet",
+      "provider": "solana_json_rpc",
+      "public_endpoint": "https://api.devnet.solana.com",
+      "enabled": true,
+      "status": "ready"
+    }
+  ],
+  "production_profiles": {
+    "count": 3,
+    "enabled_count": 0,
+    "endpoint_secrets_required": [
+      "ETHEREUM_MAINNET_RPC_URL",
+      "TRON_MAINNET_RPC_URL",
+      "SOLANA_MAINNET_RPC_URL"
+    ]
+  },
+  "health_evidence": [
+    {
+      "network_code": "ETHEREUM",
+      "environment": "sandbox",
+      "healthy": false,
+      "error_code": "ENDPOINT_UNCONFIGURED",
+      "health_run_id": 1
+    },
+    {
+      "network_code": "TRON",
+      "environment": "sandbox",
+      "healthy": true,
+      "http_status": 200,
+      "latest_block_reference": "69817185",
+      "finality_reference": "000000000429536174365d9debc6946e14a9d2982e5db1f23513898c1d38b5f3",
+      "health_run_id": 2
+    },
+    {
+      "network_code": "SOLANA",
+      "environment": "sandbox",
+      "healthy": true,
+      "http_status": 200,
+      "health": "ok",
+      "latest_block_reference": "481468087",
+      "genesis_hash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+      "health_run_id": 3
+    }
+  ],
+  "sandbox_cases": [
+    {
+      "network_code": "ETHEREUM",
+      "asset_code": "USDC",
+      "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "expected_amount_base_units": "10000",
+      "status": "blocked_provider"
+    },
+    {
+      "network_code": "ETHEREUM",
+      "asset_code": "USDT",
+      "token_identifier": null,
+      "expected_amount_base_units": "10000",
+      "status": "blocked_token_identifier"
+    },
+    {
+      "network_code": "TRON",
+      "asset_code": "USDT",
+      "token_identifier": null,
+      "expected_amount_base_units": "10000",
+      "status": "blocked_token_identifier"
+    },
+    {
+      "network_code": "SOLANA",
+      "asset_code": "USDC",
+      "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      "expected_amount_base_units": "10000",
+      "status": "ready_for_funding"
+    },
+    {
+      "network_code": "SOLANA",
+      "asset_code": "USDT",
+      "token_identifier": null,
+      "expected_amount_base_units": "10000",
+      "status": "blocked_token_identifier"
+    }
+  ],
+  "isolation": {
+    "separate_from_billing": true,
+    "billing_foreign_keys": 0,
+    "subscription_foreign_keys": 0,
+    "can_grant_entitlement": false,
+    "immutable_health_runs": true,
+    "immutable_sandbox_runs": true
+  },
+  "runtime_counts": {
+    "health_runs": 3,
+    "sandbox_runs": 0,
+    "production_invoices": 0,
+    "production_claims": 0,
+    "production_observations": 0,
+    "active_addresses": 0,
+    "active_prices": 0,
+    "active_networks": 0,
+    "enabled_network_asset_pairs": 0
+  },
+  "activation_boundary": {
+    "payment_sandbox_status": "blocked_dependency",
+    "live_transfer_execution_authorized": false,
+    "payment_activation_authorized": false,
+    "checkout_enabled": false,
+    "webhook_enabled": false,
+    "recurring_enabled": false,
+    "refunds_enabled": false,
+    "v79_published_over_v78": false
+  },
+  "remaining_external_inputs": [
+    "ETHEREUM_SEPOLIA_RPC_URL",
+    "TESTNET_USDC_FUNDING_FOR_ETHEREUM_SEPOLIA",
+    "TESTNET_USDC_FUNDING_FOR_SOLANA_DEVNET",
+    "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK",
+    "EXPLICIT_SANDBOX_TRANSFER_EXECUTION_APPROVAL"
+  ],
+  "official_sources": {
+    "ethereum_testnets": "https://ethereum.org/developers/docs/networks/",
+    "ethereum_json_rpc": "https://ethereum.org/developers/docs/apis/json-rpc/",
+    "tron_networks": "https://developers.tron.network/docs/connect-to-the-tron-network",
+    "solana_clusters": "https://solana.com/docs/references/clusters",
+    "circle_testnet_usdc": "https://developers.circle.com/stablecoins/usdc-contract-addresses"
+  },
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+}
