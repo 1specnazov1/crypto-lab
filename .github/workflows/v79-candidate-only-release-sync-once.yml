@@ -1,0 +1,98 @@
+name: Sync Candidate-only Payment Release Evidence Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-candidate-only-release-sync-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: v79-candidate-only-release-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Synchronize authoritative candidate-only evidence
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          path=pathlib.Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          additions=[
+            {'version':'20260805093547','name':'add_owner_decision_supersession_audit','source':'supabase/migrations/20260805093547_add_owner_decision_supersession_audit.sql','source_commit':'35562faa0626e98c2106a7339e74c0134d6a6e44','authoritative':True},
+            {'version':'20260805093613','name':'restore_onchain_candidate_only_state','source':'supabase/migrations/20260805093613_restore_onchain_candidate_only_state.sql','source_commit':'36be5295bb2ba11d16e6f628ee70c05101468fef','authoritative':True},
+            {'version':'20260805093641','name':'install_fail_closed_payment_owner_decision_guards','source':'supabase/migrations/20260805093641_install_fail_closed_payment_owner_decision_guards.sql','source_commit':'a22f57b52fd996add0f53ec3a9ec760ab885a401','authoritative':True},
+          ]
+          keyed={(m.get('version'),m.get('name')):m for m in manifest.setdefault('migrations',[])}
+          for item in additions:
+            key=(item['version'],item['name'])
+            if key in keyed:
+              keyed[key].update(item)
+            else:
+              manifest['migrations'].append(item)
+
+          manifest['updated_at']='2026-08-05T09:44:00Z'
+          manifest.setdefault('application',{})['evidence_commit']='700a8f6813ccbb35c5d740f9eb3e73796bd29f58'
+          evidence=manifest.setdefault('release_evidence',{})
+          evidence['onchain_payment_foundation_gate_run_id']='30994349263'
+          evidence['candidate_only_payment_repair']='verified'
+
+          op=manifest.setdefault('operational_hardening',{})
+          for key in list(op):
+            lowered=key.lower()
+            if 'onchain' in lowered and 'owner' in lowered and ('approval' in lowered or 'decision' in lowered):
+              op.pop(key,None)
+          op.update({
+            'onchain_payment_manifest':'docs/release-manifests/crypto-lab-v79-onchain-payments.json',
+            'onchain_payment_sandbox_matrix':'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json',
+            'onchain_payment_gate_run_id':'30994349263',
+            'onchain_sandbox_scenario_count':27,
+            'onchain_candidate_networks':['TRON','BSC','SOLANA'],
+            'onchain_approved_network_count':0,
+            'onchain_active_network_count':0,
+            'onchain_selected_asset_count':0,
+            'onchain_active_price_count':0,
+            'onchain_receiving_address_count':0,
+            'onchain_invoice_count':0,
+            'onchain_chain_observation_count':0,
+            'onchain_owner_approval_recorded':False,
+            'onchain_provider_decision_recorded':False,
+            'onchain_invalid_owner_decision_superseded':True,
+            'onchain_superseded_owner_decision_audit_preserved':True,
+            'onchain_owner_approval_fail_closed':True,
+            'onchain_autonomous_owner_decision_insert_blocked':True,
+            'onchain_transaction_lifecycle_hardened':True,
+            'onchain_automatic_entitlement_prepared':True,
+            'onchain_automatic_entitlement_enabled':False,
+            'onchain_automatic_wallet_debit':False,
+            'direct_onchain_payment_activation_allowed':False,
+          })
+          manifest.setdefault('boundaries',{})['payment_provider_active']=False
+          manifest['boundaries']['paid_prices_active']=False
+          path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          rm .github/workflows/v79-candidate-only-release-sync-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-candidate-only-release-sync-once.yml
+          git commit -m 'Synchronize candidate-only payment release evidence'
+          git push
+      - name: Dispatch final validation gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-browser-smoke.yml --ref main
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
