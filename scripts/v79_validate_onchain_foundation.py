@@ -1,0 +1,35 @@
+import json,re,sys
+from pathlib import Path
+exact='Три сети утверждаю.'; digest='57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be'; nets=['TRON','BSC','SOLANA']; errors=[]
+def ck(v,m):
+  if not v: errors.append(m)
+on=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
+mx=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text())
+owner=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+rel=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930.json').read_text())
+repair=Path('supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql').read_text()
+canonical=Path('supabase/migrations/20260805100805_final_lock_explicit_owner_three_network_selection.sql').read_text()
+ck(on['schema_version']==10 and on['provider']=='onchain_direct','onchain schema/provider')
+ck(on['approved_networks']==nets and on['owner_network_approval_recorded'] is True,'approved networks')
+ck(on['owner_decision']['decision_text_exact']==exact and on['owner_decision']['decision_hash_sha256']==digest,'owner authority')
+ck(all(x['approved_by_owner'] and not x['active'] for x in on['networks']),'networks inactive')
+rt=on['runtime_state']; zeros=['active_network_count','selected_asset_count','enabled_network_asset_count','active_price_count','receiving_address_count','invoice_count','transaction_claim_count','chain_observation_count','auth_user_count','registration_attempt_count','recovery_attempt_count']
+ck(rt['approved_network_count']==3 and all(rt[k]==0 for k in zeros),'runtime counts')
+ck(all(rt[k] is False for k in ['checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled']),'runtime modes')
+ck(on['activation_allowed'] is False and on['publication_allowed'] is False,'activation boundary')
+ck(on['authoritative_migration']['version']=='20260805103945','repair migration')
+ck(mx['scenario_count']==29 and len(mx['scenarios'])==29 and len({x['code'] for x in mx['scenarios']})==29,'matrix scenarios')
+ck(mx['approved_networks']==nets and mx['settlement_asset']=='pending','matrix scope')
+ck(owner['decision_text_exact']==exact and owner['decision_hash_sha256']==digest,'owner manifest')
+ck(all(x['approved_by_owner'] and not x['active'] for x in owner['approved_networks']),'owner manifest networks')
+op=rel['operational_hardening']
+ck(op['onchain_approved_networks']==nets and op['onchain_approved_network_count']==3,'release networks')
+ck(op['onchain_active_owner_decision_record_count']==1 and op['onchain_effective_authority_event_count']==1 and op['onchain_effective_false_supersession_count']==0,'release authority counts')
+ck(op['onchain_authoritative_migration_version']=='20260805103945' and op['onchain_settlement_asset']=='pending','release authority')
+ck(all(op[k] is False for k in ['onchain_checkout_enabled','onchain_webhook_enabled','onchain_recurring_enabled','onchain_refunds_enabled','direct_onchain_payment_activation_allowed','v79_publication_authorized']),'release modes')
+combined=repair+canonical+json.dumps(on,ensure_ascii=False)+json.dumps(mx,ensure_ascii=False)+json.dumps(rel,ensure_ascii=False)
+for marker in [exact,digest,'crypto_owner_decision_canonical_three_network_check','crypto_onchain_canonical_three_network_approval_check','crypto_payment_provider_owner_decision_check']: ck(marker in combined,'missing '+marker)
+for pattern in [r'sb_secret_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ',r'\bseed phrase\b']: ck(re.search(pattern,combined,re.I) is None,'possible secret')
+ck(on['stable_root_v78_sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e' and rel['stable_root']['sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e','v78 boundary')
+if errors: print('\n'.join('ERROR: '+e for e in errors));sys.exit(1)
+print('Owner-approved inactive on-chain foundation and 29-scenario matrix: OK')

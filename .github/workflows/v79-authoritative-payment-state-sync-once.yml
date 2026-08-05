@@ -1,0 +1,69 @@
+name: Synchronize v79 Authoritative Payment State Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-authoritative-payment-state-sync-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: v79-authoritative-payment-state-sync-once
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Synchronize exact owner-approved inactive state
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin main
+          python scripts/v79_sync_authoritative_payment.py
+          git rm --ignore-unmatch \
+            .github/workflows/v79-release-evidence-finalize-once.yml \
+            .github/workflows/v79-final-authority-manifest-sync.yml \
+            .github/workflows/v79-final-authoritative-manifest-sync-once.yml \
+            .github/workflows/v79-authoritative-payment-state-sync-once.yml
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in [
+            'docs/release-manifests/crypto-lab-v79-onchain-payments.json',
+            'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json',
+            'docs/release-manifests/crypto-lab-v79-owner-network-decision.json',
+            'docs/release-manifests/crypto-lab-v79-7930.json'
+          ]:
+            json.loads(Path(path).read_text())
+          assert json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text())['scenario_count']==29
+          print('Local manifest preflight: OK')
+          PY
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add \
+            docs/release-manifests/crypto-lab-v79-onchain-payments.json \
+            docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json \
+            docs/release-manifests/crypto-lab-v79-7930.json
+          git commit -m 'Synchronize owner-approved inactive on-chain state'
+          git push origin HEAD:main
+      - name: Dispatch authoritative gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sleep 10
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-onchain-lifecycle-hardening-validation.yml --ref main
+          gh workflow run v79-owner-network-decision-validation.yml --ref main
+          gh workflow run v79-owner-decision-failclosed-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-browser-smoke.yml --ref main
