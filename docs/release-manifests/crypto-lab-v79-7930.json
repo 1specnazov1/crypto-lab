@@ -170,53 +170,58 @@
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
     }
   ],
-  "updated_at": "2026-08-05T03:49:59Z",
+  "updated_at": "2026-08-05T07:05:00Z",
   "application": {
     "assets": [
       {
-        "sha": "b92335b3a3d76e349f1845fd653e1c1021d6d7f6",
         "path": "v79/index.html",
+        "sha": "b92335b3a3d76e349f1845fd653e1c1021d6d7f6",
         "marker": "app.html?v=7930"
       },
       {
-        "sha": "432fe33542bf58b41bab590caf0fcf5d635f8da4",
         "path": "v79/app.html",
+        "sha": "432fe33542bf58b41bab590caf0fcf5d635f8da4",
         "marker": "commercial-extension.js?v=7930"
       },
       {
-        "sha": "7885191872bf775093058dd2d231daf1e7a433af",
         "path": "v79/commercial-extension.js",
-        "marker": "adminMaintenanceEvidenceScript"
+        "sha": "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6",
+        "marker": "protectedAuthGatewayScript"
       },
       {
-        "sha": "cd5d4762cbc5fb3f7d18db101df8628b21d91376",
         "path": "v79/service-worker.js",
-        "marker": "crypto-lab-v79-7930-maintenance2"
+        "sha": "33bfb7856afa2c49d870fb3607f8bb1279e47f32",
+        "marker": "crypto-lab-v79-7930-auth1"
       },
       {
-        "sha": "0e5fee3828021025e391cefbd2e5c12d56bed283",
+        "path": "v79/auth-gateway.js",
+        "sha": "d87c76418461a133c97464452eea020b66e4f30f",
+        "marker": "direct_supabase_signup_bypassed:true"
+      },
+      {
         "path": "v79/admin-integrity.js",
+        "sha": "0e5fee3828021025e391cefbd2e5c12d56bed283",
         "marker": "get_crypto_admin_data_integrity"
       },
       {
-        "sha": "afab225a2029618ee0cde83f7fae1101f3a33fa9",
         "path": "v79/admin-ops-summary.js",
+        "sha": "afab225a2029618ee0cde83f7fae1101f3a33fa9",
         "marker": "get_crypto_admin_operational_summary"
       },
       {
-        "sha": "5ae6f702ef8380fdda8727c6d86f23be95deddad",
         "path": "v79/admin-drift.js",
+        "sha": "5ae6f702ef8380fdda8727c6d86f23be95deddad",
         "marker": "get_crypto_admin_release_drift"
       },
       {
-        "sha": "5a18b5593a09cd6884777451a0a3105524209ab8",
         "path": "v79/admin-maintenance.js",
+        "sha": "5a18b5593a09cd6884777451a0a3105524209ab8",
         "marker": "get_crypto_admin_maintenance_evidence"
       }
     ],
-    "pwa_cache": "crypto-lab-v79-7930-maintenance2",
-    "evidence_commit": "798014179955856dbde7824e4b2f48265cb2416b",
-    "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83"
+    "pwa_cache": "crypto-lab-v79-7930-auth1",
+    "evidence_commit": "a2bce0fc1ffc1acbc0221f59c6f3322af731d1d7",
+    "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
   "stable_root": {
@@ -311,7 +316,7 @@
     {
       "slug": "crypto-lab-v79-register",
       "status": "ACTIVE",
-      "version": 2,
+      "version": 3,
       "verify_jwt": false
     },
     {
@@ -323,7 +328,7 @@
     {
       "slug": "crypto-lab-v79-recover",
       "status": "ACTIVE",
-      "version": 1,
+      "version": 2,
       "verify_jwt": false
     },
     {
@@ -347,10 +352,10 @@
   ],
   "schema_version": 1,
   "release_evidence": {
-    "release_gate_run_id": "30973212106",
+    "release_gate_run_id": "pending",
     "maintenance_evidence_gate_run_id": "30973213044",
-    "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "30973211721",
+    "browser_smoke_run_id": "pending",
+    "pages_run_id": "pending",
     "technical_score": 100,
     "commercial_score": 60
   },
