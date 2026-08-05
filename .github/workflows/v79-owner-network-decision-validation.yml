@@ -1,0 +1,56 @@
+name: Validate v79 Owner Network Decision
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
+      - 'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
+      - 'supabase/migrations/20260805100805_final_lock_explicit_owner_three_network_selection.sql'
+      - '.github/workflows/v79-owner-network-decision-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate exact owner decision authority
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+
+          exact='Три сети утверждаю.'
+          fingerprint=hashlib.sha256(exact.encode()).hexdigest()
+          data=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+          doc=Path('docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md').read_text()
+          migration=Path('supabase/migrations/20260805100805_final_lock_explicit_owner_three_network_selection.sql').read_text()
+
+          assert fingerprint=='57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be'
+          assert data['schema_version']==5
+          assert data['decision_text_exact']==exact
+          assert data['decision_hash_sha256']==fingerprint
+          assert [x['network_code'] for x in data['approved_networks']]==['TRON','BSC','SOLANA']
+          assert all(x['approved_by_owner'] and not x['active'] for x in data['approved_networks'])
+          assert data['database']['authoritative_migration_version']=='20260805100805'
+          assert data['database']['authoritative_migration_source_commit']=='4bbced96ab09237d54dd2160ee92223017e11dab'
+          assert data['database']['owner_decision_integrity']=='8/8 healthy'
+          assert data['activation_allowed'] is False
+          assert data['publication_allowed'] is False
+          assert exact in doc and fingerprint in doc
+          assert 'The user did **not** write' not in doc
+          for marker in [
+            exact,fingerprint,'crypto_owner_decision_authority_events',
+            'crypto_owner_decision_canonical_three_network_check',
+            'crypto_onchain_canonical_three_network_approval_check',
+            'crypto_payment_provider_owner_decision_check'
+          ]:
+            assert marker in migration
+          assert data['stable_root_v78_sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          print('Final owner network decision evidence: OK')
+          PY
