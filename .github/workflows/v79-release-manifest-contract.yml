@@ -2,6 +2,7 @@ name: Validate v79 Release Manifest Contract
 
 on:
   push:
+    branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
       - '.github/workflows/v79-release-manifest-contract.yml'
@@ -13,6 +14,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: v79-release-manifest-contract-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   contract:
