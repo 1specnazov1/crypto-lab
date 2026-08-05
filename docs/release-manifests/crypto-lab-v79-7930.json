@@ -170,7 +170,7 @@
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
     }
   ],
-  "updated_at": "2026-08-05T07:15:00Z",
+  "updated_at": "2026-08-05T07:55:00Z",
   "application": {
     "assets": [
       {
@@ -220,7 +220,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "9133e3e9b7e1a5ca5ce71ded6e1629c5ece2fb8c",
+    "evidence_commit": "154ab23aeb99d4478239c2530d712494ab525d87",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
