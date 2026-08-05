@@ -45,7 +45,7 @@ jobs:
 
           app=manifest.get('application',{})
           if set(app)!={'application_commit','evidence_commit','pwa_cache','assets'}: errors.append('application keys mismatch')
-          if app.get('application_commit')!='6be2e93d3933ef6339b059978e24af891ef1fa83': errors.append('application_commit mismatch')
+          if app.get('application_commit')!='e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191': errors.append('application_commit mismatch')
           if not hex40.fullmatch(str(app.get('evidence_commit',''))): errors.append('evidence_commit must be 40 lowercase hex')
           assets=app.get('assets',[])
           if not isinstance(assets,list) or not assets: errors.append('assets must be non-empty list')
