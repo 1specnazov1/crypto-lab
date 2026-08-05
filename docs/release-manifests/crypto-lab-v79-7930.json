@@ -47,7 +47,7 @@
             "name": "crypto_release_drift_and_rollback_readiness",
             "source": "supabase/migrations/202608041605_release_drift_and_rollback_readiness.sql",
             "version": "20260804160848",
-            "source_comit": "92da574eeb2402217d2d6e7320b1b39b6965104a"
+            "source_commit": "92da574eeb2402217d2d6e7320b1b39b6965104a"
         },
         {
             "name": "crypto_maintenance_evidence_seal",
@@ -101,13 +101,13 @@
             "name": "crypto_checkpoint_pending_evidence_transition_guard",
             "source": "supabase/migrations/20260804192752_crypto_checkpoint_pending_evidence_transition_guard.sql",
             "version": "20260804192752",
-            "source_comit": "6e48112fda99598611bf1952976f0ec3f0751419"
+            "source_commit": "6e48112fda99598611bf1952976f0ec3f0751419"
         },
         {
             "name": "crypto_checkpoint_evidence_transition_validation",
             "source": "supabase/migrations/20260804212027_crypto_checkpoint_evidence_transition_validation.sql",
             "version": "20260804212027",
-            "source_comit": "21cb9afb2cdd652294324512f80c6f9b77f147f1"
+            "source_commit": "21cb9afb2cdd652294324512f80c6f9b77f147f1"
         },
         {
             "name": "crypto_maintenance_run_origin_lockdown",
@@ -164,7 +164,7 @@
             "source_commit": "4098af01ec67c03d3706c13ac4aae945af982631"
         }
     ],
-    "updated_at": "2026-08-05T02:35:00Z",
+    "updated_at": "2026-08-05T02:41:00Z",
     "application": {
         "assets": [
             {
@@ -200,7 +200,7 @@
             {
                 "sha": "5ae6f702ef8380fdda8727c6d86f23be95deddad",
                 "path": "v79/admin-drift.js",
-                "marker": "get_crypto_admin_release_drift"
+                "markey": "get_crypto_admin_release_drift"
             },
             {
                 "sha": "5a18b5593a09cd6884777451a0a3105524209ab8",
@@ -209,7 +209,7 @@
             }
         ],
         "pwa_cache": "crypto-lab-v79-7930-maintenance2",
-        "evidence_commit": "4098af01ec67c03d3706c13ac4aae945af982631",
+        "evidence_commit": "d16c1c0173c77109e0c29ea18ad4a114e0b38b94",
         "application_commit": "6be2e93d3933ef6339b0599978e24af891ef1fa83"
     },
     "project_ref": "txhzxbizjpinowepfjkm",
@@ -341,12 +341,12 @@
     ],
     "schema_version": 1,
     "release_evidence": {
-        "pages_run_id": "pending",
+        "pages_run_id": "30969991488",
         "technical_score": 100,
         "commercial_score": 60,
-        "release_gate_run_id": "pending",
+        "release_gate_run_id": "30969991934",
         "browser_smoke_run_id": "30933361064",
-        "maintenance_evidence_gate_run_id": "pending"
+        "maintenance_evidence_gate_run_id": "30969991940"
     },
     "maintenance_evidence": {
         "scope": "first_run_after_threshold",
