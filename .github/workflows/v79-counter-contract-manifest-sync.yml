@@ -1,0 +1,70 @@
+name: Sync v79 Counter Contract Manifest
+
+on:
+  push:
+    paths:
+      - 'supabase/migrations/20260805024550_crypto_maintenance_counter_contract_guard.sql'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Update release manifest
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from datetime import datetime,timezone
+          import json,os
+          path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          commit=os.environ['SOURCE_COMMIT']
+          app=manifest['application']
+          app['application_commit']='6be2e93d3933ef6339b059978e24af891ef1fa83'
+          app['evidence_commit']=commit
+          for asset in app['assets']:
+              if asset.get('path')=='v79/admin-drift.js':
+                  asset.pop('markey',None)
+                  asset['marker']='get_crypto_admin_release_drift'
+          migration={
+              'version':'20260805024550',
+              'name':'crypto_maintenance_counter_contract_guard',
+              'source':'supabase/migrations/20260805024550_crypto_maintenance_counter_contract_guard.sql',
+              'source_commit':commit
+          }
+          migrations=manifest['migrations']
+          migrations=[m for m in migrations if m.get('version')!='20260805024550']
+          migrations.append(migration)
+          manifest['migrations']=migrations
+          manifest['updated_at']=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z')
+          manifest['release_evidence']={
+              'release_gate_run_id':'pending',
+              'maintenance_evidence_gate_run_id':'pending',
+              'browser_smoke_run_id':'30933361064',
+              'pages_run_id':'pending',
+              'technical_score':100,
+              'commercial_score':60
+          }
+          evidence=manifest['maintenance_evidence']
+          evidence['retention_counter_null_rejected']=True
+          evidence['retention_counter_contract_complete']=True
+          evidence['retention_counter_expected_keys']=14
+          evidence['retention_counter_invalid_value_rejected']=True
+          path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Commit synchronized manifest
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/release-manifests/crypto-lab-v79-7930.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Sync v79 maintenance counter contract manifest'
+          git push
