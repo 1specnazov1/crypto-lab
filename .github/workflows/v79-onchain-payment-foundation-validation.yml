@@ -91,7 +91,7 @@ jobs:
               check(marker in migration,f'missing migration marker {marker}')
           for marker in ['crypto_onchain_tx_claims','finality_regression','conflicting_transaction_observation','transaction_after_invoice_expiry']:
               check(marker in lifecycle,f'missing lifecycle marker {marker}')
-          for marker in ['did **not** write `Три сети утверждаю.`','two self-rewriting workflows','There is deliberately no autonomous bypass']:
+          for marker in ['did **not** write `Три сети утверждаю.`','Overlapping autonomous writers repeatedly reconstructed','There is deliberately no autonomous bypass']:
               check(marker in evidence,f'missing evidence marker {marker}')
 
           check(not Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').exists(),'fabricated decision artifact exists')
