@@ -247,25 +247,22 @@
       "version": "20260805093547",
       "name": "add_owner_decision_supersession_audit",
       "source": "supabase/migrations/20260805093547_add_owner_decision_supersession_audit.sql",
-      "source_commit": "35562faa0626e98c2106a7339e74c0134d6a6e44",
-      "authoritative": true
+      "source_commit": "35562faa0626e98c2106a7339e74c0134d6a6e44"
     },
     {
       "version": "20260805093613",
       "name": "restore_onchain_candidate_only_state",
       "source": "supabase/migrations/20260805093613_restore_onchain_candidate_only_state.sql",
-      "source_commit": "36be5295bb2ba11d16e6f628ee70c05101468fef",
-      "authoritative": true
+      "source_commit": "36be5295bb2ba11d16e6f628ee70c05101468fef"
     },
     {
       "version": "20260805093641",
       "name": "install_fail_closed_payment_owner_decision_guards",
       "source": "supabase/migrations/20260805093641_install_fail_closed_payment_owner_decision_guards.sql",
-      "source_commit": "a22f57b52fd996add0f53ec3a9ec760ab885a401",
-      "authoritative": true
+      "source_commit": "a22f57b52fd996add0f53ec3a9ec760ab885a401"
     }
   ],
-  "updated_at": "2026-08-05T09:44:00Z",
+  "updated_at": "2026-08-05T09:46:00Z",
   "application": {
     "assets": [
       {
@@ -452,9 +449,7 @@
     "browser_smoke_run_id": "pending",
     "pages_run_id": "pending",
     "technical_score": 100,
-    "commercial_score": 60,
-    "onchain_payment_foundation_gate_run_id": "30994349263",
-    "candidate_only_payment_repair": "verified"
+    "commercial_score": 60
   },
   "maintenance_evidence": {
     "scope": "first_run_after_threshold",
@@ -555,7 +550,7 @@
     "crypto_x_queues_empty_at_verification": true,
     "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md",
     "onchain_payment_foundation": "three_network_owner_approved_disabled_pending_asset_pricing_addresses",
-    "onchain_payment_gate_run_id": "30994349263",
+    "onchain_payment_gate_run_id": "30994527619",
     "onchain_sandbox_scenario_count": 27,
     "onchain_observation_lifecycle_hardened": true,
     "onchain_network_approval_recorded": true,
@@ -585,6 +580,8 @@
     "onchain_transaction_lifecycle_hardened": true,
     "onchain_automatic_entitlement_prepared": true,
     "onchain_automatic_entitlement_enabled": false,
-    "onchain_automatic_wallet_debit": false
+    "onchain_automatic_wallet_debit": false,
+    "candidate_only_payment_repair_verified": true,
+    "candidate_only_manifest_contract_repaired": true
   }
 }
