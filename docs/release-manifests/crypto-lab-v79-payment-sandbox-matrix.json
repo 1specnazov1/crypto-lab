@@ -1,25 +1,30 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T09:55:00Z",
-  "provider": "unselected",
-  "provider_candidate": "onchain_direct",
-  "wallet_client_candidate": "trust_wallet_walletconnect",
+  "updated_at": "2026-08-05T09:57:00Z",
+  "provider": "onchain_direct",
+  "wallet_client": "trust_wallet_walletconnect",
   "mode": "disabled",
   "activation_allowed": false,
-  "candidate_networks": ["TRON", "BSC", "SOLANA"],
-  "approved_networks": [],
-  "owner_network_approval_recorded": false,
+  "approved_networks": ["TRON", "BSC", "SOLANA"],
+  "owner_network_approval_recorded": true,
+  "owner_decision": {
+    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "decision_text_exact": "Три сети утверждаю.",
+    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "network_activation_authorized": false,
+    "authoritative_migration": "20260805095547_finalize_explicit_owner_three_network_selection_after_race",
+    "authoritative_source_commit": "2cc1e4eaee419c69533139eb6e615865aa9ea2d1"
+  },
   "settlement_asset": "decision_required",
   "prerequisites": [
-    "PAYMENT_PROVIDER_RAIL",
-    "NETWORK_SELECTION",
-    "SETTLEMENT_ASSET",
+    "SETTLEMENT_ASSET_USDT_OR_USDC",
+    "BSC_TOKEN_ACCEPTANCE_AND_CONTRACT_VERIFICATION_IF_USDT",
     "BASIC_PRO_PRICING",
-    "PUBLIC_RECEIVING_ADDRESSES_FOR_SELECTED_NETWORKS",
+    "PUBLIC_RECEIVING_ADDRESSES_FOR_APPROVED_NETWORKS",
     "CHAIN_VERIFIER_CONFIGURATION",
-    "WALLETCONNECT_PROJECT_ID_IF_USED",
+    "WALLETCONNECT_PROJECT_ID",
     "REFUND_POLICY",
     "REAL_ADMIN",
     "CONTROLLED_SANDBOX_AUTHORIZATION"
@@ -41,7 +46,8 @@
     "wrong_asset_no_entitlement": true,
     "wrong_recipient_no_entitlement": true,
     "unfinalized_transaction_no_entitlement": true,
-    "owner_approval_claims_fail_closed": true,
+    "approved_network_set_cannot_be_silently_removed": true,
+    "false_supersession_is_not_effective": true,
     "network_selection_does_not_authorize_activation": true,
     "private_keys_not_required": true,
     "seed_phrase_not_stored": true,
@@ -49,13 +55,13 @@
     "refund_requires_audit": true,
     "automatic_wallet_debit": false
   },
-  "candidate_network_finality": {
+  "network_finality": {
     "TRON": {"required_state":"solidified","minimum_confirmations":19},
     "BSC": {"required_state":"finalized","minimum_confirmations":2},
     "SOLANA": {"required_state":"finalized","minimum_confirmations":0}
   },
   "scenarios": [
-    {"code":"INVOICE_CREATED_EACH_SELECTED_NETWORK","required":true,"expected":["unique_invoice","selected_network_only","correct_token_identifier","correct_receiving_address","bounded_expiry","unique_amount_discriminator"]},
+    {"code":"INVOICE_CREATED_EACH_APPROVED_NETWORK","required":true,"expected":["unique_invoice","approved_network_only","correct_token_identifier","correct_receiving_address","bounded_expiry","unique_amount_discriminator"]},
     {"code":"TRUST_WALLET_OR_WALLETCONNECT_REQUEST","required":true,"expected":["user_confirmation_required","correct_chain","correct_token","correct_recipient","exact_amount","no_private_key_access"]},
     {"code":"PAYMENT_SUCCESS_FINALIZED","required":true,"expected":["final_chain_observation","order_paid","subscription_active","period_30_days","single_entitlement_change"]},
     {"code":"USER_ABANDONED_PAYMENT","required":true,"expected":["order_remains_pending_until_expiry","no_entitlement","invoice_expires"]},
@@ -75,7 +81,9 @@
     {"code":"RECEIVING_ADDRESS_NOT_VERIFIED","required":true,"expected":["invoice_creation_rejected","no_checkout"]},
     {"code":"TOKEN_CONTRACT_NOT_VERIFIED","required":true,"expected":["network_asset_disabled","invoice_creation_rejected"]},
     {"code":"REPEAT_PURCHASE_EXTENDS_ACCESS","required":true,"expected":["new_verified_payment","period_extended_from_existing_end","no_access_shortening","no_automatic_wallet_debit"]},
-    {"code":"UNAUTHORIZED_OWNER_APPROVAL_CLAIM","required":true,"expected":["database_rejects_claim","payment_provider_remains_decision_required","candidate_networks_remain_unapproved"]},
+    {"code":"OWNER_NETWORK_DECISION_DOWNGRADE_ATTEMPT","required":true,"expected":["database_rejects_downgrade","canonical_decision_retained","networks_remain_approved_inactive"]},
+    {"code":"OWNER_DECISION_RECORD_ARCHIVE_ATTEMPT","required":true,"expected":["database_rejects_archive","record_remains_active","no_state_change"]},
+    {"code":"FALSE_SUPERSESSION_REACTIVATION_ATTEMPT","required":true,"expected":["database_rejects_update","supersession_remains_ineffective","canonical_authority_retained"]},
     {"code":"PREMATURE_NETWORK_ACTIVATION_ATTEMPT","required":true,"expected":["activation_rejected","provider_disabled","checkout_disabled"]},
     {"code":"FULL_REFUND","required":true,"expected":["outbound_refund_confirmed_separately","refund_event_recorded","entitlement_reviewed","audit_recorded"]},
     {"code":"PARTIAL_REFUND","required":true,"expected":["amount_bounded","outbound_refund_confirmed_separately","order_totals_reconciled","audit_recorded"]},
@@ -83,7 +91,6 @@
     {"code":"VERIFIER_UNAVAILABLE","required":true,"expected":["payment_remains_pending","no_entitlement","bounded_retry","no_false_failure"]},
     {"code":"MALFORMED_OR_SECRET_BEARING_OBSERVATION","required":true,"expected":["request_rejected","no_state_change","no_secret_persisted"]}
   ],
-  "scenario_count": 27,
-  "authoritative_migration": "20260805095124_final_restore_candidate_only_after_false_owner_authority",
-  "completion_rule": "No scenario may execute against real value or activate access until the owner explicitly selects the provider rail, exact networks, settlement asset and pricing, supplies verified public addresses and external configuration, and authorizes a controlled sandbox test. Every executed scenario must retain timestamped verifier evidence, normalized billing evidence, database assertions and zero-secret logs."
+  "scenario_count": 29,
+  "completion_rule": "Every required scenario must have timestamped chain evidence or an isolated deterministic verifier fixture, normalized billing evidence, database assertions, zero persistent test users, zero real-value transfers unless separately authorized, and a zero-secret log before PAYMENT_SANDBOX_E2E can be verified."
 }
