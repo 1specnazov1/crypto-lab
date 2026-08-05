@@ -3,9 +3,12 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-05T08:58:00Z",
-  "provider": "onchain",
+  "updated_at": "2026-08-05T09:13:00Z",
+  "provider_candidate": "onchain_direct",
+  "wallet_client_candidate": "trust_wallet_walletconnect",
   "status": "disabled_pending_decisions",
-  "owner_approved_networks": ["TRON", "BSC", "SOLANA"],
+  "candidate_networks": ["TRON", "BSC", "SOLANA"],
+  "owner_network_approval_recorded": false,
   "networks": [
     {
       "code": "TRON",
@@ -14,6 +17,7 @@
       "fee_asset": "TRX",
       "finality_mode": "solidified",
       "required_confirmations": 19,
+      "approved_by_owner": false,
       "active": false
     },
     {
@@ -23,6 +27,7 @@
       "fee_asset": "BNB",
       "finality_mode": "finalized",
       "required_confirmations": 2,
+      "approved_by_owner": false,
       "active": false
     },
     {
@@ -32,6 +37,7 @@
       "fee_asset": "SOL",
       "finality_mode": "finalized",
       "required_confirmations": 0,
+      "approved_by_owner": false,
       "active": false
     }
   ],
@@ -40,8 +46,8 @@
       "selected": false,
       "decimals": 6,
       "network_status": {
-        "TRON": "official_issuer_contract_verified",
-        "SOLANA": "official_issuer_contract_verified",
+        "TRON": "official_issuer_contract_verification_required_at_activation",
+        "SOLANA": "official_issuer_contract_verification_required_at_activation",
         "BSC": "pegged_token_contract_and_owner_acceptance_required"
       }
     },
@@ -49,9 +55,9 @@
       "selected": false,
       "decimals": 6,
       "network_status": {
-        "SOLANA": "official_issuer_contract_verified",
-        "TRON": "not_listed_by_circle",
-        "BSC": "not_listed_by_circle"
+        "SOLANA": "official_issuer_contract_verification_required_at_activation",
+        "TRON": "issuer_support_not_assumed",
+        "BSC": "issuer_support_not_assumed"
       }
     }
   },
@@ -91,6 +97,14 @@
     "service_only_invoice_creation": true,
     "service_only_chain_ingestion": true
   },
+  "runtime_state_expected": {
+    "active_network_count": 0,
+    "selected_asset_count": 0,
+    "active_price_count": 0,
+    "receiving_address_count": 0,
+    "invoice_count": 0,
+    "chain_observation_count": 0
+  },
   "migrations": [
     {
       "version": "20260805085503",
@@ -115,16 +129,24 @@
       "name": "crypto_three_network_onchain_security_and_launch_control",
       "source": "supabase/migrations/20260805085807_crypto_three_network_onchain_security_and_launch_control.sql",
       "source_commit": "3450b8dbaae838a3b543edf4d4e8553f69439817"
+    },
+    {
+      "version": "20260805091147",
+      "name": "correct_onchain_candidate_network_approval_evidence",
+      "source": "supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql",
+      "source_commit": "0ec43629c8995ce459fe622972638e4aa5dde39d"
     }
   ],
   "required_decisions": [
+    "PAYMENT_PROVIDER_RAIL",
+    "NETWORK_SELECTION",
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
     "BASIC_PRICING_MODE_AND_AMOUNT",
     "PRO_PRICING_MODE_AND_AMOUNT",
-    "TRON_PUBLIC_RECEIVING_ADDRESS",
-    "BSC_PUBLIC_RECEIVING_ADDRESS",
-    "SOLANA_PUBLIC_RECEIVING_ADDRESS"
+    "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_SELECTED_NETWORK",
+    "RPC_OR_INDEXER_CONFIGURATION",
+    "CONFIRMATION_AND_FINALITY_POLICY"
   ],
   "activation_allowed": false,
   "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
