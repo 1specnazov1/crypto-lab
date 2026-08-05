@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T07:50:00Z",
+  "mode": "preparation_only",
+  "physical_execution_authorized": false,
+  "beta_execution_authorized": false,
+  "publication_authorized": false,
+  "platforms": [
+    {
+      "code": "IOS_PWA_REVIEW",
+      "platform": "iOS",
+      "minimum_devices": 1,
+      "required_browser": "Safari",
+      "status": "external_input_required"
+    },
+    {
+      "code": "ANDROID_PWA_REVIEW",
+      "platform": "Android",
+      "minimum_devices": 1,
+      "required_browser": "Chrome",
+      "status": "external_input_required"
+    }
+  ],
+  "device_scenarios": [
+    "OPEN_V79_PREVIEW",
+    "LANGUAGE_RU_UA_EN",
+    "INSTALL_PWA",
+    "COLD_START_INSTALLED_PWA",
+    "RELOAD_AFTER_SERVICE_WORKER_UPDATE",
+    "OFFLINE_SHELL_START",
+    "ONLINE_RECOVERY_AFTER_OFFLINE",
+    "ACCOUNT_PAGE_DISABLED_SIGNUP_STATE",
+    "ACCOUNT_PAGE_DISABLED_RECOVERY_STATE",
+    "CHART_NAVIGATION",
+    "PORTFOLIO_LOCAL_FLOW",
+    "CALCULATOR_FLOW",
+    "SCANNER_READ_ONLY_FLOW",
+    "BACKTEST_READ_ONLY_FLOW",
+    "AI_DISABLED_OR_AUTH_GATED_FLOW",
+    "KEYBOARD_AND_FOCUS",
+    "SAFE_AREA_AND_ORIENTATION",
+    "NO_HORIZONTAL_OVERFLOW",
+    "NO_CONSOLE_ERROR",
+    "NO_V78_ROOT_CHANGE"
+  ],
+  "evidence_fields": [
+    "evidence_id",
+    "platform",
+    "device_model",
+    "os_version",
+    "browser_version",
+    "installed_mode",
+    "scenario_code",
+    "started_at_utc",
+    "completed_at_utc",
+    "result",
+    "severity",
+    "reproduction_steps",
+    "expected_result",
+    "actual_result",
+    "screenshot_or_video_reference",
+    "console_error_summary",
+    "network_error_summary",
+    "tester_alias",
+    "build",
+    "repository_commit",
+    "pwa_cache",
+    "redaction_reviewed"
+  ],
+  "evidence_rules": {
+    "personal_data_forbidden": true,
+    "real_password_forbidden": true,
+    "auth_action_token_forbidden": true,
+    "provider_secret_forbidden": true,
+    "wallet_seed_forbidden": true,
+    "private_key_forbidden": true,
+    "screenshots_must_be_redacted": true,
+    "failure_requires_reproduction_steps": true,
+    "critical_failure_blocks_beta": true,
+    "high_failure_blocks_publication": true
+  },
+  "beta": {
+    "code": "CONTROLLED_BETA",
+    "status": "blocked_dependency",
+    "minimum_participants": 5,
+    "recommended_participants": 10,
+    "maximum_initial_participants": 25,
+    "minimum_observation_days": 3,
+    "real_accounts_required": true,
+    "owned_or_consented_mailboxes_required": true,
+    "payments_enabled": false,
+    "real_money_forbidden": true,
+    "manual_real_signal_creation_forbidden": true,
+    "required_dependencies": [
+      "AUTH_E2E",
+      "IOS_PWA_REVIEW",
+      "ANDROID_PWA_REVIEW"
+    ],
+    "success_thresholds": {
+      "critical_open_issues": 0,
+      "high_open_issues": 0,
+      "auth_completion_rate_minimum": 0.95,
+      "pwa_install_success_rate_minimum": 0.9,
+      "core_flow_success_rate_minimum": 0.95,
+      "unhandled_error_rate_maximum": 0.01
+    }
+  },
+  "issue_severities": {
+    "critical": "Security, data loss, unauthorized access, secret exposure, production-v78 impact or irreversible corruption.",
+    "high": "Core flow unavailable, authentication failure for a broad user class, persistent offline/PWA failure or materially wrong trading state.",
+    "medium": "Repeatable functional or UX defect with a workaround.",
+    "low": "Cosmetic, copy or minor accessibility defect without flow failure."
+  },
+  "exit_criteria": [
+    "all mandatory device scenarios executed on iOS and Android",
+    "zero critical and high open issues",
+    "confirmed fixes pass automated regression gates",
+    "beta thresholds met over the minimum observation period",
+    "issue ledger and evidence reviewed for redaction",
+    "BETA_UX_FIXES verified",
+    "publication remains a separate owner decision"
+  ],
+  "completion_rule": "Preparation artifacts do not satisfy physical review or controlled beta. Those requirements remain blocked until timestamped evidence from real devices and consented participants is reviewed."
+}
