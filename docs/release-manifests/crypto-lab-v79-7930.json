@@ -170,7 +170,7 @@
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
     }
   ],
-  "updated_at": "2026-08-05T07:55:00Z",
+  "updated_at": "2026-08-05T08:47:00Z",
   "application": {
     "assets": [
       {
@@ -220,7 +220,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "154ab23aeb99d4478239c2530d712494ab525d87",
+    "evidence_commit": "dcbb15236cee42d70d99fcfbe9794badd1f3b5d8",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -433,6 +433,19 @@
   "operational_hardening": {
     "signal_notification_flags_exact": true,
     "skipped_targets_not_marked_notified": true,
-    "postcutover_flag_without_sent_reconciled": true
+    "postcutover_flag_without_sent_reconciled": true,
+    "turnstile_identity_plan_ready": true,
+    "turnstile_production_keys_present": false,
+    "turnstile_activation_allowed": false,
+    "real_admin_runbook_ready": true,
+    "real_admin_assigned": false,
+    "payment_adapter_map_ready": true,
+    "onchain_billing_schema_v2_draft_ready": true,
+    "onchain_runtime_schema_migration_applied": false,
+    "direct_onchain_payment_activation_allowed": false,
+    "identity_payment_preparation_gate_run_id": "30990270213",
+    "identity_plan_path": "docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json",
+    "payment_adapter_map_path": "docs/release-manifests/crypto-lab-v79-payment-adapter-map.json",
+    "billing_v2_draft_path": "docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json"
   }
 }
