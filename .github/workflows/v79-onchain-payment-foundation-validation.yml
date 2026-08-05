@@ -52,7 +52,8 @@ jobs:
           check(onchain['automatic_entitlement']['enabled'] is False and onchain['automatic_entitlement']['automatic_wallet_debit'] is False,'entitlement disabled')
           db=onchain['database']
           check(db['active_valid_owner_decision_records']==0 and db['effective_payment_authority_events']==0,'owner authority inactive')
-          check(db['validated_candidate_only_constraints']==5,'validated constraints')
+          for key in ['validated_candidate_network_constraint','validated_provider_decision_required_constraint','validated_sandbox_owner_claim_constraint','validated_owner_record_archive_constraint','validated_authority_event_archive_constraint']:
+              check(db.get(key) is True,f'database guard {key}')
           check(db['authority_event_guard_trigger_enabled'] is True,'authority-event guard')
           auth=onchain['authoritative_migration']
           check(auth['version']=='20260805101600' and auth['name']=='authoritative_candidate_only_recovery_after_100805','authoritative migration')
