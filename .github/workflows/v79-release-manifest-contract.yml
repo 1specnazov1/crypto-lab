@@ -30,7 +30,8 @@ jobs:
             key=(m.get('version'),m.get('name')); assert key not in seen; seen.add(key)
             if m.get('source'): assert Path(m['source']).is_file(),m['source']
           op=d['operational_hardening']
-          assert op['onchain_authoritative_migration_version']=='20260805103945'
+          assert op['onchain_authoritative_migration_version']=='20260805105743'
+          assert op['onchain_authoritative_migration_name']=='restore_exact_owner_three_network_authority_after_104812_stale_cycle'
           assert op['onchain_approved_network_count']==3 and op['onchain_active_network_count']==0
           assert op['onchain_sandbox_scenario_count']==29
           assert op['onchain_automation_resume_allowed'] is False
