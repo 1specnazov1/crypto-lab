@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
       - 'supabase/migrations/20260805085503_crypto_billing_onchain_adapter_contract.sql'
       - 'supabase/migrations/20260805085615_crypto_three_network_onchain_catalog.sql'
       - 'supabase/migrations/20260805085735_crypto_three_network_onchain_services.sql'
@@ -27,7 +28,9 @@ jobs:
           import json, pathlib, re, sys
           root=pathlib.Path('.')
           path=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+          matrix_path=root/'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
           data=json.loads(path.read_text(encoding='utf-8'))
+          matrix=json.loads(matrix_path.read_text(encoding='utf-8'))
           errors=[]
           if data.get('schema_version')!=1: errors.append('schema_version')
           if data.get('project_ref')!='txhzxbizjpinowepfjkm': errors.append('project_ref')
@@ -71,16 +74,28 @@ jobs:
             source=root/m.get('source','')
             if not source.is_file(): errors.append(f'missing {source}')
             if not re.fullmatch(r'[0-9a-f]{40}',str(m.get('source_commit',''))): errors.append(f'bad source commit {source}')
-          combined='\n'.join((root/m['source']).read_text(encoding='utf-8') for m in migrations)+path.read_text(encoding='utf-8')
+          if matrix.get('schema_version')!=2 or matrix.get('provider')!='onchain' or matrix.get('mode')!='disabled': errors.append('sandbox matrix identity')
+          if matrix.get('approved_networks')!=['TRON','BSC','SOLANA']: errors.append('sandbox matrix networks')
+          if matrix.get('settlement_asset')!='decision_required': errors.append('settlement asset prematurely selected')
+          scenarios=matrix.get('scenarios',[])
+          codes=[s.get('code') for s in scenarios]
+          required_scenarios={'PAYMENT_SUCCESS_FINALIZED','WRONG_NETWORK','WRONG_ASSET_OR_CONTRACT','WRONG_RECIPIENT','UNDERPAYMENT','OVERPAYMENT','UNFINALIZED_TRANSACTION','FAILED_OR_REVERTED_TRANSACTION','DUPLICATE_TRANSACTION_HASH','LATE_PAYMENT_AFTER_EXPIRY','REORG_OR_FINALITY_REGRESSION','RECEIVING_ADDRESS_NOT_VERIFIED','TOKEN_CONTRACT_NOT_VERIFIED','VERIFIER_UNAVAILABLE','MALFORMED_OR_SECRET_BEARING_OBSERVATION'}
+          if len(codes)!=len(set(codes)) or not required_scenarios.issubset(set(codes)): errors.append('sandbox scenarios incomplete or duplicated')
+          if len(scenarios)<24 or any(s.get('required') is not True for s in scenarios): errors.append('sandbox scenario count or required flag')
+          matrix_invariants=matrix.get('invariants',{})
+          for key in ['blockchain_finality_is_source_of_truth','transaction_hash_single_claim','entitlement_changes_server_side_only','private_keys_not_required','seed_phrase_not_stored']:
+            if matrix_invariants.get(key) is not True: errors.append(f'matrix invariant {key}')
+          if matrix_invariants.get('automatic_wallet_debit') is not False: errors.append('automatic wallet debit enabled')
+          combined='\n'.join((root/m['source']).read_text(encoding='utf-8') for m in migrations)+path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')
           required_markers=['crypto_onchain_networks','crypto_onchain_assets','crypto_onchain_invoices','crypto_onchain_tx_observations','service_create_crypto_onchain_invoice','service_record_crypto_onchain_observation','verified_chain_observation','wallet_transaction']
           for marker in required_markers:
             if marker not in combined: errors.append(f'missing marker {marker}')
-          forbidden=[r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\b',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']
+          forbidden=[r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\s*:',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']
           for pattern in forbidden:
             if re.search(pattern,combined,re.I): errors.append(f'forbidden secret pattern {pattern}')
-          if data.get('activation_allowed') is not False: errors.append('activation allowed')
+          if data.get('activation_allowed') is not False or matrix.get('activation_allowed') is not False: errors.append('activation allowed')
           if data.get('stable_root_v78_sha')!='4a278c891d37b3760ec1ac988690ea9ad587b24e': errors.append('v78 boundary')
           if errors:
             print('\n'.join('ERROR: '+e for e in errors));sys.exit(1)
-          print('Three-network on-chain payment foundation: OK')
+          print(f'Three-network on-chain foundation and {len(scenarios)}-scenario matrix: OK')
           PY
