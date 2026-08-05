@@ -3,7 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-05T06:20:00Z",
-  "updated_at": "2026-08-05T06:28:00Z",
+  "updated_at": "2026-08-05T06:41:20Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -34,6 +34,12 @@
       "name": "crypto_release_checkpoint_sequence_guard",
       "source": "supabase/migrations/20260805062632_crypto_release_checkpoint_sequence_guard.sql",
       "source_commit": "d94efed8ff975603eb081d8c621728a2cad3656a"
+    },
+    {
+      "version": "20260805064110",
+      "name": "crypto_launch_preparation_contracts",
+      "source": "supabase/migrations/20260805064110_crypto_launch_preparation_contracts.sql",
+      "source_commit": "a115aa43a0604788440a44a6d7828a50998aaf55"
     }
   ],
   "requirements": [
@@ -46,7 +52,7 @@
     {"code":"MERCHANT_CREDENTIALS","phase":"commercial","owner_type":"external_configuration","weight":5,"decision_required":false,"sensitive_input_required":true,"physical_action_required":false,"dependencies":["PAYMENT_PROVIDER"]},
     {"code":"REFUND_POLICY","phase":"commercial","owner_type":"user_decision","weight":6,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
     {"code":"PAYMENT_SANDBOX_E2E","phase":"commercial","owner_type":"autonomous","weight":10,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["PRICING_MODEL","PAYMENT_PROVIDER","MERCHANT_CREDENTIALS","REFUND_POLICY"]},
-    {"code":"BACKUP_PITR","phase":"reliability","owner_type":"external_configuration","weight":8,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"BACKUP_PITR","phase":"reliability","owner_type":"user_decision","weight":8,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
     {"code":"IOS_PWA_REVIEW","phase":"validation","owner_type":"physical_validation","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":[]},
     {"code":"ANDROID_PWA_REVIEW","phase":"validation","owner_type":"physical_validation","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":[]},
     {"code":"CONTROLLED_BETA","phase":"validation","owner_type":"physical_validation","weight":8,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":["AUTH_E2E","IOS_PWA_REVIEW","ANDROID_PWA_REVIEW"]},
@@ -57,8 +63,8 @@
   "initial_snapshot": {
     "full_launch_progress_pct": 0,
     "remaining_count": 16,
-    "decision_count": 5,
-    "external_input_count": 4,
+    "decision_count": 6,
+    "external_input_count": 3,
     "physical_action_count": 3,
     "technical_beta_score": 100,
     "paid_public_launch_score": 60
@@ -73,13 +79,15 @@
     "sensitive_values_stored": false,
     "sensitive_json_key_guard": true,
     "audit_enabled": true,
-    "checkpoint_sequence_guard": true
+    "checkpoint_sequence_guard": true,
+    "launch_preparation_integrity": true
   },
   "boundaries": {
     "registration_enabled": false,
     "recovery_enabled": false,
     "paid_prices_active": false,
     "payment_provider_active": false,
+    "payment_sandbox_execution_allowed": false,
     "v79_published_over_v78": false
   }
 }
