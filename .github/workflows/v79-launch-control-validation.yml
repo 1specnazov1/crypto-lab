@@ -5,10 +5,13 @@ on:
     branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-7930-launch-control.json'
+      - 'docs/release-manifests/crypto-lab-v79-7930-launch-preparation.json'
+      - 'docs/LAUNCH_PREPARATION_7930.md'
       - 'supabase/migrations/20260805061231_crypto_full_launch_control_registry.sql'
       - 'supabase/migrations/20260805061540_crypto_launch_readiness_dynamic_control.sql'
       - 'supabase/migrations/20260805061806_crypto_launch_requirements_explicit_deny_policy.sql'
       - 'supabase/migrations/20260805062632_crypto_release_checkpoint_sequence_guard.sql'
+      - 'supabase/migrations/20260805064110_crypto_launch_preparation_contracts.sql'
       - '.github/workflows/v79-launch-control-validation.yml'
   workflow_dispatch:
 
@@ -21,14 +24,17 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Validate launch-control contract
+      - name: Validate launch-control and preparation contracts
         run: |
           python - <<'PY'
           import json, pathlib, re
 
           root = pathlib.Path('.')
-          path = root / 'docs/release-manifests/crypto-lab-v79-7930-launch-control.json'
-          data = json.loads(path.read_text(encoding='utf-8'))
+          control_path = root / 'docs/release-manifests/crypto-lab-v79-7930-launch-control.json'
+          prep_path = root / 'docs/release-manifests/crypto-lab-v79-7930-launch-preparation.json'
+          doc_path = root / 'docs/LAUNCH_PREPARATION_7930.md'
+          data = json.loads(control_path.read_text(encoding='utf-8'))
+          prep = json.loads(prep_path.read_text(encoding='utf-8'))
 
           assert data['schema_version'] == 1
           assert data['project_ref'] == 'txhzxbizjpinowepfjkm'
@@ -48,9 +54,12 @@ jobs:
           assert len(codes) == len(set(codes))
           assert set(codes) == expected
           assert sum(r['weight'] for r in requirements) == 100
-          assert sum(bool(r['decision_required']) for r in requirements) == 5
+          assert sum(bool(r['decision_required']) for r in requirements) == 6
           assert sum(bool(r['sensitive_input_required']) for r in requirements) == 3
           assert sum(bool(r['physical_action_required']) for r in requirements) == 3
+          backup = next(r for r in requirements if r['code'] == 'BACKUP_PITR')
+          assert backup['owner_type'] == 'user_decision'
+          assert backup['decision_required'] is True
           for r in requirements:
             assert re.fullmatch(r'[A-Z][A-Z0-9_]{2,80}', r['code'])
             assert r['phase'] in {'identity','commercial','reliability','validation','release'}
@@ -60,7 +69,7 @@ jobs:
             assert set(r['dependencies']) <= expected
 
           security = data['security']
-          for key in ('rls_enabled','explicit_direct_access_deny','admin_read_wrapper','service_update_only','sensitive_json_key_guard','audit_enabled','checkpoint_sequence_guard'):
+          for key in ('rls_enabled','explicit_direct_access_deny','admin_read_wrapper','service_update_only','sensitive_json_key_guard','audit_enabled','checkpoint_sequence_guard','launch_preparation_integrity'):
             assert security[key] is True
           for key in ('browser_table_access','browser_write_rpc','sensitive_values_stored'):
             assert security[key] is False
@@ -69,7 +78,7 @@ jobs:
             assert value is False, f'{key} must remain disabled'
 
           migrations = data['migrations']
-          assert [m['version'] for m in migrations] == ['20260805061231','20260805061540','20260805061806','20260805062632']
+          assert [m['version'] for m in migrations] == ['20260805061231','20260805061540','20260805061806','20260805062632','20260805064110']
           for m in migrations:
             assert re.fullmatch(r'[0-9a-f]{40}', m['source_commit'])
             source = root / m['source']
@@ -79,6 +88,7 @@ jobs:
           readiness = (root / migrations[1]['source']).read_text(encoding='utf-8')
           deny = (root / migrations[2]['source']).read_text(encoding='utf-8')
           sequence = (root / migrations[3]['source']).read_text(encoding='utf-8')
+          preparation = (root / migrations[4]['source']).read_text(encoding='utf-8')
           for marker in ('crypto_launch_requirements','assert_crypto_launch_json_safe','crypto_full_launch_control_snapshot','get_crypto_admin_full_launch_control'):
             assert marker in registry
           for marker in ('full_launch_progress_pct','decision_queue','external_input_queue','physical_action_queue'):
@@ -87,20 +97,54 @@ jobs:
           assert 'with check (false)' in deny.lower()
           assert 'sync_crypto_release_checkpoint_sequence' in sequence
           assert 'crypto_release_checkpoint_sequence_sync' in sequence
+          for marker in ('crypto_launch_control_integrity_snapshot','crypto_launch_preparation_snapshot','get_crypto_admin_launch_preparation','scenario_count'):
+            assert marker in preparation
+
+          snapshot = data['initial_snapshot']
+          assert snapshot['remaining_count'] == 16
+          assert snapshot['decision_count'] == 6
+          assert snapshot['external_input_count'] == 3
+          assert snapshot['physical_action_count'] == 3
+          assert snapshot['technical_beta_score'] == 100
+          assert snapshot['paid_public_launch_score'] == 60
+
+          assert prep['schema_version'] == 1
+          assert prep['project_ref'] == data['project_ref']
+          assert prep['build'] == data['build']
+          assert prep['stable_root'] == data['stable_root']
+          assert prep['application_commit'] == data['application_commit']
+          assert prep['migration']['version'] == '20260805064110'
+          assert prep['migration']['source_commit'] == 'a115aa43a0604788440a44a6d7828a50998aaf55'
+          assert prep['documentation']['source_commit'] == 'e430bcca53d3c2ad9da9a926230c410f776b0259'
+          assert prep['preparation']['state'] == 'prepared_waiting_decisions'
+          assert prep['preparation']['decision_packet_count'] == 6
+          assert prep['preparation']['payment_sandbox_scenario_count'] == 21
+          assert prep['preparation']['launch_integrity_check_count'] == 6
+          assert prep['preparation']['launch_integrity_state'] == 'healthy'
+          assert prep['preparation']['stores_sensitive_values'] is False
+          assert len(prep['decision_packets']) == 6
+          assert len(prep['sandbox_scenarios']) == 21
+          assert len(set(prep['sandbox_scenarios'])) == 21
+          assert prep['backup_fact']['organization_plan'] == 'free'
+          assert prep['backup_fact']['managed_automatic_backups_available'] is False
+          assert prep['backup_fact']['pitr_available'] is False
+          assert prep['backup_fact']['decision_required'] is True
+          assert prep['launch_control_snapshot']['decision_count'] == 6
+          assert prep['launch_control_snapshot']['external_input_count'] == 3
+          for key, value in prep['boundaries'].items():
+            assert value is False, f'{key} must remain disabled'
+
+          doc = doc_path.read_text(encoding='utf-8')
+          for marker in ('21 scenarios','BACKUP_PITR','prepared_waiting_decisions','Stable v78 remains unchanged'):
+            assert marker in doc
 
           public_text = '\n'.join([
-            path.read_text(encoding='utf-8'), registry, readiness, deny, sequence
+            control_path.read_text(encoding='utf-8'), prep_path.read_text(encoding='utf-8'), doc,
+            registry, readiness, deny, sequence, preparation
           ])
           forbidden = [r'sb_secret_', r'sk_live_', r'sk_test_', r'whsec_', r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----', r'Bearer\s+eyJ']
           for pattern in forbidden:
             assert not re.search(pattern, public_text, re.I), pattern
 
-          snapshot = data['initial_snapshot']
-          assert snapshot['remaining_count'] == 16
-          assert snapshot['decision_count'] == 5
-          assert snapshot['external_input_count'] == 4
-          assert snapshot['physical_action_count'] == 3
-          assert snapshot['technical_beta_score'] == 100
-          assert snapshot['paid_public_launch_score'] == 60
-          print('Full launch control manifest: OK')
+          print('Full launch control and preparation manifests: OK')
           PY
