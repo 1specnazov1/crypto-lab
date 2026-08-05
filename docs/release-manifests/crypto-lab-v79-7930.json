@@ -242,9 +242,30 @@
       "name": "record_explicit_owner_three_network_decision",
       "source": "supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql",
       "source_commit": "46c45e7013eaf48cd386883a2c577d5b2d6e802f"
+    },
+    {
+      "version": "20260805093547",
+      "name": "add_owner_decision_supersession_audit",
+      "source": "supabase/migrations/20260805093547_add_owner_decision_supersession_audit.sql",
+      "source_commit": "35562faa0626e98c2106a7339e74c0134d6a6e44",
+      "authoritative": true
+    },
+    {
+      "version": "20260805093613",
+      "name": "restore_onchain_candidate_only_state",
+      "source": "supabase/migrations/20260805093613_restore_onchain_candidate_only_state.sql",
+      "source_commit": "36be5295bb2ba11d16e6f628ee70c05101468fef",
+      "authoritative": true
+    },
+    {
+      "version": "20260805093641",
+      "name": "install_fail_closed_payment_owner_decision_guards",
+      "source": "supabase/migrations/20260805093641_install_fail_closed_payment_owner_decision_guards.sql",
+      "source_commit": "a22f57b52fd996add0f53ec3a9ec760ab885a401",
+      "authoritative": true
     }
   ],
-  "updated_at": "2026-08-05T09:28:00Z",
+  "updated_at": "2026-08-05T09:44:00Z",
   "application": {
     "assets": [
       {
@@ -294,7 +315,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "afdd6ae483e3981d8ad4ba83b0d6a309679cbcbd",
+    "evidence_commit": "700a8f6813ccbb35c5d740f9eb3e73796bd29f58",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -431,7 +452,9 @@
     "browser_smoke_run_id": "pending",
     "pages_run_id": "pending",
     "technical_score": 100,
-    "commercial_score": 60
+    "commercial_score": 60,
+    "onchain_payment_foundation_gate_run_id": "30994349263",
+    "candidate_only_payment_repair": "verified"
   },
   "maintenance_evidence": {
     "scope": "first_run_after_threshold",
@@ -532,16 +555,36 @@
     "crypto_x_queues_empty_at_verification": true,
     "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md",
     "onchain_payment_foundation": "three_network_owner_approved_disabled_pending_asset_pricing_addresses",
-    "onchain_payment_gate_run_id": "30992203761",
-    "onchain_sandbox_scenario_count": 24,
+    "onchain_payment_gate_run_id": "30994349263",
+    "onchain_sandbox_scenario_count": 27,
     "onchain_observation_lifecycle_hardened": true,
     "onchain_network_approval_recorded": true,
     "onchain_lifecycle_manifest": "docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json",
     "onchain_lifecycle_integrity_checks": 11,
     "onchain_lifecycle_integrity_state": "healthy",
-    "onchain_owner_decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
-    "onchain_owner_decision_hash": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
-    "onchain_owner_decision_manifest": "docs/release-manifests/crypto-lab-v79-owner-network-decision.json",
-    "onchain_owner_decision_original_timestamp_known": false
+    "onchain_payment_manifest": "docs/release-manifests/crypto-lab-v79-onchain-payments.json",
+    "onchain_payment_sandbox_matrix": "docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json",
+    "onchain_candidate_networks": [
+      "TRON",
+      "BSC",
+      "SOLANA"
+    ],
+    "onchain_approved_network_count": 0,
+    "onchain_active_network_count": 0,
+    "onchain_selected_asset_count": 0,
+    "onchain_active_price_count": 0,
+    "onchain_receiving_address_count": 0,
+    "onchain_invoice_count": 0,
+    "onchain_chain_observation_count": 0,
+    "onchain_owner_approval_recorded": false,
+    "onchain_provider_decision_recorded": false,
+    "onchain_invalid_owner_decision_superseded": true,
+    "onchain_superseded_owner_decision_audit_preserved": true,
+    "onchain_owner_approval_fail_closed": true,
+    "onchain_autonomous_owner_decision_insert_blocked": true,
+    "onchain_transaction_lifecycle_hardened": true,
+    "onchain_automatic_entitlement_prepared": true,
+    "onchain_automatic_entitlement_enabled": false,
+    "onchain_automatic_wallet_debit": false
   }
 }
