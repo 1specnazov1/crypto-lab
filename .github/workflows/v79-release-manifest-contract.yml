@@ -32,9 +32,22 @@ jobs:
           op=d['operational_hardening']
           assert op['onchain_authoritative_migration_version']=='20260805105743'
           assert op['onchain_authoritative_migration_name']=='restore_exact_owner_three_network_authority_after_104812_stale_cycle'
+          assert op['onchain_manifest_schema_version']==10
           assert op['onchain_approved_network_count']==3 and op['onchain_active_network_count']==0
+          assert op['onchain_active_owner_decision_record_count']==1
+          assert op['onchain_effective_authority_event_count']==1
+          assert op['onchain_effective_false_supersession_count']==0
           assert op['onchain_sandbox_scenario_count']==29
           assert op['onchain_automation_resume_allowed'] is False
           assert all(op[k] is False for k in ['onchain_checkout_enabled','onchain_webhook_enabled','onchain_recurring_enabled','onchain_refunds_enabled','direct_onchain_payment_activation_allowed','v79_publication_authorized'])
+          legacy_keys={
+            'onchain_effective_payment_authority_event_count',
+            'active_valid_owner_decision_records',
+            'superseded_invalid_owner_decision_records',
+            'fabricated_owner_text_not_user_content',
+            'onchain_last_false_authority_migration_version',
+            'onchain_last_false_authority_migration_superseded',
+          }
+          assert legacy_keys.isdisjoint(op), sorted(legacy_keys.intersection(op))
           print('Release manifest contract: OK')
           PY
