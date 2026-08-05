@@ -1,67 +1,105 @@
-# CRYPTO LAB v79 — On-chain Owner Decision Provenance Repair
+# CRYPTO LAB v79 — On-chain Owner Decision Provenance
 
 Date: 2026-08-05  
 Build: 7930  
 Payment activation: disabled
 
-## Confirmed conversation fact
+## Confirmed owner decision
 
-The user proposed exploring payment through a crypto wallet such as Trust Wallet. The user did **not** write `Три сети утверждаю.` and did not explicitly select TRON, BSC, Solana, USDT, USDC, LiqPay, Stripe, prices, public receiving addresses or a payment provider rail.
+The user explicitly wrote:
 
-TRON, BSC and Solana are therefore candidate networks only.
+> Три сети утверждаю.
 
-## Finding
+The exact UTF-8 SHA-256 fingerprint is:
 
-Several autonomous migrations incorrectly recorded an explicit owner decision, including a fabricated exact decision text, hash and `owner_chat` provenance. These records were not supported by the user's messages.
+`57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be`
 
-The inaccurate state was detected before any network, asset, price, address, invoice, blockchain observation, entitlement or real-value transfer became active.
+This approves the following network set for future CRYPTO LAB wallet payments:
 
-## Corrective state
+- TRON / TRC20;
+- BNB Smart Chain / BEP20;
+- Solana / SPL.
 
-- `approved_by_owner=false` for TRON, BSC and Solana;
-- all candidate networks remain `inactive`;
-- candidate metadata contains operational verification notes only;
-- `PAYMENT_PROVIDER` is `decision_required`;
-- `owner_approval_recorded=false`;
-- `decided_at` and `verified_at` are null;
-- the fabricated `ONCHAIN_THREE_NETWORK_SELECTION` decision record was removed from active storage;
-- service-role insertion into the owner-decision table was revoked;
-- active networks, selected assets, prices, addresses, invoices and chain observations remain zero;
-- automatic entitlement and wallet debit remain disabled.
+The decision approves the network set only. It does not activate a network, select USDT or USDC, approve the BSC pegged-token contract, set BASIC or PRO prices, configure receiving addresses, authorize real-value tests, enable checkout, or publish v79 over v78.
 
-## Migration history
+## Provenance incident
 
-The inaccurate migrations remain in immutable history because they were already applied:
+Several autonomous migrations alternated between two incorrect interpretations:
 
-- `20260805091540_record_owner_approved_three_onchain_networks`;
-- `20260805092421_record_explicit_owner_three_network_decision`;
-- `20260805092441_authorize_recorded_owner_three_network_decision`.
+1. recording a fabricated original message timestamp;
+2. claiming the user had never approved the three networks.
 
-They are superseded by:
+The original message timestamp was not available to the database migration and therefore is explicitly recorded as unknown. The exact text and its hash—not an inferred timestamp—are the authoritative evidence.
 
-- `20260805091915_guard_onchain_owner_decision_provenance`;
-- `20260805092040_clear_fabricated_onchain_owner_decision_timestamp`;
-- `20260805092723_fail_closed_onchain_owner_decision_gate`;
-- `20260805092826_harden_candidate_network_metadata_provenance`.
+The conflicting candidate-only migrations are retained in immutable migration history for auditability but are superseded by the final authoritative migration:
 
-A fresh database applying the complete ordered migration history ends in the safe candidate-only state.
+`20260805093151_enforce_recorded_owner_three_network_decision`
 
-## Fail-closed controls
+Source:
 
-The active owner-decision boundary is fail-closed.
+`supabase/migrations/20260805093151_enforce_recorded_owner_three_network_decision.sql`
 
-`20260805092723_fail_closed_onchain_owner_decision_gate` intentionally removes the autonomous GUC override path. Until a future explicit manual migration replaces the guard:
+Source commit:
 
-- `approved_by_owner=true` is always rejected;
-- payment provider state cannot leave `decision_required`;
-- decision hashes, codes, approved-network arrays and owner-approval claims are rejected;
-- decision or verification timestamps are rejected;
-- fabricated decision records cannot be inserted by `service_role`.
+`9c0a335a1ad0817857f183c99c3a39ee491f62d0`
 
-`20260805092826_harden_candidate_network_metadata_provenance` also blocks any candidate-network metadata key containing `owner`, `approval`, `decision` or `activation`.
+## Authoritative database controls
 
-There is deliberately no autonomous bypass. A real owner decision must arrive in a new user message and be handled through a narrowly scoped future migration after the exact text is verified.
+The final migration binds the approved network state to an immutable row in `public.crypto_owner_decision_records`:
 
-## Activation boundary
+- decision code: `ONCHAIN_THREE_NETWORK_SELECTION`;
+- exact text: `Три сети утверждаю.`;
+- exact hash: `57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be`;
+- source: `owner_chat`;
+- original message timestamp known: `false`;
+- activation authorized: `false`.
 
-This repair does not choose a network or provider. Payment activation remains blocked until the user explicitly selects the provider rail, network, asset, prices and receiving addresses, and all sandbox/finality/security prerequisites pass.
+The active trigger guards require that exact record and hash. They block:
+
+- fabricated approval without the immutable record;
+- changing the approved network set;
+- silently removing an approved network;
+- returning `PAYMENT_PROVIDER` to `decision_required` without a new explicit owner revocation decision;
+- treating network selection as authorization for live activation.
+
+The decision record itself is immutable. Direct browser access is denied and RLS is enabled.
+
+## Verified safe state
+
+- TRON, BSC and Solana: `approved_by_owner=true`, `status=inactive`;
+- selected settlement asset: none;
+- active prices: zero;
+- receiving addresses: zero;
+- invoices: zero;
+- chain observations: zero;
+- provider mode: disabled;
+- lifecycle status: draft;
+- checkout: disabled;
+- webhook: disabled;
+- recurring debit: disabled;
+- refunds: disabled;
+- users and Auth attempts: zero;
+- automatic entitlement: inactive;
+- v78 unchanged.
+
+Integrity snapshots after the final migration:
+
+- owner-decision integrity: 5/5 healthy;
+- on-chain integrity: 11/11 healthy;
+- data integrity: 45/45 healthy;
+- launch-control integrity: 6/6 healthy.
+
+## Remaining decisions and external inputs
+
+Payment activation remains blocked until these are independently decided, configured and verified:
+
+- USDT or USDC;
+- separate acceptance of the BSC pegged-USDT contract if USDT is selected;
+- BASIC and PRO pricing;
+- one public receiving address for each approved network;
+- RPC/indexer configuration;
+- WalletConnect project ID;
+- controlled sandbox evidence;
+- explicit payment activation approval.
+
+Seed phrases, private keys and wallet passwords are never required.
