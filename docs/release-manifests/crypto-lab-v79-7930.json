@@ -47,7 +47,7 @@
             "name": "crypto_release_drift_and_rollback_readiness",
             "source": "supabase/migrations/202608041605_release_drift_and_rollback_readiness.sql",
             "version": "20260804160848",
-            "source_commit": "92da574eeb2402217d2d6e7320b1b39b6965104a"
+            "source_comit": "92da574eeb2402217d2d6e7320b1b39b6965104a"
         },
         {
             "name": "crypto_maintenance_evidence_seal",
@@ -101,13 +101,13 @@
             "name": "crypto_checkpoint_pending_evidence_transition_guard",
             "source": "supabase/migrations/20260804192752_crypto_checkpoint_pending_evidence_transition_guard.sql",
             "version": "20260804192752",
-            "source_commit": "6e48112fda99598611bf1952976f0ec3f0751419"
+            "source_comit": "6e48112fda99598611bf1952976f0ec3f0751419"
         },
         {
             "name": "crypto_checkpoint_evidence_transition_validation",
             "source": "supabase/migrations/20260804212027_crypto_checkpoint_evidence_transition_validation.sql",
             "version": "20260804212027",
-            "source_commit": "21cb9afb2cdd652294324512f80c6f9b77f147f1"
+            "source_comit": "21cb9afb2cdd652294324512f80c6f9b77f147f1"
         },
         {
             "name": "crypto_maintenance_run_origin_lockdown",
@@ -156,9 +156,15 @@
             "source": "supabase/migrations/202608050219_crypto_maintenance_failure_evidence_commit_boundary.sql",
             "version": "20260805021929",
             "source_commit": "cddddb4319f2e3c9d4240f6e7eac7b8462471736"
+        },
+        {
+            "name": "crypto_daily_maintenance_do_transaction_boundary",
+            "source": "supabase/migrations/202608050231_crypto_daily_maintenance_do_transaction_boundary.sql",
+            "version": "20260805023127",
+            "source_commit": "4098af01ec67c03d3706c13ac4aae945af982631"
         }
     ],
-    "updated_at": "2026-08-05T02:22:00Z",
+    "updated_at": "2026-08-05T02:35:00Z",
     "application": {
         "assets": [
             {
@@ -203,8 +209,8 @@
             }
         ],
         "pwa_cache": "crypto-lab-v79-7930-maintenance2",
-        "evidence_commit": "cddddb4319f2e3c9d4240f6e7eac7b8462471736",
-        "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83"
+        "evidence_commit": "4098af01ec67c03d3706c13ac4aae945af982631",
+        "application_commit": "6be2e93d3933ef6339b0599978e24af891ef1fa83"
     },
     "project_ref": "txhzxbizjpinowepfjkm",
     "stable_root": {
@@ -352,6 +358,7 @@
         "origin_cron_owner_only": true,
         "runtime_clock_accuracy": true,
         "cron_manifest_key_bound": true,
+        "daily_cron_top_level_do": true,
         "immutable_after_seal_id": true,
         "terminal_state_required": true,
         "cron_binding_fail_closed": true,
@@ -376,7 +383,8 @@
         "service_role_direct_write_blocked": true,
         "transition_requires_persisted_seal": true,
         "checkpoint_target_bound_to_manifest": true,
-        "pending_placeholder_mutation_blocked": true
+        "pending_placeholder_mutation_blocked": true,
+        "daily_cron_mutable_search_path_surface_removed": true
     },
     "operational_hardening": {
         "signal_notification_flags_exact": true,
