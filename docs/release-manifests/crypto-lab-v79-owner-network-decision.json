@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
@@ -25,18 +25,20 @@
     "v79_publication_authorized": false
   },
   "database": {
-    "authoritative_migration_version": "20260805093151",
-    "authoritative_migration_name": "enforce_recorded_owner_three_network_decision",
-    "authoritative_migration_source": "supabase/migrations/20260805093151_enforce_recorded_owner_three_network_decision.sql",
-    "authoritative_migration_source_commit": "9c0a335a1ad0817857f183c99c3a39ee491f62d0",
+    "authoritative_migration_version": "20260805094628",
+    "authoritative_migration_name": "restore_canonical_owner_three_network_authority",
+    "authoritative_migration_source": "supabase/migrations/20260805094628_restore_canonical_owner_three_network_authority.sql",
+    "authoritative_migration_source_commit": "2b5ff1105c9e1ff65f7d192e08a368b0bb31cede",
     "decision_table": "public.crypto_owner_decision_records",
+    "decision_record_active": true,
     "decision_record_immutable": true,
     "decision_table_rls": true,
     "browser_table_grants": 0,
+    "canonical_constraints_present": 3,
     "silent_approval_removal_blocked": true,
     "silent_requirement_reversion_blocked": true,
     "owner_decision_integrity_state": "healthy",
-    "owner_decision_integrity_checks": 5
+    "owner_decision_integrity_checks": 6
   },
   "runtime_state": {
     "provider_desired_mode": "disabled",
@@ -56,6 +58,13 @@
     "registration_attempt_count": 0,
     "recovery_attempt_count": 0
   },
+  "integrity": {
+    "owner_decision": "6/6 healthy",
+    "onchain": "11/11 healthy",
+    "data": "45/45 healthy",
+    "launch_control": "6/6 healthy"
+  },
+  "historical_conflicting_state_superseded": true,
   "remaining_decisions_and_inputs": [
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
