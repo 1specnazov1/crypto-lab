@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T06:41:20Z",
+  "stable_root": {
+    "path": "index.html",
+    "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  },
+  "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
+  "base_launch_control_commit": "1c928cf3d7975ae10aa5289ccfc8994513304b6c",
+  "migration": {
+    "version": "20260805064110",
+    "name": "crypto_launch_preparation_contracts",
+    "source": "supabase/migrations/20260805064110_crypto_launch_preparation_contracts.sql",
+    "source_commit": "a115aa43a0604788440a44a6d7828a50998aaf55"
+  },
+  "documentation": {
+    "path": "docs/LAUNCH_PREPARATION_7930.md",
+    "source_commit": "e430bcca53d3c2ad9da9a926230c410f776b0259"
+  },
+  "preparation": {
+    "state": "prepared_waiting_decisions",
+    "decision_packet_count": 6,
+    "payment_sandbox_scenario_count": 21,
+    "launch_integrity_check_count": 6,
+    "launch_integrity_state": "healthy",
+    "stores_sensitive_values": false
+  },
+  "decision_packets": [
+    "REAL_ADMIN",
+    "PRICING_MODEL",
+    "PAYMENT_PROVIDER",
+    "REFUND_POLICY",
+    "BACKUP_PITR",
+    "PUBLISH_V79"
+  ],
+  "sandbox_scenarios": [
+    "webhook_disabled",
+    "unauthorized",
+    "invalid_json",
+    "unsupported_provider",
+    "unsupported_event",
+    "invalid_identity",
+    "verified_amount_required",
+    "payment_pending",
+    "payment_succeeded",
+    "payment_failed",
+    "payment_expired",
+    "payment_canceled",
+    "duplicate_same_payload",
+    "event_id_collision",
+    "subscription_renewed",
+    "cancel_at_period_end",
+    "subscription_canceled",
+    "payment_refunded",
+    "invalid_transition",
+    "amount_mismatch",
+    "currency_mismatch"
+  ],
+  "backup_fact": {
+    "organization_plan": "free",
+    "managed_automatic_backups_available": false,
+    "pitr_available": false,
+    "decision_required": true
+  },
+  "launch_control_snapshot": {
+    "full_launch_progress_pct": 0,
+    "remaining_count": 16,
+    "decision_count": 6,
+    "external_input_count": 3,
+    "physical_action_count": 3,
+    "technical_beta_score": 100,
+    "paid_public_launch_score": 60
+  },
+  "boundaries": {
+    "registration_enabled": false,
+    "recovery_enabled": false,
+    "paid_prices_active": false,
+    "payment_provider_active": false,
+    "payment_sandbox_execution_allowed": false,
+    "v79_published_over_v78": false
+  }
+}
