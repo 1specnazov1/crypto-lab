@@ -30,7 +30,7 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
 
-          log=docs/release-manifests/v79-owner-authority-105743-sync.log
+          log=docs/release-manifests/v79-owner-authority-105743-sync.txt
           : > "$log"
 
           set +e
@@ -43,15 +43,6 @@ jobs:
           printf 'sync_status=%s\nvalidation_status=%s\n' "$sync_status" "$validation_status" >> "$log"
           cat "$log"
 
-          git add \
-            docs/release-manifests/crypto-lab-v79-onchain-payments.json \
-            docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json \
-            docs/release-manifests/crypto-lab-v79-owner-network-decision.json \
-            docs/release-manifests/crypto-lab-v79-7930.json \
-            scripts/v79_validate_onchain_foundation.py \
-            .github/workflows/v79-onchain-payment-foundation-validation.yml \
-            .github/workflows/v79-owner-decision-failclosed-validation.yml \
-            .github/workflows/v79-release-manifest-contract.yml
-          git add -f "$log"
+          git add -A
           git commit -m 'Synchronize final owner-approved inactive payment state'
           git push origin HEAD:main
