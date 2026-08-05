@@ -1,0 +1,18 @@
+name: Validate v79 Owner Network Decision
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
+      - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'scripts/v79_validate_onchain_foundation.py'
+      - '.github/workflows/v79-owner-network-decision-validation.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+      - run: python scripts/v79_validate_onchain_foundation.py
