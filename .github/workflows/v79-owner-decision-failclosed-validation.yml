@@ -6,7 +6,7 @@ on:
     paths:
       - 'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
-      - 'supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql'
+      - 'supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql'
       - '.github/workflows/v79-owner-decision-failclosed-validation.yml'
   workflow_dispatch:
 
@@ -23,49 +23,46 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v6
-      - name: Validate authoritative candidate-only provenance boundary
+      - name: Validate final payment authority boundary
         run: |
           python - <<'PY'
           from pathlib import Path
           import json,re,sys
-
           errors=[]
           def check(value,message):
-            if not value: errors.append(message)
+              if not value: errors.append(message)
 
-          migration_path=Path('supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql')
+          migration_path=Path('supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql')
           migration=migration_path.read_text(encoding='utf-8')
           evidence=Path('docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md').read_text(encoding='utf-8')
           manifest=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text(encoding='utf-8'))
           combined=migration+'\n'+evidence+json.dumps(manifest,ensure_ascii=False)
 
-          check(migration_path.is_file(),'authoritative migration source missing')
           for marker in [
-            'Authoritative candidate-only recovery',
+            'Authoritative candidate-only recovery after false migration 20260805100805',
             'crypto_onchain_networks_owner_decision_fail_closed',
             'crypto_payment_provider_owner_decision_fail_closed',
             'crypto_payment_sandbox_owner_claim_fail_closed',
             'crypto_owner_decision_payment_record_fail_closed',
+            'crypto_owner_authority_event_payment_fail_closed',
             'crypto_onchain_candidate_metadata_safe',
             'crypto_payment_owner_claim_absent',
-            'approved_by_owner=false',
-            "status='decision_required'",
             'block_crypto_payment_owner_decision_record',
-            'overlapping_automation_disabled',
+            'block_crypto_payment_owner_authority_event',
+            'false_100805_authority_superseded',
           ]:
-            check(marker in migration,f'missing migration marker {marker}')
+              check(marker in migration,f'missing migration marker {marker}')
 
           for marker in [
             'did **not** write `Три сети утверждаю.`',
-            '20260805095447_finalize_explicit_three_network_owner_authority_after_concurrency',
-            '20260805095547_finalize_explicit_owner_three_network_selection_after_race',
-            '20260805100027_authoritative_candidate_only_payment_recovery',
+            '20260805100805_final_lock_explicit_owner_three_network_selection',
+            '20260805101600_authoritative_candidate_only_recovery_after_100805',
             'There is deliberately no autonomous bypass',
-            'approved networks: zero',
+            'effective payment authority events: zero',
           ]:
-            check(marker in evidence,f'missing evidence marker {marker}')
+              check(marker in evidence,f'missing evidence marker {marker}')
 
-          check(manifest.get('schema_version')==8,'manifest schema')
+          check(manifest.get('schema_version')==12,'manifest schema')
           check(manifest.get('status')=='disabled_candidate_only','candidate-only status')
           check(manifest.get('approved_networks')==[],'approved networks empty')
           check(manifest.get('owner_network_approval_recorded') is False,'network approval false')
@@ -73,28 +70,28 @@ jobs:
           check(all(x.get('approved_by_owner') is False and x.get('active') is False for x in manifest.get('networks',[])),'candidate network rows')
           db=manifest.get('database',{})
           check(db.get('active_valid_owner_decision_records')==0,'active owner decisions zero')
-          check(db.get('superseded_invalid_owner_decision_records')==1,'invalid record retained inactive')
-          for key in ['validated_candidate_network_constraint','validated_provider_decision_required_constraint','validated_sandbox_owner_claim_constraint','validated_owner_record_archive_constraint']:
-            check(db.get(key) is True,f'database guard {key}')
+          check(db.get('effective_payment_authority_events')==0,'effective authority events zero')
+          check(db.get('validated_candidate_only_constraints')==5,'validated constraints')
+          check(db.get('authority_event_guard_trigger_enabled') is True,'authority guard')
           check(manifest.get('activation_allowed') is False,'activation disabled')
           auth=manifest.get('authoritative_migration',{})
-          check(auth.get('version')=='20260805100027','authoritative migration version')
-          check(auth.get('name')=='authoritative_candidate_only_payment_recovery','authoritative migration name')
-          check(auth.get('source_commit')=='83ca5ebc71e68e25f881344d93ec39d38125aa08','authoritative source commit')
+          check(auth.get('version')=='20260805101600','authoritative migration version')
+          check(auth.get('name')=='authoritative_candidate_only_recovery_after_100805','authoritative migration name')
+          check(auth.get('source_commit')=='09dfd70b1ee55fc48023b019309e6e5f41798fc6','authoritative source commit')
 
-          for forbidden_path in [
+          for path in [
             Path('.github/workflows/v79-owner-network-decision-sync-once.yml'),
             Path('.github/workflows/v79-owner-network-decision-validation.yml'),
             Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json'),
           ]:
-            check(not forbidden_path.exists(),f'fabricated decision artifact exists: {forbidden_path}')
+              check(not path.exists(),f'false owner decision artifact exists: {path}')
 
           for pattern in [r'sb_secret_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ']:
-            check(re.search(pattern,combined,re.I) is None,f'possible secret pattern {pattern}')
+              check(re.search(pattern,combined,re.I) is None,f'possible secret pattern {pattern}')
 
           if errors:
-            print('\n'.join('ERROR: '+x for x in errors));sys.exit(1)
-          print('Authoritative candidate-only owner-decision controls: OK')
+              print('\n'.join('ERROR: '+x for x in errors));sys.exit(1)
+          print('Final payment owner-decision and authority-event controls: OK')
           PY
       - name: Preserve public release hashes
         run: |
