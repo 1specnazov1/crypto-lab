@@ -1,0 +1,158 @@
+name: Validate v79 On-chain Lifecycle Hardening
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json'
+      - 'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
+      - '.github/workflows/v79-onchain-lifecycle-hardening-validation.yml'
+  pull_request:
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json'
+      - 'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
+      - '.github/workflows/v79-onchain-lifecycle-hardening-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-onchain-lifecycle-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate lifecycle contract
+        run: |
+          python - <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          root=pathlib.Path('.')
+          manifest_path=root/'docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json'
+          migration_path=root/'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
+          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
+          migration=migration_path.read_text(encoding='utf-8')
+          errors=[]
+
+          expected={
+            'schema_version':1,
+            'project_ref':'txhzxbizjpinowepfjkm',
+            'build':'7930',
+            'status':'applied_disabled_verified',
+            'activation_allowed':False,
+            'publication_allowed':False,
+            'stable_root_v78_sha':'4a278c891d37b3760ec1ac988690ea9ad587b24e',
+            'public_application_commit':'e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191',
+            'pwa_cache':'crypto-lab-v79-7930-auth1',
+          }
+          for key,value in expected.items():
+            if manifest.get(key)!=value:
+              errors.append(f'{key}: expected {value!r}, got {manifest.get(key)!r}')
+
+          decision=manifest.get('owner_decisions',{})
+          if decision.get('payment_rail')!='onchain_direct': errors.append('payment rail')
+          if decision.get('approved_networks')!=['TRON','BSC','SOLANA']: errors.append('approved networks')
+          if decision.get('network_activation_approved') is not False: errors.append('network activation boundary')
+          for key in ('settlement_asset_selected','pricing_selected','receiving_addresses_configured'):
+            if decision.get(key) is not False: errors.append(key)
+
+          mig=manifest.get('migration',{})
+          if mig.get('version')!='20260805091434': errors.append('migration version')
+          if mig.get('name')!='harden_crypto_onchain_observation_lifecycle': errors.append('migration name')
+          if mig.get('source')!=str(migration_path): errors.append('migration source')
+          if not re.fullmatch(r'[0-9a-f]{40}',str(mig.get('source_commit',''))): errors.append('migration source commit')
+
+          required_markers=[
+            'crypto_onchain_tx_claims',
+            'crypto_onchain_observation_evidence_unique_idx',
+            'crypto_onchain_finality_rank',
+            'crypto_onchain_activation_readiness',
+            'crypto_onchain_integrity_snapshot',
+            'crypto_onchain_adapter_activation_guard',
+            'service_record_crypto_onchain_observation',
+            'Transaction already claimed by another invoice',
+            'finality_regression',
+            'conflicting_transaction_observation',
+            'transaction_after_invoice_expiry',
+            "v_period_start:=greatest(now(),coalesce(v_existing_end,now()))",
+            "state='credited'",
+          ]
+          for marker in required_markers:
+            if marker not in migration: errors.append(f'missing marker {marker}')
+
+          controls=manifest.get('controls',{})
+          required_controls=[
+            'transaction_claim_registry','transaction_hash_cross_invoice_reuse_blocked',
+            'immutable_multi_observation_finality_history','duplicate_evidence_idempotent',
+            'finality_regression_forces_review','conflicting_transaction_observation_forces_review',
+            'post_expiry_transaction_forces_review','browser_cannot_set_paid',
+            'server_verified_finality_required','existing_paid_period_extended_not_shortened',
+            'direct_onchain_webhook_forbidden','direct_onchain_recurring_debit_forbidden',
+            'premature_checkout_activation_guarded'
+          ]
+          for key in required_controls:
+            if controls.get(key) is not True: errors.append(f'control {key}')
+
+          verification=manifest.get('verification',{})
+          for key in ('onchain_tables_without_rls','browser_table_grants','browser_service_function_execute_grants','claims','observations','invoices','billing_orders','receiving_addresses','pricing_rows'):
+            if verification.get(key)!=0: errors.append(f'verification {key}')
+          if verification.get('provider_desired_mode')!='disabled': errors.append('provider mode')
+          if verification.get('provider_lifecycle_status')!='draft': errors.append('provider lifecycle')
+          for key in ('checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled'):
+            if verification.get(key) is not False: errors.append(f'verification {key}')
+
+          combined=manifest_path.read_text(encoding='utf-8')+'\n'+migration
+          forbidden=[
+            r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
+            r'\bsb_secret_[A-Za-z0-9_-]{12,}',
+            r'\bsk_live_[A-Za-z0-9_-]+',
+            r'\bsk_test_[A-Za-z0-9_-]+',
+            r'\bwhsec_[A-Za-z0-9_-]+',
+            r'postgres(?:ql)?://[^\s]+:[^\s]+@',
+            r'\b(?:seed phrase|mnemonic)\s*:',
+          ]
+          for pattern in forbidden:
+            if re.search(pattern,combined,re.I): errors.append(f'forbidden material {pattern}')
+
+          if errors:
+            print('\n'.join('ERROR: '+e for e in errors))
+            sys.exit(1)
+          print('On-chain lifecycle hardening contract: OK')
+          PY
+
+      - name: Preserve stable v78 and v79 public assets
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
+          grep -F 'crypto-lab-v79-7930-auth1' v79/service-worker.js >/dev/null
+
+      - name: Confirm non-activating source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql').read_text()
+          assert "'activation',false" in text
+          assert "'network_activation',false" in text
+          assert "grant execute on function private.service_record_crypto_onchain_observation(uuid,jsonb) to service_role" in text
+          assert "revoke all on function private.service_record_crypto_onchain_observation(uuid,jsonb) from public,anon,authenticated" in text
+          print('Migration remains service-only and non-activating')
+          PY
