@@ -1,9 +1,9 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T20:49:00Z",
-  "status": "prepared_blocked_by_owner_boundary",
+  "updated_at": "2026-08-05T21:04:54Z",
+  "status": "rpc_ready_transfer_execution_blocked",
   "edge_function": {
     "slug": "crypto-lab-v79-chain-verifier",
     "version": 1,
@@ -24,6 +24,11 @@
       "version": "20260805204521",
       "name": "index_multichain_sandbox_profile_fk",
       "source": "supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql"
+    },
+    {
+      "version": "20260805210454",
+      "name": "configure_publicnode_ethereum_sepolia_sandbox",
+      "source": "supabase/migrations/20260805210454_configure_publicnode_ethereum_sepolia_sandbox.sql"
     }
   ],
   "profiles": [
@@ -33,9 +38,10 @@
       "network_name": "Sepolia",
       "chain_reference": "11155111",
       "provider": "ethereum_json_rpc",
-      "endpoint_secret_name": "ETHEREUM_SEPOLIA_RPC_URL",
-      "enabled": false,
-      "status": "external_input_required"
+      "provider_name": "PublicNode",
+      "public_endpoint": "https://ethereum-sepolia-rpc.publicnode.com",
+      "enabled": true,
+      "status": "ready"
     },
     {
       "network_code": "TRON",
@@ -71,9 +77,13 @@
     {
       "network_code": "ETHEREUM",
       "environment": "sandbox",
-      "healthy": false,
-      "error_code": "ENDPOINT_UNCONFIGURED",
-      "health_run_id": 1
+      "healthy": true,
+      "http_status": 200,
+      "chain_reference": "11155111",
+      "chain_reference_hex": "0xaa36a7",
+      "latest_block_reference": "0xae5c07",
+      "finality_reference": "0xae5bc1",
+      "health_run_id": 4
     },
     {
       "network_code": "TRON",
@@ -101,7 +111,7 @@
       "asset_code": "USDC",
       "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
       "expected_amount_base_units": "10000",
-      "status": "blocked_provider"
+      "status": "ready_for_funding"
     },
     {
       "network_code": "ETHEREUM",
@@ -132,6 +142,14 @@
       "status": "blocked_token_identifier"
     }
   ],
+  "fixture_testing": {
+    "uses_real_wallet": false,
+    "uses_real_transfer": false,
+    "uses_private_keys": false,
+    "ethereum_parser_fixture": true,
+    "tron_address_checksum_fixture": true,
+    "solana_parser_fixture": true
+  },
   "isolation": {
     "separate_from_billing": true,
     "billing_foreign_keys": 0,
@@ -141,7 +159,7 @@
     "immutable_sandbox_runs": true
   },
   "runtime_counts": {
-    "health_runs": 3,
+    "health_runs": 4,
     "sandbox_runs": 0,
     "production_invoices": 0,
     "production_claims": 0,
@@ -162,7 +180,6 @@
     "v79_published_over_v78": false
   },
   "remaining_external_inputs": [
-    "ETHEREUM_SEPOLIA_RPC_URL",
     "TESTNET_USDC_FUNDING_FOR_ETHEREUM_SEPOLIA",
     "TESTNET_USDC_FUNDING_FOR_SOLANA_DEVNET",
     "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK",
@@ -171,6 +188,7 @@
   "official_sources": {
     "ethereum_testnets": "https://ethereum.org/developers/docs/networks/",
     "ethereum_json_rpc": "https://ethereum.org/developers/docs/apis/json-rpc/",
+    "ethereum_publicnode_sepolia": "https://ethereum-sepolia.publicnode.com/",
     "tron_networks": "https://developers.tron.network/docs/connect-to-the-tron-network",
     "solana_clusters": "https://solana.com/docs/references/clusters",
     "circle_testnet_usdc": "https://developers.circle.com/stablecoins/usdc-contract-addresses"
