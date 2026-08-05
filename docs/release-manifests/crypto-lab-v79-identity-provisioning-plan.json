@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T08:35:00Z",
+  "mode": "preparation_only",
+  "activation_allowed": false,
+  "hosted_test_user_creation_allowed": false,
+  "test_email_delivery_allowed": false,
+  "production_credentials_present": false,
+  "turnstile": {
+    "provider": "cloudflare_turnstile",
+    "production_widget_creation_required": true,
+    "production_hostname": "1specnazov1.github.io",
+    "wildcard_hostname_allowed": false,
+    "site_key_public": true,
+    "secret_key_server_only": true,
+    "secret_key_repository_storage_forbidden": true,
+    "secret_key_log_storage_forbidden": true,
+    "siteverify_required": true,
+    "token_max_length": 2048,
+    "token_ttl_seconds": 300,
+    "token_single_use": true,
+    "validation_timeout_seconds": 10,
+    "idempotency_key_required": true,
+    "flows": [
+      {
+        "code": "registration",
+        "edge_slug": "crypto-lab-v79-register",
+        "edge_version": 3,
+        "feature_flag": "CRYPTO_PUBLIC_REGISTRATION_ENABLED",
+        "expected_action": "crypto_register",
+        "expected_hostname": "1specnazov1.github.io",
+        "enabled": false
+      },
+      {
+        "code": "recovery",
+        "edge_slug": "crypto-lab-v79-recover",
+        "edge_version": 2,
+        "feature_flag": "CRYPTO_PUBLIC_RECOVERY_ENABLED",
+        "expected_action": "crypto_recover",
+        "expected_hostname": "1specnazov1.github.io",
+        "enabled": false
+      }
+    ],
+    "test_environment": {
+      "official_dummy_keys_only": true,
+      "production_key_use_for_automation_forbidden": true,
+      "dummy_key_use_in_production_forbidden": true,
+      "isolated_environment_required": true
+    }
+  },
+  "real_admin": {
+    "assignment_allowed": false,
+    "synthetic_admin_forbidden": true,
+    "owned_email_required": true,
+    "confirmed_auth_user_required": true,
+    "exact_user_id_required": true,
+    "browser_role_write_forbidden": true,
+    "service_or_sql_protected_assignment_only": true,
+    "pre_assignment_checks": [
+      "AUTH_USER_EXISTS",
+      "EMAIL_CONFIRMED",
+      "PROFILE_EXISTS",
+      "SUBSCRIPTION_EXISTS",
+      "NO_EXISTING_ADMIN_CONFLICT",
+      "OWNER_DECISION_RECORDED"
+    ],
+    "post_assignment_checks": [
+      "ADMIN_PROFILE_ROLE_EXACT",
+      "ADMIN_RPC_ACCESS_GRANTED",
+      "ORDINARY_USER_ADMIN_RPC_DENIED",
+      "AUDIT_ENTRY_PRESENT",
+      "REVOCATION_PATH_TESTED"
+    ],
+    "revocation_required": true
+  },
+  "required_e2e_tests": [
+    "TURNSTILE_CONFIG_DISABLED_BY_DEFAULT",
+    "TURNSTILE_SUCCESS_TEST_KEY_NONPROD",
+    "TURNSTILE_FAILURE_TEST_KEY_NONPROD",
+    "TURNSTILE_DUPLICATE_TOKEN_NONPROD",
+    "TURNSTILE_MISSING_TOKEN",
+    "TURNSTILE_TOKEN_TOO_LONG",
+    "TURNSTILE_WRONG_ACTION",
+    "TURNSTILE_WRONG_HOSTNAME",
+    "TURNSTILE_SITEVERIFY_TIMEOUT",
+    "REGISTRATION_RATE_LIMIT",
+    "RECOVERY_RATE_LIMIT",
+    "REGISTRATION_HONEYPOT",
+    "RECOVERY_HONEYPOT",
+    "REGISTRATION_MAIL_ROLLBACK",
+    "RECOVERY_ENUMERATION_SAFE",
+    "NO_SECRET_IN_BROWSER_OR_LOGS",
+    "NO_HOSTED_TEST_USER_BEFORE_APPROVAL",
+    "REAL_ADMIN_EXACT_OWNED_USER_ONLY",
+    "ORDINARY_USER_ADMIN_DENIED",
+    "ADMIN_REVOCATION"
+  ],
+  "completion_rule": "TURNSTILE_CONFIG and REAL_ADMIN may become verified only after production credentials are installed through secret interfaces, an owned confirmed user is selected by the owner, every required E2E test has timestamped evidence, and registration/recovery remain disabled until the final activation decision."
+}
