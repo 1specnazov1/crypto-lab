@@ -1,0 +1,78 @@
+name: Validate v79 Release Manifest Contract
+
+on:
+  push:
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - '.github/workflows/v79-release-manifest-contract.yml'
+  pull_request:
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - '.github/workflows/v79-release-manifest-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate exact manifest contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,re,sys
+          path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          errors=[]
+          hex40=re.compile(r'^[0-9a-f]{40}$')
+          numeric_or_pending=re.compile(r'^(?:pending|[0-9]+)$')
+          required_top={'schema_version','project_ref','build','created_at','updated_at','stable_root','application','migrations','edge_functions','release_evidence','maintenance_evidence','boundaries','operational_hardening'}
+          unknown=set(manifest)-required_top
+          missing=required_top-set(manifest)
+          if unknown: errors.append(f'unknown top-level keys: {sorted(unknown)}')
+          if missing: errors.append(f'missing top-level keys: {sorted(missing)}')
+          if manifest.get('schema_version')!=1: errors.append('schema_version must be 1')
+          if manifest.get('project_ref')!='txhzxbizjpinowepfjkm': errors.append('project_ref mismatch')
+          if manifest.get('build')!='7930': errors.append('build mismatch')
+
+          stable=manifest.get('stable_root',{})
+          if set(stable)!={'path','sha'}: errors.append('stable_root keys must be path,sha')
+          if not hex40.fullmatch(str(stable.get('sha',''))): errors.append('stable_root.sha must be 40 lowercase hex')
+
+          app=manifest.get('application',{})
+          if set(app)!={'application_commit','evidence_commit','pwa_cache','assets'}: errors.append('application keys mismatch')
+          if app.get('application_commit')!='6be2e93d3933ef6339b059978e24af891ef1fa83': errors.append('application_commit mismatch')
+          if not hex40.fullmatch(str(app.get('evidence_commit',''))): errors.append('evidence_commit must be 40 lowercase hex')
+          assets=app.get('assets',[])
+          if not isinstance(assets,list) or not assets: errors.append('assets must be non-empty list')
+          for i,item in enumerate(assets if isinstance(assets,list) else []):
+              if set(item)!={'path','sha','marker'}: errors.append(f'asset[{i}] keys must be path,sha,marker')
+              if not hex40.fullmatch(str(item.get('sha',''))): errors.append(f'asset[{i}].sha invalid')
+              if not isinstance(item.get('marker'),str) or not item.get('marker'): errors.append(f'asset[{i}].marker missing')
+
+          seen=set()
+          for i,item in enumerate(manifest.get('migrations',[])):
+              allowed={'version','name','source','source_commit'}
+              if set(item)-allowed: errors.append(f'migration[{i}] unknown keys: {sorted(set(item)-allowed)}')
+              key=(item.get('version'),item.get('name'))
+              if key in seen: errors.append(f'duplicate migration {key}')
+              seen.add(key)
+              if not re.fullmatch(r'^[0-9]{14}$',str(item.get('version',''))): errors.append(f'migration[{i}].version invalid')
+              if item.get('source'):
+                  if not Path(item['source']).is_file(): errors.append(f'migration[{i}] source missing')
+                  if not hex40.fullmatch(str(item.get('source_commit',''))): errors.append(f'migration[{i}].source_commit invalid')
+
+          evidence=manifest.get('release_evidence',{})
+          required_evidence={'release_gate_run_id','maintenance_evidence_gate_run_id','browser_smoke_run_id','pages_run_id','technical_score','commercial_score'}
+          if set(evidence)!=required_evidence: errors.append('release_evidence keys mismatch')
+          for key in ['release_gate_run_id','maintenance_evidence_gate_run_id','browser_smoke_run_id','pages_run_id']:
+              if not numeric_or_pending.fullmatch(str(evidence.get(key,''))): errors.append(f'{key} invalid')
+
+          if errors:
+              print('\n'.join(f'ERROR: {e}' for e in errors));sys.exit(1)
+          print('v79 release manifest contract passed')
+          PY
