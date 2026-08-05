@@ -2,23 +2,21 @@
   "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T09:14:00Z",
-  "provider_candidate": "onchain_direct",
+  "updated_at": "2026-08-05T09:28:00Z",
   "mode": "disabled",
   "activation_allowed": false,
-  "candidate_networks": ["TRON", "BSC", "SOLANA"],
-  "owner_network_approval_recorded": false,
+  "owner_network_approval_recorded": true,
   "settlement_asset": "decision_required",
   "prerequisites": [
-    "PAYMENT_PROVIDER_RAIL",
-    "NETWORK_SELECTION",
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_TOKEN_ACCEPTANCE_AND_CONTRACT_VERIFICATION",
     "BASIC_PRO_CRYPTO_PRICING",
     "PUBLIC_RECEIVING_ADDRESSES_FOR_SELECTED_NETWORKS",
     "CHAIN_VERIFIER_CONFIGURATION",
     "REFUND_POLICY",
-    "REAL_ADMIN"
+    "REAL_ADMIN",
+    "THREE_PUBLIC_RECEIVING_ADDRESSES",
+    "WALLETCONNECT_PROJECT_ID"
   ],
   "invariants": {
     "browser_never_sets_paid_status": true,
@@ -39,132 +37,256 @@
     "refund_requires_audit": true,
     "automatic_wallet_debit": false
   },
-  "network_finality_candidates": {
-    "TRON": {"required_state": "solidified", "minimum_confirmations": 19},
-    "BSC": {"required_state": "finalized", "minimum_confirmations": 2},
-    "SOLANA": {"required_state": "finalized", "minimum_confirmations": 0}
-  },
   "scenarios": [
     {
       "code": "INVOICE_CREATED_EACH_NETWORK",
       "required": true,
-      "expected": ["unique_invoice", "correct_network", "correct_token_identifier", "correct_receiving_address", "bounded_expiry", "unique_amount_discriminator"]
+      "expected": [
+        "unique_invoice",
+        "correct_network",
+        "correct_token_identifier",
+        "correct_receiving_address",
+        "bounded_expiry",
+        "unique_amount_discriminator"
+      ]
     },
     {
       "code": "TRUST_WALLET_OR_WALLETCONNECT_REQUEST",
       "required": true,
-      "expected": ["user_confirmation_required", "correct_chain", "correct_token", "correct_recipient", "exact_amount", "no_private_key_access"]
+      "expected": [
+        "user_confirmation_required",
+        "correct_chain",
+        "correct_token",
+        "correct_recipient",
+        "exact_amount",
+        "no_private_key_access"
+      ]
     },
     {
       "code": "PAYMENT_SUCCESS_FINALIZED",
       "required": true,
-      "expected": ["final_chain_observation", "order_paid", "subscription_active", "period_30_days", "single_entitlement_change"]
+      "expected": [
+        "final_chain_observation",
+        "order_paid",
+        "subscription_active",
+        "period_30_days",
+        "single_entitlement_change"
+      ]
     },
     {
       "code": "USER_ABANDONED_PAYMENT",
       "required": true,
-      "expected": ["order_remains_pending_until_expiry", "no_entitlement", "invoice_expires"]
+      "expected": [
+        "order_remains_pending_until_expiry",
+        "no_entitlement",
+        "invoice_expires"
+      ]
     },
     {
       "code": "WRONG_NETWORK",
       "required": true,
-      "expected": ["no_matching_invoice", "no_entitlement", "review_or_user_guidance"]
+      "expected": [
+        "no_matching_invoice",
+        "no_entitlement",
+        "review_or_user_guidance"
+      ]
     },
     {
       "code": "WRONG_ASSET_OR_CONTRACT",
       "required": true,
-      "expected": ["wrong_asset_status", "no_entitlement", "exact_contract_evidence"]
+      "expected": [
+        "wrong_asset_status",
+        "no_entitlement",
+        "exact_contract_evidence"
+      ]
     },
     {
       "code": "WRONG_RECIPIENT",
       "required": true,
-      "expected": ["wrong_recipient_status", "no_entitlement"]
+      "expected": [
+        "wrong_recipient_status",
+        "no_entitlement"
+      ]
     },
     {
       "code": "UNDERPAYMENT",
       "required": true,
-      "expected": ["underpaid_status", "no_automatic_entitlement", "manual_resolution_available"]
+      "expected": [
+        "underpaid_status",
+        "no_automatic_entitlement",
+        "manual_resolution_available"
+      ]
     },
     {
       "code": "OVERPAYMENT",
       "required": true,
-      "expected": ["overpaid_status", "no_silent_loss", "manual_refund_or_credit_review"]
+      "expected": [
+        "overpaid_status",
+        "no_silent_loss",
+        "manual_refund_or_credit_review"
+      ]
     },
     {
       "code": "UNFINALIZED_TRANSACTION",
       "required": true,
-      "expected": ["confirming_status", "no_entitlement_before_finality", "later_recheck"]
+      "expected": [
+        "confirming_status",
+        "no_entitlement_before_finality",
+        "later_recheck"
+      ]
     },
     {
       "code": "FAILED_OR_REVERTED_TRANSACTION",
       "required": true,
-      "expected": ["failed_status", "no_entitlement"]
+      "expected": [
+        "failed_status",
+        "no_entitlement"
+      ]
     },
     {
       "code": "DUPLICATE_TRANSACTION_HASH",
       "required": true,
-      "expected": ["second_invoice_claim_rejected", "one_billing_event", "one_entitlement_change"]
+      "expected": [
+        "second_invoice_claim_rejected",
+        "one_billing_event",
+        "one_entitlement_change"
+      ]
     },
     {
       "code": "DUPLICATE_CHAIN_OBSERVATION",
       "required": true,
-      "expected": ["idempotent_processing", "immutable_observation", "no_duplicate_entitlement"]
+      "expected": [
+        "idempotent_processing",
+        "immutable_observation",
+        "no_duplicate_entitlement"
+      ]
     },
     {
       "code": "LATE_PAYMENT_AFTER_EXPIRY",
       "required": true,
-      "expected": ["review_required", "no_silent_entitlement", "operator_resolution"]
+      "expected": [
+        "review_required",
+        "no_silent_entitlement",
+        "operator_resolution"
+      ]
     },
     {
       "code": "REORG_OR_FINALITY_REGRESSION",
       "required": true,
-      "expected": ["no_credit_before_required_finality", "inconsistent_verifier_evidence_quarantined", "incident_or_review"]
+      "expected": [
+        "no_credit_before_required_finality",
+        "inconsistent_verifier_evidence_quarantined",
+        "incident_or_review"
+      ]
     },
     {
       "code": "PRICE_QUOTE_EXPIRED",
       "required": true,
-      "expected": ["invoice_creation_rejected_or_requoted", "no_stale_conversion"]
+      "expected": [
+        "invoice_creation_rejected_or_requoted",
+        "no_stale_conversion"
+      ]
     },
     {
       "code": "RECEIVING_ADDRESS_NOT_VERIFIED",
       "required": true,
-      "expected": ["invoice_creation_rejected", "no_checkout"]
+      "expected": [
+        "invoice_creation_rejected",
+        "no_checkout"
+      ]
     },
     {
       "code": "TOKEN_CONTRACT_NOT_VERIFIED",
       "required": true,
-      "expected": ["network_asset_disabled", "invoice_creation_rejected"]
+      "expected": [
+        "network_asset_disabled",
+        "invoice_creation_rejected"
+      ]
     },
     {
       "code": "REPEAT_PURCHASE_EXTENDS_ACCESS",
       "required": true,
-      "expected": ["new_verified_payment", "single_new_period", "no_automatic_wallet_debit"]
+      "expected": [
+        "new_verified_payment",
+        "single_new_period",
+        "no_automatic_wallet_debit"
+      ]
     },
     {
       "code": "FULL_REFUND",
       "required": true,
-      "expected": ["outbound_refund_confirmed_separately", "refund_event_recorded", "entitlement_reviewed", "audit_recorded"]
+      "expected": [
+        "outbound_refund_confirmed_separately",
+        "refund_event_recorded",
+        "entitlement_reviewed",
+        "audit_recorded"
+      ]
     },
     {
       "code": "PARTIAL_REFUND",
       "required": true,
-      "expected": ["amount_bounded", "outbound_refund_confirmed_separately", "order_totals_reconciled", "audit_recorded"]
+      "expected": [
+        "amount_bounded",
+        "outbound_refund_confirmed_separately",
+        "order_totals_reconciled",
+        "audit_recorded"
+      ]
     },
     {
       "code": "DISPUTED_OR_UNAUTHORIZED_PAYMENT",
       "required": true,
-      "expected": ["high_severity_review", "access_policy_applied", "no_automatic_destructive_action_without_evidence"]
+      "expected": [
+        "high_severity_review",
+        "access_policy_applied",
+        "no_automatic_destructive_action_without_evidence"
+      ]
     },
     {
       "code": "VERIFIER_UNAVAILABLE",
       "required": true,
-      "expected": ["payment_remains_pending", "no_entitlement", "bounded_retry", "no_false_failure"]
+      "expected": [
+        "payment_remains_pending",
+        "no_entitlement",
+        "bounded_retry",
+        "no_false_failure"
+      ]
     },
     {
       "code": "MALFORMED_OR_SECRET_BEARING_OBSERVATION",
       "required": true,
-      "expected": ["request_rejected", "no_state_change", "no_secret_persisted"]
+      "expected": [
+        "request_rejected",
+        "no_state_change",
+        "no_secret_persisted"
+      ]
     }
   ],
-  "completion_rule": "Every required scenario must have timestamped chain evidence or an isolated deterministic verifier fixture, normalized billing evidence, database assertions, zero persistent test users, zero real-value test transfers unless explicitly authorized, and a zero-secret test log before PAYMENT_SANDBOX_E2E can be verified."
+  "completion_rule": "Every required scenario must have timestamped chain evidence or an isolated deterministic verifier fixture, normalized billing evidence, database assertions, zero persistent test users, zero real-value test transfers unless explicitly authorized, and a zero-secret test log before PAYMENT_SANDBOX_E2E can be verified.",
+  "provider": "onchain_direct",
+  "approved_networks": [
+    "TRON",
+    "BSC",
+    "SOLANA"
+  ],
+  "network_finality": {
+    "TRON": {
+      "required_state": "solidified",
+      "minimum_confirmations": 19
+    },
+    "BSC": {
+      "required_state": "finalized",
+      "minimum_confirmations": 2
+    },
+    "SOLANA": {
+      "required_state": "finalized",
+      "minimum_confirmations": 0
+    }
+  },
+  "decision_provenance": {
+    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "network_set_approved": true,
+    "network_activation_authorized": false,
+    "migration_version": "20260805092421"
+  }
 }

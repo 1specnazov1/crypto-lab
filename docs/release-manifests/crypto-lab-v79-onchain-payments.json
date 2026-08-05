@@ -3,12 +3,9 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-05T08:58:00Z",
-  "updated_at": "2026-08-05T09:22:00Z",
-  "provider_candidate": "onchain_direct",
-  "wallet_client_candidate": "trust_wallet_walletconnect",
-  "status": "disabled_pending_decisions",
-  "candidate_networks": ["TRON", "BSC", "SOLANA"],
-  "owner_network_approval_recorded": false,
+  "updated_at": "2026-08-05T09:28:00Z",
+  "status": "disabled_pending_external_inputs",
+  "owner_network_approval_recorded": true,
   "networks": [
     {
       "code": "TRON",
@@ -17,7 +14,7 @@
       "fee_asset": "TRX",
       "finality_mode": "solidified",
       "required_confirmations": 19,
-      "approved_by_owner": false,
+      "approved_by_owner": true,
       "active": false
     },
     {
@@ -27,7 +24,7 @@
       "fee_asset": "BNB",
       "finality_mode": "finalized",
       "required_confirmations": 2,
-      "approved_by_owner": false,
+      "approved_by_owner": true,
       "active": false
     },
     {
@@ -37,7 +34,7 @@
       "fee_asset": "SOL",
       "finality_mode": "finalized",
       "required_confirmations": 0,
-      "approved_by_owner": false,
+      "approved_by_owner": true,
       "active": false
     }
   ],
@@ -62,7 +59,10 @@
     }
   },
   "pricing": {
-    "supported_modes": ["fixed_asset", "fiat_pegged"],
+    "supported_modes": [
+      "fixed_asset",
+      "fiat_pegged"
+    ],
     "basic_configured": false,
     "pro_configured": false,
     "invoice_ttl_default_seconds": 1800,
@@ -100,14 +100,15 @@
     "adapter_activation_guarded": true
   },
   "decision_provenance": {
-    "fabricated_approval_detected": true,
-    "historical_inaccurate_migration_version": "20260805091540",
-    "corrective_migration_version": "20260805091915",
-    "timestamp_cleanup_migration_version": "20260805092040",
-    "owner_decision_authorization_setting": "app.crypto_owner_decision_authorized",
-    "network_approval_guard_installed": true,
-    "launch_requirement_guard_installed": true,
-    "owner_approval_recorded": false
+    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "decision_text_exact": "Три сети утверждаю.",
+    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "source_channel": "owner_chat",
+    "original_message_timestamp_known": false,
+    "database_record_migration_version": "20260805092421",
+    "provenance_guard_migration_version": "20260805091915",
+    "network_approval_recorded": true,
+    "network_activation_authorized": false
   },
   "runtime_state_expected": {
     "active_network_count": 0,
@@ -173,19 +174,34 @@
       "name": "clear_fabricated_onchain_owner_decision_timestamp",
       "source": "supabase/migrations/20260805092040_clear_fabricated_onchain_owner_decision_timestamp.sql",
       "source_commit": "f94bff87ec71cf9bd1d93b7ab5261602f1a85158"
+    },
+    {
+      "version": "20260805092421",
+      "name": "record_explicit_owner_three_network_decision",
+      "source": "supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql",
+      "source_commit": "46c45e7013eaf48cd386883a2c577d5b2d6e802f"
     }
   ],
   "required_decisions": [
-    "PAYMENT_PROVIDER_RAIL",
-    "NETWORK_SELECTION",
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
     "BASIC_PRICING_MODE_AND_AMOUNT",
     "PRO_PRICING_MODE_AND_AMOUNT",
     "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_SELECTED_NETWORK",
     "RPC_OR_INDEXER_CONFIGURATION",
-    "CONFIRMATION_AND_FINALITY_POLICY"
+    "CONFIRMATION_AND_FINALITY_POLICY",
+    "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_APPROVED_NETWORK",
+    "WALLETCONNECT_PROJECT_ID",
+    "CONTROLLED_SANDBOX_EVIDENCE",
+    "PAYMENT_ACTIVATION_APPROVAL"
   ],
   "activation_allowed": false,
-  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "provider": "onchain_direct",
+  "wallet_client": "trust_wallet_walletconnect",
+  "owner_approved_networks": [
+    "TRON",
+    "BSC",
+    "SOLANA"
+  ]
 }

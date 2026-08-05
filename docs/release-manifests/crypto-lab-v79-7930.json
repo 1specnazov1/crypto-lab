@@ -224,9 +224,27 @@
       "name": "record_owner_approved_three_onchain_networks",
       "source": "supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql",
       "source_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350"
+    },
+    {
+      "version": "20260805091915",
+      "name": "guard_onchain_owner_decision_provenance",
+      "source": "supabase/migrations/20260805091915_guard_onchain_owner_decision_provenance.sql",
+      "source_commit": "10427e70736ec2113df2f5134e758a4a988daf78"
+    },
+    {
+      "version": "20260805092040",
+      "name": "clear_fabricated_onchain_owner_decision_timestamp",
+      "source": "supabase/migrations/20260805092040_clear_fabricated_onchain_owner_decision_timestamp.sql",
+      "source_commit": "f94bff87ec71cf9bd1d93b7ab5261602f1a85158"
+    },
+    {
+      "version": "20260805092421",
+      "name": "record_explicit_owner_three_network_decision",
+      "source": "supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql",
+      "source_commit": "46c45e7013eaf48cd386883a2c577d5b2d6e802f"
     }
   ],
-  "updated_at": "2026-08-05T09:22:00Z",
+  "updated_at": "2026-08-05T09:28:00Z",
   "application": {
     "assets": [
       {
@@ -276,7 +294,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "cafb9715b7ff6d30f7210d18812520c1d060e802",
+    "evidence_commit": "afdd6ae483e3981d8ad4ba83b0d6a309679cbcbd",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -520,6 +538,10 @@
     "onchain_network_approval_recorded": true,
     "onchain_lifecycle_manifest": "docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json",
     "onchain_lifecycle_integrity_checks": 11,
-    "onchain_lifecycle_integrity_state": "healthy"
+    "onchain_lifecycle_integrity_state": "healthy",
+    "onchain_owner_decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "onchain_owner_decision_hash": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "onchain_owner_decision_manifest": "docs/release-manifests/crypto-lab-v79-owner-network-decision.json",
+    "onchain_owner_decision_original_timestamp_known": false
   }
 }
