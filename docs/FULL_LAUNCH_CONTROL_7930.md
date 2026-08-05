@@ -59,10 +59,13 @@ The owner is asked only when a decision becomes actionable. Sensitive values mus
 - migration `20260805061231` — registry, dependency snapshot, safe update service, admin read wrapper and audit;
 - migration `20260805061540` — dynamic integration with launch readiness;
 - migration `20260805061806` — explicit restrictive RLS deny policy;
+- migration `20260805062632` — checkpoint sequence repair and permanent synchronization trigger;
 - secret-key rejection probe: passed, no row changed;
 - ordinary-user access probe: denied with SQLSTATE 42501;
 - Security Advisor: zero findings after explicit policy;
 - launch-control manifest requirements: 16 unique codes, total weight 100;
-- GitHub Launch Control gate: run `30981154314`, success;
-- GitHub Pages: run `30981153904`, success;
+- checkpoint sequence restored to the current maximum ID and guarded against future explicit-ID drift;
+- initial GitHub Launch Control gate: run `30981154314`, success;
+- final GitHub Launch Control gate: run `30981512665`, success;
+- final GitHub Pages: run `30981511839`, success;
 - stable v78 root SHA remains `4a278c891d37b3760ec1ac988690ea9ad587b24e`.
