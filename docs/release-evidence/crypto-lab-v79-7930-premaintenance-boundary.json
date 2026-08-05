@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "build": "7930",
+  "recorded_at": "2026-08-05T02:54:00Z",
+  "stable_v78_root_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
+  "manifest_repair_commit": "ae43b5526b04a17f7b8471cdc3d319b756adb4c0",
+  "maintenance_hardening": {
+    "failure_evidence_commit_boundary": {
+      "migration_version": "20260805021929",
+      "source_commit": "cddddb4319f2e3c9d4240f6e7eac7b8462471736"
+    },
+    "top_level_do_transaction_boundary": {
+      "migration_version": "20260805023127",
+      "source_commit": "4098af01ec67c03d3706c13ac4aae945af982631",
+      "security_advisor_lints": 0
+    },
+    "complete_counter_contract": {
+      "migration_version": "20260805024550",
+      "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094",
+      "required_counter_keys": 14
+    }
+  },
+  "pre_threshold_state": {
+    "protected_checkpoint": 25,
+    "checkpoints_after_25": 0,
+    "maintenance_runs_after_threshold": 0,
+    "maintenance_seals": 0,
+    "manual_maintenance_started": false
+  },
+  "prior_validation": {
+    "candidate_general_gate": "30969991934",
+    "candidate_maintenance_gate": "30969991940",
+    "candidate_pages": "30969991488",
+    "post_manifest_general_gate": "30970271371",
+    "post_manifest_maintenance_gate": "30970271389",
+    "post_manifest_pages": "30970270777"
+  }
+}
