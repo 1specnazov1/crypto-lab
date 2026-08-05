@@ -1,8 +1,8 @@
 {
-  "schema_version": 13,
+  "schema_version": 14,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T18:51:55Z",
+  "updated_at": "2026-08-05T19:19:17Z",
   "provider": "onchain_direct",
   "wallet_client": "trust_wallet_walletconnect",
   "status": "disabled_pricing_approved_preactivation",
@@ -34,13 +34,17 @@
     "source_channel": "owner_chat"
   },
   "pricing_decision": {
-    "decision_code": "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING",
-    "decision_hash_sha256": "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0",
-    "decision_scope": "pricing_selection_only",
+    "decision_code": "ONCHAIN_PRO_USD_49_MONTHLY_PRICING_UPDATE",
+    "decision_text_exact": "PRO — $40/месяц - замени на PRO — $49/месяц",
+    "decision_hash_sha256": "94518ffc701c792338d1a259594674d3fad52f4fc071478045e4488b4da8e61c",
+    "decision_scope": "pricing_update_only",
     "currency": "USD",
     "billing_interval": "month",
     "basic_amount_minor": 2000,
-    "pro_amount_minor": 4000,
+    "previous_pro_amount_minor": 4000,
+    "pro_amount_minor": 4900,
+    "supersedes_decision_code": "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING",
+    "supersedes_decision_hash_sha256": "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0",
     "payment_activation_authorized": false,
     "pricing_activation_authorized": false,
     "active": true,
@@ -146,9 +150,9 @@
     "billing_interval": "month",
     "pricing_mode": "fiat_pegged",
     "basic_amount_minor": 2000,
-    "pro_amount_minor": 4000,
+    "pro_amount_minor": 4900,
     "basic_display": "$20/month",
-    "pro_display": "$40/month",
+    "pro_display": "$49/month",
     "approved_row_count": 4,
     "active_row_count": 0,
     "obsolete_uah_rows_removed": true,
@@ -206,8 +210,8 @@
     "automatic_wallet_debit": false
   },
   "database": {
-    "active_owner_decision_records": 2,
-    "effective_authority_events": 2,
+    "active_owner_decision_records": 3,
+    "effective_authority_events": 3,
     "multi_asset_selection_supported": true,
     "selected_asset_count": 2,
     "pricing_activation_denied_constraint": true,
@@ -266,6 +270,11 @@
       "version": "20260805185155",
       "name": "record_owner_basic_pro_usd_monthly_pricing",
       "source": "supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql"
+    },
+    {
+      "version": "20260805191917",
+      "name": "update_owner_pro_usd_monthly_price_to_49",
+      "source": "supabase/migrations/20260805191917_update_owner_pro_usd_monthly_price_to_49.sql"
     }
   ],
   "pricing_manifest": "docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json",

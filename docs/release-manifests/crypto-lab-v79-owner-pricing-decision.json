@@ -1,15 +1,21 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T18:51:55Z",
-  "decision_code": "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING",
-  "decision_text_exact": "BASIC — 20 грн/месяц;\nPRO — 40 грн/месяц - внеси изменения для крипто лаб пиши в долларах. И напиши для мен ниже кратко по пунктам что включают в себя эти тарифы",
-  "decision_hash_sha256": "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0",
+  "updated_at": "2026-08-05T19:19:17Z",
+  "decision_code": "ONCHAIN_PRO_USD_49_MONTHLY_PRICING_UPDATE",
+  "decision_text_exact": "PRO — $40/месяц - замени на PRO — $49/месяц",
+  "decision_hash_sha256": "94518ffc701c792338d1a259594674d3fad52f4fc071478045e4488b4da8e61c",
   "source_channel": "owner_chat",
-  "decision_scope": "pricing_selection_only",
+  "decision_scope": "pricing_update_only",
   "currency": "USD",
   "billing_interval": "month",
+  "supersedes": {
+    "decision_code": "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING",
+    "decision_hash_sha256": "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0",
+    "previous_pro_amount_minor": 4000,
+    "previous_pro_display": "$40/month"
+  },
   "plans": [
     {
       "plan": "BASIC",
@@ -32,8 +38,8 @@
     },
     {
       "plan": "PRO",
-      "amount_minor": 4000,
-      "display": "$40/month",
+      "amount_minor": 4900,
+      "display": "$49/month",
       "active": false,
       "limits": {
         "daily_ai_requests": -1,
@@ -62,14 +68,15 @@
   "checkout_enabled": false,
   "publication_allowed": false,
   "migration": {
-    "version": "20260805185155",
-    "name": "record_owner_basic_pro_usd_monthly_pricing",
-    "source": "supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql"
+    "version": "20260805191917",
+    "name": "update_owner_pro_usd_monthly_price_to_49",
+    "source": "supabase/migrations/20260805191917_update_owner_pro_usd_monthly_price_to_49.sql"
   },
   "ui": {
     "pricing_overlay": "v79/pricing-overlay.js",
     "shows_approved_inactive_prices": true,
-    "payment_inactive_notice": true
+    "payment_inactive_notice": true,
+    "reads_price_from_database": true
   },
   "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 }

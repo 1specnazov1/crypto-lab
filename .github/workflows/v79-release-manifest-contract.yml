@@ -40,17 +40,17 @@ jobs:
             seen.add(key)
             if item.get('source'):
               assert Path(item['source']).is_file(),item['source']
-          assert onchain['schema_version']==13
+          assert onchain['schema_version']==14
           assert onchain['authoritative_migration']['version']=='20260805180435'
           assert [x['version'] for x in onchain['preparation_migrations']]==[
-            '20260805183433','20260805183530','20260805185155'
+            '20260805183433','20260805183530','20260805185155','20260805191917'
           ]
           assert all(Path(x['source']).is_file() for x in onchain['preparation_migrations'])
           assert onchain['approved_networks']==['ETHEREUM','TRON','SOLANA']
           assert onchain['selected_assets']==['USDT','USDC']
           assert onchain['pricing']['currency']=='USD'
           assert onchain['pricing']['basic_amount_minor']==2000
-          assert onchain['pricing']['pro_amount_minor']==4000
+          assert onchain['pricing']['pro_amount_minor']==4900
           assert onchain['pricing']['owner_approved'] is True
           assert onchain['pricing']['active_row_count']==0
           runtime=onchain['runtime_state']
@@ -61,8 +61,8 @@ jobs:
           assert runtime['configuration_ready'] is False and runtime['activation_ready'] is False
           assert onchain['activation_allowed'] is False and onchain['publication_allowed'] is False
           assert owner['decision_hash_sha256']=='df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750'
-          assert pricing['decision_hash_sha256']=='db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0'
-          assert [x['amount_minor'] for x in pricing['plans']]==[2000,4000]
+          assert pricing['decision_hash_sha256']=='94518ffc701c792338d1a259594674d3fad52f4fc071478045e4488b4da8e61c'
+          assert [x['amount_minor'] for x in pricing['plans']]==[2000,4900]
           assert all(x['active'] is False for x in pricing['plans'])
-          print('Release contract and owner-approved inactive USD pricing: OK')
+          print('Release contract and owner-approved inactive BASIC $20 / PRO $49 pricing: OK')
           PY

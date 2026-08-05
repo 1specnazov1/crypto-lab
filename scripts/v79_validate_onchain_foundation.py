@@ -6,8 +6,11 @@ from pathlib import Path
 NETWORK_DECISION = "ONCHAIN_ETHEREUM_TRON_SOLANA_USDT_USDC_SELECTION"
 NETWORK_TEXT = "USDT, USDC утверждаю для Ethereum TRON и Solana. Активацию платежей не разрешаю."
 NETWORK_HASH = "df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750"
-PRICING_DECISION = "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING"
-PRICING_HASH = "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0"
+PRICING_DECISION = "ONCHAIN_PRO_USD_49_MONTHLY_PRICING_UPDATE"
+PRICING_TEXT = "PRO — $40/месяц - замени на PRO — $49/месяц"
+PRICING_HASH = "94518ffc701c792338d1a259594674d3fad52f4fc071478045e4488b4da8e61c"
+BASE_PRICING_DECISION = "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING"
+BASE_PRICING_HASH = "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0"
 NETWORKS = ["ETHEREUM", "TRON", "SOLANA"]
 ASSETS = ["USDT", "USDC"]
 V78_SHA = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
@@ -15,7 +18,8 @@ V78_SHA = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 OWNER_MIGRATION = "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql"
 PREP_MIGRATION = "supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql"
 INDEX_MIGRATION = "supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql"
-PRICING_MIGRATION = "supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql"
+BASE_PRICING_MIGRATION = "supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql"
+PRICING_MIGRATION = "supabase/migrations/20260805191917_update_owner_pro_usd_monthly_price_to_49.sql"
 PRICING_MANIFEST = "docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json"
 
 errors: list[str] = []
@@ -39,13 +43,14 @@ release = load("docs/release-manifests/crypto-lab-v79-7930.json")
 owner_sql = Path(OWNER_MIGRATION).read_text(encoding="utf-8")
 prep_sql = Path(PREP_MIGRATION).read_text(encoding="utf-8")
 index_sql = Path(INDEX_MIGRATION).read_text(encoding="utf-8")
+base_pricing_sql = Path(BASE_PRICING_MIGRATION).read_text(encoding="utf-8")
 pricing_sql = Path(PRICING_MIGRATION).read_text(encoding="utf-8")
 extension_js = Path("v79/commercial-extension.js").read_text(encoding="utf-8")
 loader_js = Path("v79/commercial.js").read_text(encoding="utf-8")
 core_js = Path("v79/commercial-core.js").read_text(encoding="utf-8")
 overlay_js = Path("v79/pricing-overlay.js").read_text(encoding="utf-8")
 
-check(onchain["schema_version"] == 13, "on-chain manifest schema")
+check(onchain["schema_version"] == 14, "on-chain manifest schema")
 check(onchain["project_ref"] == "txhzxbizjpinowepfjkm" and onchain["build"] == "7930", "project/build")
 check(onchain["approved_networks"] == NETWORKS, "approved networks")
 check(onchain["selected_assets"] == ASSETS, "selected assets")
@@ -60,9 +65,13 @@ check(network_decision["payment_activation_authorized"] is False, "network activ
 
 pricing_decision = onchain["pricing_decision"]
 check(pricing_decision["decision_code"] == PRICING_DECISION, "pricing decision code")
+check(pricing_decision["decision_text_exact"] == PRICING_TEXT, "pricing decision text")
 check(pricing_decision["decision_hash_sha256"] == PRICING_HASH, "pricing decision hash")
+check(pricing_decision["supersedes_decision_code"] == BASE_PRICING_DECISION, "pricing supersession code")
+check(pricing_decision["supersedes_decision_hash_sha256"] == BASE_PRICING_HASH, "pricing supersession hash")
 check(pricing_decision["currency"] == "USD" and pricing_decision["billing_interval"] == "month", "pricing units")
-check(pricing_decision["basic_amount_minor"] == 2000 and pricing_decision["pro_amount_minor"] == 4000, "pricing amounts")
+check(pricing_decision["basic_amount_minor"] == 2000 and pricing_decision["pro_amount_minor"] == 4900, "pricing amounts")
+check(pricing_decision["previous_pro_amount_minor"] == 4000, "previous PRO amount")
 check(pricing_decision["payment_activation_authorized"] is False, "pricing payment activation denial")
 check(pricing_decision["pricing_activation_authorized"] is False, "pricing activation denial")
 
@@ -92,8 +101,8 @@ check(tron_usdc["token_identifier"] is None and tron_usdc["enabled"] is False, "
 price = onchain["pricing"]
 check(price["owner_approved"] is True and price["activation_authorized"] is False, "approved inactive pricing")
 check(price["currency"] == "USD" and price["billing_interval"] == "month", "approved pricing units")
-check(price["basic_amount_minor"] == 2000 and price["pro_amount_minor"] == 4000, "approved pricing amounts")
-check(price["basic_display"] == "$20/month" and price["pro_display"] == "$40/month", "pricing display")
+check(price["basic_amount_minor"] == 2000 and price["pro_amount_minor"] == 4900, "approved pricing amounts")
+check(price["basic_display"] == "$20/month" and price["pro_display"] == "$49/month", "pricing display")
 check(price["approved_row_count"] == 4 and price["active_row_count"] == 0, "approved inactive price rows")
 check(price["obsolete_uah_rows_removed"] is True, "obsolete UAH removal")
 
@@ -118,8 +127,12 @@ for key in ["checkout_enabled", "webhook_enabled", "recurring_enabled", "refunds
 
 check(owner["decision_code"] == NETWORK_DECISION, "owner network decision code")
 check(owner["decision_text_exact"] == NETWORK_TEXT and owner["decision_hash_sha256"] == NETWORK_HASH, "owner network authority")
+check(pricing["schema_version"] == 2, "pricing manifest schema")
 check(pricing["decision_code"] == PRICING_DECISION and pricing["decision_hash_sha256"] == PRICING_HASH, "pricing authority")
-check([item["amount_minor"] for item in pricing["plans"]] == [2000, 4000], "pricing manifest amounts")
+check(pricing["decision_text_exact"] == PRICING_TEXT, "pricing manifest text")
+check(pricing["supersedes"]["decision_code"] == BASE_PRICING_DECISION, "pricing manifest supersession")
+check([item["amount_minor"] for item in pricing["plans"]] == [2000, 4900], "pricing manifest amounts")
+check([item["display"] for item in pricing["plans"]] == ["$20/month", "$49/month"], "pricing manifest displays")
 check(all(item["active"] is False for item in pricing["plans"]), "pricing manifest inactive")
 check(pricing["payment_activation_authorized"] is False and pricing["checkout_enabled"] is False, "pricing manifest fail-closed")
 
@@ -129,16 +142,23 @@ check(matrix["scenario_count"] == 35, "matrix scenario count")
 codes = [item["code"] for item in matrix["scenarios"]]
 check(len(codes) == len(set(codes)) == 35, "matrix scenario uniqueness")
 
-for path in [OWNER_MIGRATION, PREP_MIGRATION, INDEX_MIGRATION, PRICING_MIGRATION, PRICING_MANIFEST, "v79/commercial-core.js", "v79/pricing-overlay.js"]:
+required = [
+    OWNER_MIGRATION, PREP_MIGRATION, INDEX_MIGRATION, BASE_PRICING_MIGRATION,
+    PRICING_MIGRATION, PRICING_MANIFEST, "v79/commercial-core.js", "v79/pricing-overlay.js"
+]
+for path in required:
     check(Path(path).is_file(), f"required file {path}")
+
 for marker in [NETWORK_TEXT, NETWORK_HASH, NETWORK_DECISION]:
     check(marker in owner_sql, f"owner migration marker {marker}")
 for marker in ["service_create_crypto_onchain_invoice", "p_asset_code text", "crypto_validate_onchain_tx_hash", "ONCHAIN_ASSET_ROUTING"]:
     check(marker in prep_sql, f"prep migration marker {marker}")
 for marker in ["crypto_onchain_fx_quotes_asset_code_idx", "crypto_onchain_tx_observations_network_asset_idx"]:
     check(marker in index_sql, f"index migration marker {marker}")
-for marker in [PRICING_DECISION, PRICING_HASH, "('BASIC','USD','month',2000", "('PRO','USD','month',4000", "crypto_onchain_owner_usd_pricing_check"]:
-    check(marker in pricing_sql, f"pricing migration marker {marker}")
+for marker in [BASE_PRICING_DECISION, BASE_PRICING_HASH, "('BASIC','USD','month',2000", "('PRO','USD','month',4000"]:
+    check(marker in base_pricing_sql, f"base pricing migration marker {marker}")
+for marker in [PRICING_DECISION, PRICING_HASH, "amount_minor=4900", "accounting_amount_minor=4900", "crypto_onchain_owner_usd_pricing_check"]:
+    check(marker in pricing_sql, f"pricing update migration marker {marker}")
 
 check("const BUILD='7930'" in extension_js, "commercial extension build")
 check("protectedAuthGatewayScript" in extension_js, "commercial extension auth marker")
@@ -148,7 +168,7 @@ check("const ENDPOINT=" in core_js and "commercialPlans" in core_js, "commercial
 for marker in ["get_my_crypto_commercial_state", "Payment is not active yet.", "owner-plan-price"]:
     check(marker in overlay_js, f"pricing overlay marker {marker}")
 
-combined = owner_sql + prep_sql + index_sql + pricing_sql + extension_js + loader_js + core_js + overlay_js
+combined = owner_sql + prep_sql + index_sql + base_pricing_sql + pricing_sql + extension_js + loader_js + core_js + overlay_js
 combined += json.dumps(onchain, ensure_ascii=False) + json.dumps(owner, ensure_ascii=False) + json.dumps(pricing, ensure_ascii=False)
 for pattern in [r"sb_secret_", r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----", r"Bearer\s+eyJ"]:
     check(re.search(pattern, combined, re.I) is None, "possible secret material")
@@ -163,4 +183,4 @@ check(release["boundaries"]["v79_published_over_v78"] is False, "v79 publication
 if errors:
     print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
-print("Owner-approved inactive USD pricing and multi-asset foundation: OK")
+print("Owner-approved inactive BASIC $20 / PRO $49 pricing and multi-asset foundation: OK")

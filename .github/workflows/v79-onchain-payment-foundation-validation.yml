@@ -13,6 +13,7 @@ on:
       - 'supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql'
       - 'supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql'
       - 'supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql'
+      - 'supabase/migrations/20260805191917_update_owner_pro_usd_monthly_price_to_49.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - 'v79/commercial-extension.js'
       - 'v79/commercial.js'
