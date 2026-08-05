@@ -170,7 +170,7 @@
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
     }
   ],
-  "updated_at": "2026-08-05T03:44:08Z",
+  "updated_at": "2026-08-05T03:49:59Z",
   "application": {
     "assets": [
       {
@@ -215,7 +215,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
-    "evidence_commit": "c0f66490cb15a68f5e17608acc8e3acb6407e7de",
+    "evidence_commit": "798014179955856dbde7824e4b2f48265cb2416b",
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -347,10 +347,10 @@
   ],
   "schema_version": 1,
   "release_evidence": {
-    "release_gate_run_id": "pending",
-    "maintenance_evidence_gate_run_id": "pending",
+    "release_gate_run_id": "30973212106",
+    "maintenance_evidence_gate_run_id": "30973213044",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "pending",
+    "pages_run_id": "30973211721",
     "technical_score": 100,
     "commercial_score": 60
   },
