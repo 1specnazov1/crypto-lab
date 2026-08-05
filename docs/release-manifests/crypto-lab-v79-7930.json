@@ -370,7 +370,7 @@
       "source_commit": "09dfd70b1ee55fc48023b019309e6e5f41798fc6"
     }
   ],
-  "updated_at": "2026-08-05T10:27:00Z",
+  "updated_at": "2026-08-05T10:30:00Z",
   "application": {
     "assets": [
       {
@@ -420,7 +420,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "7b61972a1077cd5fe967ff3ae0c4a10444c769ce",
+    "evidence_commit": "143d34235413e7697352380fc34cc8137e2d052a",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -552,10 +552,10 @@
   ],
   "schema_version": 1,
   "release_evidence": {
-    "release_gate_run_id": "pending",
+    "release_gate_run_id": "30996209180",
     "maintenance_evidence_gate_run_id": "30973213044",
-    "browser_smoke_run_id": "pending",
-    "pages_run_id": "pending",
+    "browser_smoke_run_id": "30996210610",
+    "pages_run_id": "30996202623",
     "technical_score": 100,
     "commercial_score": 60
   },
@@ -656,12 +656,12 @@
     "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md",
     "candidate_only_payment_repair_verified": true,
     "candidate_only_manifest_contract_repaired": true,
-    "authoritative_payment_recovery_migration": "20260805100027",
-    "authoritative_payment_recovery_source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08",
+    "authoritative_payment_recovery_migration": "20260805101600",
+    "authoritative_payment_recovery_source_commit": "09dfd70b1ee55fc48023b019309e6e5f41798fc6",
     "payment_provider_status": "decision_required",
     "fabricated_text_was_not_user_content": true,
     "overlapping_recurring_automation_disabled": true,
-    "payment_sandbox_matrix_schema_version": 8,
+    "payment_sandbox_matrix_schema_version": 9,
     "automatic_wallet_debit": false,
     "crypto_x_cost_activation_guarded": true,
     "registration_enabled": false,
@@ -709,6 +709,17 @@
     "onchain_automatic_entitlement_enabled": false,
     "onchain_automatic_wallet_debit": false,
     "onchain_sandbox_scenario_count": 30,
-    "direct_onchain_payment_activation_allowed": false
+    "direct_onchain_payment_activation_allowed": false,
+    "onchain_provider_selected": false,
+    "onchain_observation_count": 0,
+    "onchain_credited_claim_count": 0,
+    "active_valid_owner_decision_records": 0,
+    "superseded_invalid_owner_decision_records": 1,
+    "owner_decision_constraints_validated": true,
+    "owner_decision_negative_probes_passed": true,
+    "fabricated_owner_text_not_user_content": true,
+    "self_rewriting_owner_decision_workflows_removed": true,
+    "onchain_payment_activation_allowed": false,
+    "onchain_manifest_schema_version": 12
   }
 }
