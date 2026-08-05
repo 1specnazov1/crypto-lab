@@ -1,0 +1,100 @@
+name: Validate v79 Owner Decision Fail-closed Controls
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
+      - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'supabase/migrations/20260805093754_enforce_fail_closed_owner_decision_constraints.sql'
+      - 'supabase/migrations/20260805094250_archive_and_block_payment_owner_decision_records.sql'
+      - '.github/workflows/v79-owner-decision-failclosed-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-owner-decision-failclosed-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate fail-closed database contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,re,sys
+
+          errors=[]
+          def check(condition,message):
+              if not condition: errors.append(message)
+
+          constraints=Path('supabase/migrations/20260805093754_enforce_fail_closed_owner_decision_constraints.sql').read_text(encoding='utf-8')
+          archive=Path('supabase/migrations/20260805094250_archive_and_block_payment_owner_decision_records.sql').read_text(encoding='utf-8')
+          evidence=Path('docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md').read_text(encoding='utf-8')
+          manifest=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text(encoding='utf-8'))
+          combined=constraints+'\n'+archive+'\n'+evidence
+
+          for marker in [
+              'crypto_onchain_networks_owner_decision_fail_closed',
+              'crypto_payment_provider_owner_decision_fail_closed',
+              'crypto_payment_sandbox_owner_claim_fail_closed',
+              'crypto_onchain_candidate_metadata_safe',
+              'crypto_payment_owner_claim_absent',
+              'approved_by_owner=false',
+              "status='decision_required'",
+              'crypto_owner_decision_payment_record_fail_closed',
+              'active=false',
+              'block_crypto_payment_owner_decision_record',
+          ]:
+              check(marker in combined,f'missing control marker {marker}')
+
+          for marker in [
+              'did **not** write `Три сети утверждаю.`',
+              'two self-rewriting workflows',
+              'active=false',
+              'validated `CHECK` constraints',
+              'There is deliberately no autonomous bypass',
+          ]:
+              check(marker in evidence,f'missing evidence marker {marker}')
+
+          check(manifest.get('schema_version')==3,'on-chain manifest schema')
+          check(manifest.get('status')=='disabled_candidate_only','candidate-only status')
+          check(manifest.get('approved_networks')==[],'approved networks must be empty')
+          check(manifest.get('owner_network_approval_recorded') is False,'network approval must be false')
+          check(manifest.get('owner_provider_approval_recorded') is False,'provider approval must be false')
+          check(all(x.get('approved_by_owner') is False and x.get('active') is False for x in manifest.get('networks',[])),'network rows must be candidate only')
+          check(manifest.get('database',{}).get('active_valid_owner_decision_records')==0,'active owner decision count')
+          check(manifest.get('database',{}).get('superseded_invalid_owner_decision_records')==1,'superseded audit count')
+          check(manifest.get('activation_allowed') is False,'activation must remain false')
+
+          for forbidden_path in [
+              Path('.github/workflows/v79-owner-network-decision-sync-once.yml'),
+              Path('.github/workflows/v79-owner-network-decision-validation.yml'),
+              Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json'),
+          ]:
+              check(not forbidden_path.exists(),f'forbidden fabricated-decision artifact exists: {forbidden_path}')
+
+          for pattern in [r'sb_secret_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ']:
+              check(re.search(pattern,combined,re.I) is None,f'possible secret pattern {pattern}')
+
+          if errors:
+              print('\n'.join('ERROR: '+item for item in errors));sys.exit(1)
+          print('Owner-decision fail-closed constraints and archive boundary: OK')
+          PY
+
+      - name: Preserve public release hashes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
