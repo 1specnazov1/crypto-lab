@@ -3,14 +3,14 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-05T00:31:00Z",
+  "updated_at": "2026-08-05T01:24:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
   },
   "application": {
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
-    "evidence_commit": "dc6a8c7f07f1a781c6380142beadf876aee2a157",
+    "evidence_commit": "8e8009efba19cf46ac6a9042e272b3ed2de90c66",
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
     "assets": [
       {"path":"v79/index.html","sha":"b92335b3a3d76e349f1845fd653e1c1021d6d7f6","marker":"app.html?v=7930"},
@@ -44,7 +44,9 @@
     {"version":"20260804212027","name":"crypto_checkpoint_evidence_transition_validation","source":"supabase/migrations/20260804212027_crypto_checkpoint_evidence_transition_validation.sql","source_commit":"21cb9afb2cdd652294324512f80c6f9b77f147f1"},
     {"version":"20260804222129","name":"crypto_maintenance_run_origin_lockdown","source":"supabase/migrations/20260804222129_crypto_maintenance_run_origin_lockdown.sql","source_commit":"925bf0ed5f15f395f33ec686dc6111cd74caeec6"},
     {"version":"20260804231916","name":"crypto_maintenance_concurrency_guards","source":"supabase/migrations/202608042319_crypto_maintenance_concurrency_guards.sql","source_commit":"c76c24b6683e43424143e19b1bbde7fc9a500663"},
-    {"version":"20260805002217","name":"crypto_maintenance_checkpoint_target_binding","source":"supabase/migrations/20260805002217_crypto_maintenance_checkpoint_target_binding.sql","source_commit":"79058e305522b7974087a4fbcf9e3c6e3635c529"}
+    {"version":"20260805002217","name":"crypto_maintenance_checkpoint_target_binding","source":"supabase/migrations/20260805002217_crypto_maintenance_checkpoint_target_binding.sql","source_commit":"79058e305522b7974087a4fbcf9e3c6e3635c529"},
+    {"version":"20260805012125","name":"crypto_maintenance_cron_manifest_binding","source":"supabase/migrations/202608050121_crypto_maintenance_cron_manifest_binding.sql","source_commit":"c3f0204c3a6da025d1568cc87212da4ef5466883"},
+    {"version":"20260805012227","name":"crypto_maintenance_cron_binding_monitor","source":"supabase/migrations/202608050122_crypto_maintenance_cron_binding_monitor.sql","source_commit":"8e8009efba19cf46ac6a9042e272b3ed2de90c66"}
   ],
   "edge_functions": [
     {"slug":"crypto-ai-advisor","version":9,"verify_jwt":true,"status":"ACTIVE"},
@@ -69,10 +71,10 @@
     {"slug":"crypto-lab-v79-billing-webhook","version":1,"verify_jwt":false,"status":"ACTIVE"}
   ],
   "release_evidence": {
-    "release_gate_run_id": "30963306033",
-    "maintenance_evidence_gate_run_id": "30963306040",
+    "release_gate_run_id": "pending",
+    "maintenance_evidence_gate_run_id": "pending",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "30963305606",
+    "pages_run_id": "pending",
     "technical_score": 100,
     "commercial_score": 60
   },
@@ -101,7 +103,10 @@
     "sealer_concurrency_guarded": true,
     "checkpoint_target_bound_to_manifest": true,
     "checkpoint_target_unique_required": true,
-    "retention_counter_null_rejected": true
+    "retention_counter_null_rejected": true,
+    "cron_manifest_key_bound": true,
+    "cron_binding_self_monitored": true,
+    "cron_binding_fail_closed": true
   },
   "boundaries": {
     "registration_enabled": false,
