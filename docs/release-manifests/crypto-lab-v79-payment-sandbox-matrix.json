@@ -1,100 +1,167 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "created_at": "2026-08-05T07:00:00Z",
-  "provider": "unselected",
+  "updated_at": "2026-08-05T09:10:00Z",
+  "provider": "onchain",
   "mode": "disabled",
   "activation_allowed": false,
+  "approved_networks": ["TRON", "BSC", "SOLANA"],
+  "settlement_asset": "decision_required",
   "prerequisites": [
-    "PRICING_MODEL",
-    "PAYMENT_PROVIDER",
-    "MERCHANT_CREDENTIALS",
-    "REFUND_POLICY"
+    "SETTLEMENT_ASSET_USDT_OR_USDC",
+    "BSC_TOKEN_ACCEPTANCE_AND_CONTRACT_VERIFICATION",
+    "BASIC_PRO_CRYPTO_PRICING",
+    "THREE_PUBLIC_RECEIVING_ADDRESSES",
+    "CHAIN_VERIFIER_CONFIGURATION",
+    "REFUND_POLICY",
+    "REAL_ADMIN"
   ],
   "invariants": {
     "browser_never_sets_paid_status": true,
-    "webhook_signature_required": true,
+    "wallet_confirmation_not_payment_proof": true,
+    "blockchain_finality_is_source_of_truth": true,
     "provider_event_id_unique": true,
+    "transaction_hash_single_claim": true,
     "normalized_event_idempotent": true,
     "entitlement_changes_server_side_only": true,
     "duplicate_event_no_duplicate_entitlement": true,
-    "out_of_order_events_reconciled": true,
-    "raw_card_data_not_stored": true,
-    "secrets_not_logged": true,
-    "refund_requires_audit": true
+    "wrong_network_no_entitlement": true,
+    "wrong_asset_no_entitlement": true,
+    "wrong_recipient_no_entitlement": true,
+    "unfinalized_transaction_no_entitlement": true,
+    "private_keys_not_required": true,
+    "seed_phrase_not_stored": true,
+    "raw_wallet_secrets_not_logged": true,
+    "refund_requires_audit": true,
+    "automatic_wallet_debit": false
+  },
+  "network_finality": {
+    "TRON": {"required_state": "solidified", "minimum_confirmations": 19},
+    "BSC": {"required_state": "finalized", "minimum_confirmations": 2},
+    "SOLANA": {"required_state": "finalized", "minimum_confirmations": 0}
   },
   "scenarios": [
     {
-      "code": "CHECKOUT_SUCCESS",
+      "code": "INVOICE_CREATED_EACH_NETWORK",
       "required": true,
-      "expected": ["order_created", "provider_checkout_created", "signed_success_event", "order_paid", "subscription_active", "single_entitlement_change"]
+      "expected": ["unique_invoice", "correct_network", "correct_token_identifier", "correct_receiving_address", "bounded_expiry", "unique_amount_discriminator"]
     },
     {
-      "code": "CHECKOUT_USER_ABANDONED",
+      "code": "TRUST_WALLET_OR_WALLETCONNECT_REQUEST",
       "required": true,
-      "expected": ["order_remains_unpaid", "no_entitlement", "safe_expiration_or_reconciliation"]
+      "expected": ["user_confirmation_required", "correct_chain", "correct_token", "correct_recipient", "exact_amount", "no_private_key_access"]
     },
     {
-      "code": "PAYMENT_DECLINED",
+      "code": "PAYMENT_SUCCESS_FINALIZED",
       "required": true,
-      "expected": ["failed_event_recorded", "no_entitlement", "bounded_user_message"]
+      "expected": ["final_chain_observation", "order_paid", "subscription_active", "period_30_days", "single_entitlement_change"]
     },
     {
-      "code": "INVALID_WEBHOOK_SIGNATURE",
+      "code": "USER_ABANDONED_PAYMENT",
       "required": true,
-      "expected": ["http_4xx", "no_state_change", "security_telemetry_without_secret"]
+      "expected": ["order_remains_pending_until_expiry", "no_entitlement", "invoice_expires"]
     },
     {
-      "code": "DUPLICATE_WEBHOOK",
+      "code": "WRONG_NETWORK",
       "required": true,
-      "expected": ["second_delivery_idempotent", "one_billing_event", "one_entitlement_change"]
+      "expected": ["no_matching_invoice", "no_entitlement", "review_or_user_guidance"]
     },
     {
-      "code": "OUT_OF_ORDER_WEBHOOK",
+      "code": "WRONG_ASSET_OR_CONTRACT",
       "required": true,
-      "expected": ["event_persisted", "state_machine_reconciled", "no_status_regression"]
+      "expected": ["wrong_asset_status", "no_entitlement", "exact_contract_evidence"]
     },
     {
-      "code": "LATE_SUCCESS_AFTER_REDIRECT_FAILURE",
+      "code": "WRONG_RECIPIENT",
       "required": true,
-      "expected": ["webhook_fulfills_order", "redirect_not_source_of_truth", "account_reflects_paid_state"]
+      "expected": ["wrong_recipient_status", "no_entitlement"]
     },
     {
-      "code": "RENEWAL_SUCCESS",
+      "code": "UNDERPAYMENT",
       "required": true,
-      "expected": ["new_period_recorded", "access_continues", "event_idempotent"]
+      "expected": ["underpaid_status", "no_automatic_entitlement", "manual_resolution_available"]
     },
     {
-      "code": "RENEWAL_FAILURE",
+      "code": "OVERPAYMENT",
       "required": true,
-      "expected": ["failure_recorded", "grace_policy_applied", "no_silent_permanent_access"]
+      "expected": ["overpaid_status", "no_silent_loss", "manual_refund_or_credit_review"]
     },
     {
-      "code": "CANCEL_AT_PERIOD_END",
+      "code": "UNFINALIZED_TRANSACTION",
       "required": true,
-      "expected": ["renewal_disabled", "access_until_period_end", "subscription_ends_once"]
+      "expected": ["confirming_status", "no_entitlement_before_finality", "later_recheck"]
+    },
+    {
+      "code": "FAILED_OR_REVERTED_TRANSACTION",
+      "required": true,
+      "expected": ["failed_status", "no_entitlement"]
+    },
+    {
+      "code": "DUPLICATE_TRANSACTION_HASH",
+      "required": true,
+      "expected": ["second_invoice_claim_rejected", "one_billing_event", "one_entitlement_change"]
+    },
+    {
+      "code": "DUPLICATE_CHAIN_OBSERVATION",
+      "required": true,
+      "expected": ["idempotent_processing", "immutable_observation", "no_duplicate_entitlement"]
+    },
+    {
+      "code": "LATE_PAYMENT_AFTER_EXPIRY",
+      "required": true,
+      "expected": ["review_required", "no_silent_entitlement", "operator_resolution"]
+    },
+    {
+      "code": "REORG_OR_FINALITY_REGRESSION",
+      "required": true,
+      "expected": ["no_credit_before_required_finality", "inconsistent_verifier_evidence_quarantined", "incident_or_review"]
+    },
+    {
+      "code": "PRICE_QUOTE_EXPIRED",
+      "required": true,
+      "expected": ["invoice_creation_rejected_or_requoted", "no_stale_conversion"]
+    },
+    {
+      "code": "RECEIVING_ADDRESS_NOT_VERIFIED",
+      "required": true,
+      "expected": ["invoice_creation_rejected", "no_checkout"]
+    },
+    {
+      "code": "TOKEN_CONTRACT_NOT_VERIFIED",
+      "required": true,
+      "expected": ["network_asset_disabled", "invoice_creation_rejected"]
+    },
+    {
+      "code": "REPEAT_PURCHASE_EXTENDS_ACCESS",
+      "required": true,
+      "expected": ["new_verified_payment", "single_new_period", "no_automatic_wallet_debit"]
     },
     {
       "code": "FULL_REFUND",
       "required": true,
-      "expected": ["provider_refund_confirmed", "refund_event_recorded", "entitlement_reviewed", "audit_recorded"]
+      "expected": ["outbound_refund_confirmed_separately", "refund_event_recorded", "entitlement_reviewed", "audit_recorded"]
     },
     {
       "code": "PARTIAL_REFUND",
       "required": true,
-      "expected": ["amount_bounded", "provider_refund_confirmed", "order_totals_reconciled", "audit_recorded"]
+      "expected": ["amount_bounded", "outbound_refund_confirmed_separately", "order_totals_reconciled", "audit_recorded"]
     },
     {
-      "code": "CHARGEBACK_OR_DISPUTE",
+      "code": "DISPUTED_OR_UNAUTHORIZED_PAYMENT",
       "required": true,
       "expected": ["high_severity_review", "access_policy_applied", "no_automatic_destructive_action_without_evidence"]
     },
     {
-      "code": "UNKNOWN_PROVIDER_EVENT",
+      "code": "VERIFIER_UNAVAILABLE",
       "required": true,
-      "expected": ["event_quarantined", "review_required", "no_entitlement_change"]
+      "expected": ["payment_remains_pending", "no_entitlement", "bounded_retry", "no_false_failure"]
+    },
+    {
+      "code": "MALFORMED_OR_SECRET_BEARING_OBSERVATION",
+      "required": true,
+      "expected": ["request_rejected", "no_state_change", "no_secret_persisted"]
     }
   ],
-  "completion_rule": "Every required scenario must have timestamped provider evidence, normalized billing evidence, database assertions and a zero-secret test log before PAYMENT_SANDBOX_E2E can be verified."
+  "completion_rule": "Every required scenario must have timestamped chain evidence or an isolated deterministic verifier fixture, normalized billing evidence, database assertions, zero persistent test users, zero real-value test transfers unless explicitly authorized, and a zero-secret test log before PAYMENT_SANDBOX_E2E can be verified."
 }
