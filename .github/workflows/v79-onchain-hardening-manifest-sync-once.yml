@@ -18,21 +18,45 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Add applied on-chain hardening migrations
+
+      - name: Bind applied on-chain hardening evidence
         run: |
           python - <<'PY'
-          import json, pathlib
+          import json
+          import pathlib
+
           path=pathlib.Path('docs/release-manifests/crypto-lab-v79-7930.json')
           manifest=json.loads(path.read_text(encoding='utf-8'))
           additions=[
-            {'version':'20260805091147','name':'correct_onchain_candidate_network_approval_evidence','source':'supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql','source_commit':'0ec43629c8995ce459fe622972638e4aa5dde39d'},
-            {'version':'20260805091434','name':'harden_crypto_onchain_observation_lifecycle'},
-            {'version':'20260805091540','name':'record_owner_approved_three_onchain_networks','source':'supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql','source_commit':'b6acd3771ddcb3cc83c21f9227187bdcac4d7350'}
+            {
+              'version':'20260805091147',
+              'name':'correct_onchain_candidate_network_approval_evidence',
+              'source':'supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql',
+              'source_commit':'0ec43629c8995ce459fe622972638e4aa5dde39d'
+            },
+            {
+              'version':'20260805091434',
+              'name':'harden_crypto_onchain_observation_lifecycle',
+              'source':'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql',
+              'source_commit':'61d4088f067f7bd82c2d1f1b31d6e9cf1d1d4e95'
+            },
+            {
+              'version':'20260805091540',
+              'name':'record_owner_approved_three_onchain_networks',
+              'source':'supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql',
+              'source_commit':'b6acd3771ddcb3cc83c21f9227187bdcac4d7350'
+            }
           ]
-          existing={(m.get('version'),m.get('name')) for m in manifest['migrations']}
-          manifest['migrations'].extend(m for m in additions if (m['version'],m['name']) not in existing)
-          manifest['updated_at']='2026-08-05T09:20:00Z'
-          manifest['application']['evidence_commit']='b6acd3771ddcb3cc83c21f9227187bdcac4d7350'
+          keyed={(m.get('version'),m.get('name')):m for m in manifest['migrations']}
+          for addition in additions:
+            key=(addition['version'],addition['name'])
+            if key in keyed:
+              keyed[key].update(addition)
+            else:
+              manifest['migrations'].append(addition)
+
+          manifest['updated_at']='2026-08-05T09:22:00Z'
+          manifest['application']['evidence_commit']='cafb9715b7ff6d30f7210d18812520c1d060e802'
           manifest['release_evidence']['release_gate_run_id']='pending'
           manifest['release_evidence']['browser_smoke_run_id']='pending'
           manifest['release_evidence']['pages_run_id']='pending'
@@ -41,6 +65,9 @@ jobs:
           operational['onchain_payment_gate_run_id']='30992203761'
           operational['onchain_sandbox_scenario_count']=24
           operational['onchain_observation_lifecycle_hardened']=True
+          operational['onchain_lifecycle_manifest']='docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json'
+          operational['onchain_lifecycle_integrity_checks']=11
+          operational['onchain_lifecycle_integrity_state']='healthy'
           operational['onchain_network_approval_recorded']=True
           operational['direct_onchain_payment_activation_allowed']=False
           path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -48,8 +75,13 @@ jobs:
           git config user.name 'CRYPTO LAB Release Bot'
           git config user.email 'actions@users.noreply.github.com'
           git add docs/release-manifests/crypto-lab-v79-7930.json
-          git commit -m 'Bind on-chain lifecycle hardening to release manifest'
-          git push
+          if git diff --cached --quiet; then
+            echo 'Release manifest already synchronized'
+          else
+            git commit -m 'Complete on-chain lifecycle release binding'
+            git push
+          fi
+
       - name: Dispatch validation gates
         env:
           GH_TOKEN: ${{ github.token }}
@@ -59,4 +91,5 @@ jobs:
           gh workflow run v79-preview-validation.yml --ref main
           gh workflow run v79-browser-smoke.yml --ref main
           gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-onchain-lifecycle-hardening-validation.yml --ref main
           gh workflow run v79-release-manifest-contract.yml --ref main
