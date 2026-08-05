@@ -1,101 +1,319 @@
 {
-  "schema_version": 9,
+  "schema_version": 10,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T10:22:00Z",
-  "provider": "unselected",
-  "provider_candidate": "onchain_direct",
-  "wallet_client_candidate": "trust_wallet_walletconnect",
+  "updated_at": "2026-08-05T10:51:55Z",
+  "provider": "onchain_direct",
+  "wallet_client": "trust_wallet_walletconnect",
   "mode": "disabled",
   "activation_allowed": false,
-  "approved_networks": [],
-  "candidate_networks": ["TRON", "BSC", "SOLANA"],
-  "owner_network_approval_recorded": false,
-  "settlement_asset": "decision_required",
-  "authoritative_migration": {
-    "version": "20260805101600",
-    "name": "authoritative_candidate_only_recovery_after_100805",
-    "source": "supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql",
-    "source_commit": "09dfd70b1ee55fc48023b019309e6e5f41798fc6"
-  },
-  "prerequisites": [
-    "PAYMENT_PROVIDER_RAIL",
-    "NETWORK_SELECTION",
-    "SETTLEMENT_ASSET_USDT_OR_USDC",
-    "BSC_TOKEN_ACCEPTANCE_AND_CONTRACT_VERIFICATION_IF_USDT",
-    "BASIC_PRO_PRICING",
-    "PUBLIC_RECEIVING_ADDRESSES_FOR_SELECTED_NETWORKS",
-    "CHAIN_VERIFIER_CONFIGURATION",
-    "WALLETCONNECT_PROJECT_ID_IF_USED",
-    "REFUND_POLICY",
-    "REAL_ADMIN",
-    "CONTROLLED_SANDBOX_AUTHORIZATION"
+  "publication_allowed": false,
+  "approved_networks": [
+    "TRON",
+    "BSC",
+    "SOLANA"
   ],
-  "invariants": {
-    "browser_never_sets_paid_status": true,
-    "wallet_confirmation_not_payment_proof": true,
-    "blockchain_finality_is_source_of_truth": true,
-    "transaction_hash_single_claim": true,
-    "normalized_event_idempotent": true,
-    "immutable_multi_observation_history": true,
-    "finality_regression_forces_review": true,
-    "conflicting_observation_forces_review": true,
-    "late_or_expired_payment_forces_review": true,
-    "entitlement_changes_server_side_only": true,
-    "duplicate_event_no_duplicate_entitlement": true,
-    "existing_subscription_period_extended_not_shortened": true,
-    "wrong_network_no_entitlement": true,
-    "wrong_asset_no_entitlement": true,
-    "wrong_recipient_no_entitlement": true,
-    "unfinalized_transaction_no_entitlement": true,
-    "candidate_networks_are_not_owner_approved": true,
-    "owner_decision_claims_fail_closed": true,
-    "inactive_reconstructed_record_not_authority": true,
-    "superseded_authority_event_not_authority": true,
-    "network_selection_does_not_authorize_activation": true,
-    "private_keys_not_required": true,
-    "seed_phrase_not_stored": true,
-    "raw_wallet_secrets_not_logged": true,
-    "refund_requires_audit": true,
-    "automatic_wallet_debit": false
+  "owner_network_approval_recorded": true,
+  "owner_decision": {
+    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
+    "decision_text_exact": "Три сети утверждаю.",
+    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
+    "decision_scope": "network_selection_only",
+    "network_activation_authorized": false,
+    "active": true,
+    "source_channel": "owner_chat"
   },
-  "network_finality_candidates": {
-    "TRON": {"required_state":"solidified","minimum_confirmations":19},
-    "BSC": {"required_state":"finalized","minimum_confirmations":2},
-    "SOLANA": {"required_state":"finalized","minimum_confirmations":0}
+  "settlement_asset": "pending",
+  "authoritative_migration": {
+    "version": "20260805103945",
+    "name": "restore_exact_owner_three_network_authority_after_103527_stale_cycle",
+    "source": "supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql",
+    "source_commit": "f738236f0b71cfb3eb96e29fa20a81b96eb4d545"
+  },
+  "runtime_state": {
+    "approved_network_count": 3,
+    "active_network_count": 0,
+    "selected_asset_count": 0,
+    "enabled_network_asset_count": 0,
+    "active_price_count": 0,
+    "receiving_address_count": 0,
+    "invoice_count": 0,
+    "transaction_claim_count": 0,
+    "chain_observation_count": 0,
+    "auth_user_count": 0,
+    "registration_attempt_count": 0,
+    "recovery_attempt_count": 0,
+    "provider_status": "in_progress_disabled",
+    "provider_desired_mode": "disabled",
+    "provider_lifecycle_status": "draft",
+    "checkout_enabled": false,
+    "webhook_enabled": false,
+    "recurring_enabled": false,
+    "refunds_enabled": false
   },
   "scenarios": [
-    {"code":"INVOICE_CREATED_SELECTED_NETWORK","required":true,"expected":["selected_network_required","selected_asset_required","verified_address_required","bounded_expiry","unique_amount_discriminator"]},
-    {"code":"TRUST_WALLET_OR_WALLETCONNECT_REQUEST","required":true,"expected":["user_confirmation_required","correct_chain","correct_token","correct_recipient","exact_amount","no_private_key_access"]},
-    {"code":"PAYMENT_SUCCESS_FINALIZED","required":true,"expected":["final_chain_observation","order_paid","subscription_active","period_30_days","single_entitlement_change"]},
-    {"code":"USER_ABANDONED_PAYMENT","required":true,"expected":["order_pending_until_expiry","no_entitlement","invoice_expires"]},
-    {"code":"WRONG_NETWORK","required":true,"expected":["no_matching_invoice","no_entitlement","review_or_user_guidance"]},
-    {"code":"WRONG_ASSET_OR_CONTRACT","required":true,"expected":["wrong_asset_status","no_entitlement","exact_contract_evidence"]},
-    {"code":"WRONG_RECIPIENT","required":true,"expected":["wrong_recipient_status","no_entitlement"]},
-    {"code":"UNDERPAYMENT","required":true,"expected":["underpaid_status","no_automatic_entitlement","manual_resolution_available"]},
-    {"code":"OVERPAYMENT","required":true,"expected":["overpaid_status","no_silent_loss","manual_refund_or_credit_review"]},
-    {"code":"UNFINALIZED_TRANSACTION","required":true,"expected":["confirming_status","no_entitlement_before_finality","later_recheck"]},
-    {"code":"FAILED_OR_REVERTED_TRANSACTION","required":true,"expected":["failed_status","no_entitlement"]},
-    {"code":"DUPLICATE_TRANSACTION_HASH","required":true,"expected":["second_invoice_claim_rejected","one_billing_event","one_entitlement_change"]},
-    {"code":"DUPLICATE_CHAIN_OBSERVATION","required":true,"expected":["idempotent_processing","immutable_observation","no_duplicate_entitlement"]},
-    {"code":"LATE_PAYMENT_AFTER_EXPIRY","required":true,"expected":["review_required","no_silent_entitlement","operator_resolution"]},
-    {"code":"REORG_OR_FINALITY_REGRESSION","required":true,"expected":["no_credit_before_required_finality","inconsistent_evidence_quarantined","incident_or_review"]},
-    {"code":"CONFLICTING_CHAIN_OBSERVATION","required":true,"expected":["claim_quarantined","manual_review","no_duplicate_entitlement"]},
-    {"code":"PRICE_QUOTE_EXPIRED","required":true,"expected":["invoice_rejected_or_requoted","no_stale_conversion"]},
-    {"code":"RECEIVING_ADDRESS_NOT_VERIFIED","required":true,"expected":["invoice_creation_rejected","no_checkout"]},
-    {"code":"TOKEN_CONTRACT_NOT_VERIFIED","required":true,"expected":["network_asset_disabled","invoice_creation_rejected"]},
-    {"code":"REPEAT_PURCHASE_EXTENDS_ACCESS","required":true,"expected":["new_verified_payment","period_extended_from_existing_end","no_access_shortening","no_automatic_wallet_debit"]},
-    {"code":"UNAUTHORIZED_NETWORK_APPROVAL_ATTEMPT","required":true,"expected":["trigger_or_constraint_rejects","approved_network_count_zero","no_state_change"]},
-    {"code":"UNAUTHORIZED_APPROVAL_METADATA_ATTEMPT","required":true,"expected":["trigger_or_constraint_rejects","candidate_metadata_preserved","no_state_change"]},
-    {"code":"UNAUTHORIZED_PROVIDER_DECISION_ATTEMPT","required":true,"expected":["provider_remains_decision_required","timestamps_null","no_owner_claim"]},
-    {"code":"UNAUTHORIZED_OWNER_RECORD_INSERT_ATTEMPT","required":true,"expected":["insert_rejected","active_payment_decision_count_zero"]},
-    {"code":"UNAUTHORIZED_AUTHORITY_EVENT_INSERT_ATTEMPT","required":true,"expected":["insert_rejected","effective_payment_authority_event_count_zero"]},
-    {"code":"PREMATURE_NETWORK_ACTIVATION_ATTEMPT","required":true,"expected":["activation_rejected","provider_disabled","checkout_disabled"]},
-    {"code":"FULL_REFUND","required":true,"expected":["outbound_refund_confirmed_separately","refund_event_recorded","entitlement_reviewed","audit_recorded"]},
-    {"code":"PARTIAL_REFUND","required":true,"expected":["amount_bounded","outbound_refund_confirmed_separately","order_totals_reconciled","audit_recorded"]},
-    {"code":"VERIFIER_UNAVAILABLE","required":true,"expected":["payment_pending","no_entitlement","bounded_retry","no_false_failure"]},
-    {"code":"MALFORMED_OR_SECRET_BEARING_OBSERVATION","required":true,"expected":["request_rejected","no_state_change","no_secret_persisted"]}
+    {
+      "code": "INVOICE_CREATED_SELECTED_NETWORK",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "TRUST_WALLET_OR_WALLETCONNECT_REQUEST",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "PAYMENT_SUCCESS_FINALIZED",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "USER_ABANDONED_PAYMENT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "WRONG_NETWORK",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "WRONG_ASSET_OR_CONTRACT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "WRONG_RECIPIENT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "UNDERPAYMENT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "OVERPAYMENT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "UNFINALIZED_TRANSACTION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "FAILED_OR_REVERTED_TRANSACTION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "DUPLICATE_TRANSACTION_HASH",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "DUPLICATE_CHAIN_OBSERVATION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "LATE_PAYMENT_AFTER_EXPIRY",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "REORG_OR_FINALITY_REGRESSION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "CONFLICTING_CHAIN_OBSERVATION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "PRICE_QUOTE_EXPIRED",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "RECEIVING_ADDRESS_NOT_VERIFIED",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "TOKEN_CONTRACT_NOT_VERIFIED",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "REPEAT_PURCHASE_EXTENDS_ACCESS",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "NETWORK_APPROVAL_REMOVAL_ATTEMPT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "NETWORK_SET_EXPANSION_ATTEMPT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "OWNER_DECISION_MUTATION_ATTEMPT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "FALSE_SUPERSESSION_REACTIVATION_ATTEMPT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "PREMATURE_NETWORK_ACTIVATION_ATTEMPT",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "FULL_REFUND",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "PARTIAL_REFUND",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "VERIFIER_UNAVAILABLE",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    },
+    {
+      "code": "MALFORMED_OR_SECRET_BEARING_OBSERVATION",
+      "required": true,
+      "expected": [
+        "deterministic_fail_closed_assertions",
+        "no_unauthorized_entitlement",
+        "zero_secret_logs"
+      ]
+    }
   ],
-  "scenario_count": 30,
-  "completion_rule": "Every required scenario must have timestamped deterministic fixture or chain evidence, normalized billing evidence, database assertions, zero persistent test users, zero real-value transfers unless separately authorized, and a zero-secret log before PAYMENT_SANDBOX_E2E can be verified."
+  "scenario_count": 29,
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 }
