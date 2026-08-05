@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T07:00:00Z",
+  "provider": "unselected",
+  "mode": "disabled",
+  "activation_allowed": false,
+  "prerequisites": [
+    "PRICING_MODEL",
+    "PAYMENT_PROVIDER",
+    "MERCHANT_CREDENTIALS",
+    "REFUND_POLICY"
+  ],
+  "invariants": {
+    "browser_never_sets_paid_status": true,
+    "webhook_signature_required": true,
+    "provider_event_id_unique": true,
+    "normalized_event_idempotent": true,
+    "entitlement_changes_server_side_only": true,
+    "duplicate_event_no_duplicate_entitlement": true,
+    "out_of_order_events_reconciled": true,
+    "raw_card_data_not_stored": true,
+    "secrets_not_logged": true,
+    "refund_requires_audit": true
+  },
+  "scenarios": [
+    {
+      "code": "CHECKOUT_SUCCESS",
+      "required": true,
+      "expected": ["order_created", "provider_checkout_created", "signed_success_event", "order_paid", "subscription_active", "single_entitlement_change"]
+    },
+    {
+      "code": "CHECKOUT_USER_ABANDONED",
+      "required": true,
+      "expected": ["order_remains_unpaid", "no_entitlement", "safe_expiration_or_reconciliation"]
+    },
+    {
+      "code": "PAYMENT_DECLINED",
+      "required": true,
+      "expected": ["failed_event_recorded", "no_entitlement", "bounded_user_message"]
+    },
+    {
+      "code": "INVALID_WEBHOOK_SIGNATURE",
+      "required": true,
+      "expected": ["http_4xx", "no_state_change", "security_telemetry_without_secret"]
+    },
+    {
+      "code": "DUPLICATE_WEBHOOK",
+      "required": true,
+      "expected": ["second_delivery_idempotent", "one_billing_event", "one_entitlement_change"]
+    },
+    {
+      "code": "OUT_OF_ORDER_WEBHOOK",
+      "required": true,
+      "expected": ["event_persisted", "state_machine_reconciled", "no_status_regression"]
+    },
+    {
+      "code": "LATE_SUCCESS_AFTER_REDIRECT_FAILURE",
+      "required": true,
+      "expected": ["webhook_fulfills_order", "redirect_not_source_of_truth", "account_reflects_paid_state"]
+    },
+    {
+      "code": "RENEWAL_SUCCESS",
+      "required": true,
+      "expected": ["new_period_recorded", "access_continues", "event_idempotent"]
+    },
+    {
+      "code": "RENEWAL_FAILURE",
+      "required": true,
+      "expected": ["failure_recorded", "grace_policy_applied", "no_silent_permanent_access"]
+    },
+    {
+      "code": "CANCEL_AT_PERIOD_END",
+      "required": true,
+      "expected": ["renewal_disabled", "access_until_period_end", "subscription_ends_once"]
+    },
+    {
+      "code": "FULL_REFUND",
+      "required": true,
+      "expected": ["provider_refund_confirmed", "refund_event_recorded", "entitlement_reviewed", "audit_recorded"]
+    },
+    {
+      "code": "PARTIAL_REFUND",
+      "required": true,
+      "expected": ["amount_bounded", "provider_refund_confirmed", "order_totals_reconciled", "audit_recorded"]
+    },
+    {
+      "code": "CHARGEBACK_OR_DISPUTE",
+      "required": true,
+      "expected": ["high_severity_review", "access_policy_applied", "no_automatic_destructive_action_without_evidence"]
+    },
+    {
+      "code": "UNKNOWN_PROVIDER_EVENT",
+      "required": true,
+      "expected": ["event_quarantined", "review_required", "no_entitlement_change"]
+    }
+  ],
+  "completion_rule": "Every required scenario must have timestamped provider evidence, normalized billing evidence, database assertions and a zero-secret test log before PAYMENT_SANDBOX_E2E can be verified."
+}
