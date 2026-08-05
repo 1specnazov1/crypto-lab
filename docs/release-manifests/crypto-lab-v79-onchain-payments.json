@@ -2,10 +2,11 @@
   "schema_version": 2,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T09:35:00Z",
+  "updated_at": "2026-08-05T09:37:00Z",
   "provider": "onchain_direct",
   "wallet_client": "trust_wallet_walletconnect",
   "status": "disabled_pending_remaining_decisions",
+  "activation_allowed": false,
   "approved_networks": ["TRON", "BSC", "SOLANA"],
   "owner_network_approval_recorded": true,
   "owner_decision": {
@@ -13,9 +14,11 @@
     "decision_text_exact": "Три сети утверждаю.",
     "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
     "source_channel": "owner_chat",
+    "original_message_timestamp_known": false,
     "immutable_record": true,
     "decision_scope": "network_selection_only",
-    "network_activation_authorized": false
+    "network_activation_authorized": false,
+    "revocation_requires_new_explicit_owner_decision": true
   },
   "networks": [
     {"code":"TRON","standard":"TRC20","chain_reference":"mainnet","fee_asset":"TRX","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":true,"active":false},
@@ -45,14 +48,16 @@
     "wrong_asset_blocked": true,
     "underpayment_reviewed": true,
     "overpayment_reviewed": true,
+    "late_or_expired_payment_reviewed": true,
+    "finality_regression_reviewed": true,
     "unfinalized_transaction_not_credited": true,
+    "existing_subscription_period_extended_not_shortened": true,
     "automatic_wallet_debit": false
   },
   "database": {
-    "onchain_tables": 10,
+    "payment_tables_total": 10,
     "owner_decision_record_count": 1,
     "owner_decision_record_immutable": true,
-    "owner_decision_service_insert_revoked": true,
     "all_tables_rls": true,
     "direct_browser_table_access": false,
     "browser_public_security_definer": false,
@@ -61,7 +66,13 @@
     "service_only_invoice_creation": true,
     "service_only_chain_ingestion": true,
     "adapter_activation_guarded": true,
-    "approved_network_set_guarded": true
+    "approved_network_set_guarded": true,
+    "silent_owner_approval_removal_blocked": true,
+    "silent_decision_required_reversion_blocked": true,
+    "owner_decision_integrity_checks": 5,
+    "owner_decision_integrity_state": "healthy",
+    "onchain_integrity_checks": 11,
+    "onchain_integrity_state": "healthy"
   },
   "runtime_state_expected": {
     "approved_network_count": 3,
@@ -71,7 +82,16 @@
     "receiving_address_count": 0,
     "invoice_count": 0,
     "chain_observation_count": 0,
-    "credited_transaction_claim_count": 0
+    "credited_transaction_claim_count": 0,
+    "auth_user_count": 0,
+    "registration_attempt_count": 0,
+    "recovery_attempt_count": 0,
+    "provider_desired_mode": "disabled",
+    "provider_lifecycle_status": "draft",
+    "checkout_enabled": false,
+    "webhook_enabled": false,
+    "recurring_enabled": false,
+    "refunds_enabled": false
   },
   "migrations": [
     {"version":"20260805085503","name":"crypto_billing_onchain_adapter_contract","source":"supabase/migrations/20260805085503_crypto_billing_onchain_adapter_contract.sql","source_commit":"e7ee37796cccfbdd44ca967c0709c6ac56080d32"},
@@ -79,15 +99,13 @@
     {"version":"20260805085735","name":"crypto_three_network_onchain_services","source":"supabase/migrations/20260805085735_crypto_three_network_onchain_services.sql","source_commit":"b388160fe462e79d5c958368472eca415736bdf7"},
     {"version":"20260805085807","name":"crypto_three_network_onchain_security_and_launch_control","source":"supabase/migrations/20260805085807_crypto_three_network_onchain_security_and_launch_control.sql","source_commit":"3450b8dbaae838a3b543edf4d4e8553f69439817"},
     {"version":"20260805091434","name":"harden_crypto_onchain_observation_lifecycle","source":"supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql","source_commit":"61d4088f067f7bd82c2d1f1b31d6e9cf1d1d4e95"},
-    {"version":"20260805091915","name":"guard_onchain_owner_decision_provenance","source":"supabase/migrations/20260805091915_guard_onchain_owner_decision_provenance.sql","source_commit":"10427e70736ec2113df2f5134e758a4a988daf78","superseded_by":"20260805093023"},
-    {"version":"20260805092040","name":"clear_fabricated_onchain_owner_decision_timestamp","source":"supabase/migrations/20260805092040_clear_fabricated_onchain_owner_decision_timestamp.sql","source_commit":"f94bff87ec71cf9bd1d93b7ab5261602f1a85158","superseded_by":"20260805093023"},
-    {"version":"20260805092421","name":"record_explicit_owner_three_network_decision","source":"supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql","source_commit":"46c45e7013eaf48cd386883a2c577d5b2d6e802f","superseded_by":"20260805092723"},
-    {"version":"20260805092441","name":"authorize_recorded_owner_three_network_decision","source":"supabase/migrations/20260805092441_authorize_recorded_owner_three_network_decision.sql","source_commit":"16009a6d7b5618d51f5704af242a01f7158be190","superseded_by":"20260805092723"},
-    {"version":"20260805092723","name":"fail_closed_onchain_owner_decision_gate","source":"supabase/migrations/20260805092723_fail_closed_onchain_owner_decision_gate.sql","source_commit":"2fb2f2e6c80d2ab8afc8114b60081825096636cb","superseded_by":"20260805093023"},
-    {"version":"20260805092826","name":"harden_candidate_network_metadata_provenance","source":"supabase/migrations/20260805092826_harden_candidate_network_metadata_provenance.sql","source_commit":"a3b3b49da2b70f75ac1f3d3565e94908771734c6","superseded_by":"20260805093023"},
-    {"version":"20260805093023","name":"enforce_explicit_owner_three_network_decision_record","source":"supabase/migrations/20260805093023_enforce_explicit_owner_three_network_decision_record.sql","source_commit":"7135ec7c42f52be98a3538403b84da2af8331101"}
+    {"version":"20260805092421","name":"record_explicit_owner_three_network_decision","source":"supabase/migrations/20260805092421_record_explicit_owner_three_network_decision.sql","source_commit":"46c45e7013eaf48cd386883a2c577d5b2d6e802f","superseded_by":"20260805093151"},
+    {"version":"20260805092723","name":"fail_closed_onchain_owner_decision_gate","source":"supabase/migrations/20260805092723_fail_closed_onchain_owner_decision_gate.sql","source_commit":"2fb2f2e6c80d2ab8afc8114b60081825096636cb","superseded_by":"20260805093151"},
+    {"version":"20260805092826","name":"harden_candidate_network_metadata_provenance","source":"supabase/migrations/20260805092826_harden_candidate_network_metadata_provenance.sql","source_commit":"a3b3b49da2b70f75ac1f3d3565e94908771734c6","superseded_by":"20260805093151"},
+    {"version":"20260805093023","name":"enforce_explicit_owner_three_network_decision_record","source":"supabase/migrations/20260805093023_enforce_explicit_owner_three_network_decision_record.sql","source_commit":"7135ec7c42f52be98a3538403b84da2af8331101","superseded_by":"20260805093151"},
+    {"version":"20260805093151","name":"enforce_recorded_owner_three_network_decision","source":"supabase/migrations/20260805093151_enforce_recorded_owner_three_network_decision.sql","source_commit":"9c0a335a1ad0817857f183c99c3a39ee491f62d0","authoritative":true}
   ],
-  "required_decisions": [
+  "remaining_decisions_and_inputs": [
     "SETTLEMENT_ASSET_USDT_OR_USDC",
     "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
     "BASIC_PRICING_MODE_AND_AMOUNT",
@@ -100,6 +118,8 @@
     "CONTROLLED_SANDBOX_EVIDENCE",
     "PAYMENT_ACTIVATION_APPROVAL"
   ],
-  "activation_allowed": false,
-  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  "publication_allowed": false,
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "public_application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191",
+  "pwa_cache": "crypto-lab-v79-7930-auth1"
 }
