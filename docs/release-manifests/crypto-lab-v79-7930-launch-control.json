@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T06:20:00Z",
+  "stable_root": {
+    "path": "index.html",
+    "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  },
+  "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
+  "base_release_manifest_commit": "3e7d728f0cb038b21be66422520be9f32cf4df06",
+  "migrations": [
+    {
+      "version": "20260805061231",
+      "name": "crypto_full_launch_control_registry",
+      "source": "supabase/migrations/20260805061231_crypto_full_launch_control_registry.sql",
+      "source_commit": "6d1c79254878406800e7e303ea752936a8325aeb"
+    },
+    {
+      "version": "20260805061540",
+      "name": "crypto_launch_readiness_dynamic_control",
+      "source": "supabase/migrations/20260805061540_crypto_launch_readiness_dynamic_control.sql",
+      "source_commit": "ac728824de6a392ecb68f014719d2432d53f012a"
+    },
+    {
+      "version": "20260805061806",
+      "name": "crypto_launch_requirements_explicit_deny_policy",
+      "source": "supabase/migrations/20260805061806_crypto_launch_requirements_explicit_deny_policy.sql",
+      "source_commit": "d0adde9465849372f64ee9a0fb37c52b06608702"
+    }
+  ],
+  "requirements": [
+    {"code":"TURNSTILE_CONFIG","phase":"identity","owner_type":"external_configuration","weight":6,"decision_required":false,"sensitive_input_required":true,"physical_action_required":false,"dependencies":[]},
+    {"code":"MAIL_RELAY","phase":"identity","owner_type":"external_configuration","weight":6,"decision_required":false,"sensitive_input_required":true,"physical_action_required":false,"dependencies":[]},
+    {"code":"REAL_ADMIN","phase":"identity","owner_type":"user_decision","weight":4,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"AUTH_E2E","phase":"identity","owner_type":"autonomous","weight":8,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["TURNSTILE_CONFIG","MAIL_RELAY","REAL_ADMIN"]},
+    {"code":"PRICING_MODEL","phase":"commercial","owner_type":"user_decision","weight":8,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"PAYMENT_PROVIDER","phase":"commercial","owner_type":"user_decision","weight":7,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"MERCHANT_CREDENTIALS","phase":"commercial","owner_type":"external_configuration","weight":5,"decision_required":false,"sensitive_input_required":true,"physical_action_required":false,"dependencies":["PAYMENT_PROVIDER"]},
+    {"code":"REFUND_POLICY","phase":"commercial","owner_type":"user_decision","weight":6,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"PAYMENT_SANDBOX_E2E","phase":"commercial","owner_type":"autonomous","weight":10,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["PRICING_MODEL","PAYMENT_PROVIDER","MERCHANT_CREDENTIALS","REFUND_POLICY"]},
+    {"code":"BACKUP_PITR","phase":"reliability","owner_type":"external_configuration","weight":8,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":[]},
+    {"code":"IOS_PWA_REVIEW","phase":"validation","owner_type":"physical_validation","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":[]},
+    {"code":"ANDROID_PWA_REVIEW","phase":"validation","owner_type":"physical_validation","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":[]},
+    {"code":"CONTROLLED_BETA","phase":"validation","owner_type":"physical_validation","weight":8,"decision_required":false,"sensitive_input_required":false,"physical_action_required":true,"dependencies":["AUTH_E2E","IOS_PWA_REVIEW","ANDROID_PWA_REVIEW"]},
+    {"code":"BETA_UX_FIXES","phase":"validation","owner_type":"autonomous","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["CONTROLLED_BETA"]},
+    {"code":"PUBLISH_V79","phase":"release","owner_type":"user_decision","weight":4,"decision_required":true,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["PAYMENT_SANDBOX_E2E","BACKUP_PITR","BETA_UX_FIXES"]},
+    {"code":"FINAL_LAUNCH_SMOKE","phase":"release","owner_type":"autonomous","weight":5,"decision_required":false,"sensitive_input_required":false,"physical_action_required":false,"dependencies":["PUBLISH_V79"]}
+  ],
+  "initial_snapshot": {
+    "full_launch_progress_pct": 0,
+    "remaining_count": 16,
+    "decision_count": 5,
+    "external_input_count": 4,
+    "physical_action_count": 3,
+    "technical_beta_score": 100,
+    "paid_public_launch_score": 60
+  },
+  "security": {
+    "rls_enabled": true,
+    "explicit_direct_access_deny": true,
+    "browser_table_access": false,
+    "browser_write_rpc": false,
+    "admin_read_wrapper": true,
+    "service_update_only": true,
+    "sensitive_values_stored": false,
+    "sensitive_json_key_guard": true,
+    "audit_enabled": true
+  },
+  "boundaries": {
+    "registration_enabled": false,
+    "recovery_enabled": false,
+    "paid_prices_active": false,
+    "payment_provider_active": false,
+    "v79_published_over_v78": false
+  }
+}
