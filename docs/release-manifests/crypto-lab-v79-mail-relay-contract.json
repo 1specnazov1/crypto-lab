@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T07:40:00Z",
+  "mode": "disabled",
+  "activation_allowed": false,
+  "provider": "unselected",
+  "dispatcher": {
+    "slug": "crypto-lab-mail-dispatch",
+    "version": 2,
+    "verify_jwt": true,
+    "maximum_request_bytes": 24000,
+    "relay_url_environment_name": "CRYPTO_MAIL_RELAY_URL",
+    "relay_publishable_key_environment_name": "CRYPTO_MAIL_RELAY_PUBLISHABLE_KEY",
+    "private_database_secret_name": "crypto_lab_mail_relay"
+  },
+  "request_contract": {
+    "schema": "docs/schemas/crypto-mail-relay-request-v1.schema.json",
+    "templates": [
+      "signup_confirmation",
+      "password_recovery"
+    ],
+    "locales": [
+      "ru",
+      "uk",
+      "en"
+    ],
+    "arbitrary_subject_allowed": false,
+    "arbitrary_html_allowed": false,
+    "arbitrary_text_allowed": false,
+    "maximum_recipient_length": 254,
+    "maximum_action_url_length": 4096,
+    "maximum_idempotency_key_length": 160
+  },
+  "security_invariants": {
+    "service_to_service_only": true,
+    "dispatcher_requires_service_role_bearer": true,
+    "dispatcher_requires_service_role_apikey": true,
+    "relay_requires_separate_private_secret": true,
+    "relay_secret_timing_safe_compare": true,
+    "request_schema_strict": true,
+    "https_action_url_only": true,
+    "provider_credentials_server_only": true,
+    "secrets_never_returned": true,
+    "secrets_never_logged": true,
+    "raw_auth_tokens_never_logged": true,
+    "idempotency_required": true,
+    "duplicate_delivery_sends_once": true,
+    "recipient_enumeration_safe": true,
+    "open_redirects_forbidden": true
+  },
+  "response_contract": {
+    "success_status": 202,
+    "success_body": {
+      "ok": true,
+      "status": "accepted"
+    },
+    "duplicate_status": 202,
+    "validation_status": 400,
+    "authentication_status": 403,
+    "rate_limit_status": 429,
+    "temporary_failure_status": 503,
+    "provider_message_id_public": false
+  },
+  "provider_adapter_requirements": {
+    "verified_sender_required": true,
+    "verified_domain_preferred": true,
+    "provider_timeout_seconds": 10,
+    "maximum_provider_attempts": 3,
+    "retry_backoff": "bounded_exponential_with_jitter",
+    "retryable_statuses": [
+      408,
+      425,
+      429,
+      500,
+      502,
+      503,
+      504
+    ],
+    "non_retryable_statuses": [
+      400,
+      401,
+      403,
+      404,
+      409,
+      422
+    ]
+  },
+  "required_tests": [
+    "VALID_SIGNUP_CONFIRMATION",
+    "VALID_PASSWORD_RECOVERY",
+    "MISSING_SERVICE_AUTH",
+    "INVALID_RELAY_SECRET",
+    "UNKNOWN_TEMPLATE",
+    "UNSUPPORTED_LOCALE",
+    "INVALID_RECIPIENT",
+    "NON_HTTPS_ACTION_URL",
+    "OVERSIZED_REQUEST",
+    "DUPLICATE_IDEMPOTENCY_KEY",
+    "PROVIDER_TIMEOUT",
+    "PROVIDER_RATE_LIMIT",
+    "PROVIDER_SERVER_ERROR",
+    "PROVIDER_PERMANENT_REJECTION",
+    "NO_SECRET_IN_RESPONSE",
+    "NO_SECRET_OR_ACTION_TOKEN_IN_LOGS"
+  ],
+  "activation_prerequisites": [
+    "verified provider account",
+    "verified sender or domain",
+    "relay endpoint deployed",
+    "relay publishable key installed in Supabase secrets",
+    "private relay secret installed in protected database secret store",
+    "owned mailbox selected for controlled testing",
+    "all required tests passed with timestamped evidence",
+    "MAIL_RELAY launch requirement explicitly verified"
+  ],
+  "completion_rule": "The relay remains disabled until every prerequisite is evidenced. No provider credential, private relay secret, mailbox password or auth action token may be committed to GitHub or stored in launch-control evidence."
+}
