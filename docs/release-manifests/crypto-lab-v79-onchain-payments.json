@@ -1,42 +1,27 @@
 {
-  "schema_version": 4,
+  "schema_version": 6,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T09:49:00Z",
-  "provider": "onchain_direct",
-  "wallet_client": "trust_wallet_walletconnect",
-  "status": "disabled_pending_remaining_decisions",
+  "updated_at": "2026-08-05T09:54:00Z",
+  "provider": "unselected",
+  "provider_candidate": "onchain_direct",
+  "wallet_client_candidate": "trust_wallet_walletconnect",
+  "status": "disabled_candidate_only",
   "activation_allowed": false,
-  "approved_networks": ["TRON", "BSC", "SOLANA"],
-  "owner_network_approval_recorded": true,
-  "owner_decision": {
-    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
-    "decision_text_exact": "Три сети утверждаю.",
-    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
-    "source_channel": "owner_chat",
-    "original_message_timestamp_known": false,
-    "immutable_record": true,
-    "record_active": true,
-    "decision_scope": "network_selection_only",
-    "network_activation_authorized": false,
-    "revocation_requires_new_explicit_owner_decision": true
-  },
+  "candidate_networks": ["TRON", "BSC", "SOLANA"],
+  "approved_networks": [],
+  "owner_network_approval_recorded": false,
+  "owner_provider_approval_recorded": false,
   "networks": [
-    {"code":"TRON","standard":"TRC20","chain_reference":"mainnet","fee_asset":"TRX","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":true,"active":false},
-    {"code":"BSC","standard":"BEP20","chain_reference":"56","fee_asset":"BNB","finality_mode":"finalized","required_confirmations":2,"approved_by_owner":true,"active":false},
-    {"code":"SOLANA","standard":"SPL","chain_reference":"mainnet-beta","fee_asset":"SOL","finality_mode":"finalized","required_confirmations":0,"approved_by_owner":true,"active":false}
+    {"code":"TRON","standard":"TRC20","chain_reference":"mainnet","fee_asset":"TRX","finality_mode":"solidified","required_confirmations":19,"approved_by_owner":false,"active":false},
+    {"code":"BSC","standard":"BEP20","chain_reference":"56","fee_asset":"BNB","finality_mode":"finalized","required_confirmations":2,"approved_by_owner":false,"active":false},
+    {"code":"SOLANA","standard":"SPL","chain_reference":"mainnet-beta","fee_asset":"SOL","finality_mode":"finalized","required_confirmations":0,"approved_by_owner":false,"active":false}
   ],
   "asset_candidates": {
-    "USDT": {"selected":false,"decimals":6,"network_status":{"TRON":"official_issuer_contract_verified","SOLANA":"official_issuer_contract_verified","BSC":"pegged_token_contract_and_separate_owner_acceptance_required"}},
-    "USDC": {"selected":false,"decimals":6,"network_status":{"SOLANA":"official_issuer_contract_verified","TRON":"not_listed_by_circle","BSC":"not_listed_by_circle"}}
+    "USDT": {"selected":false,"decimals":6,"network_status":{"TRON":"official_issuer_contract_verified_candidate","SOLANA":"official_issuer_contract_verified_candidate","BSC":"pegged_token_contract_review_required"}},
+    "USDC": {"selected":false,"decimals":6,"network_status":{"SOLANA":"official_issuer_contract_verified_candidate","TRON":"not_listed_by_circle","BSC":"not_listed_by_circle"}}
   },
-  "pricing": {
-    "supported_modes": ["fixed_asset", "fiat_pegged"],
-    "basic_configured": false,
-    "pro_configured": false,
-    "invoice_ttl_default_seconds": 1800,
-    "unique_amount_discriminator_max_base_units": 999
-  },
+  "pricing": {"supported_modes":["fixed_asset","fiat_pegged"],"basic_configured":false,"pro_configured":false,"invoice_ttl_default_seconds":1800,"unique_amount_discriminator_max_base_units":999},
   "receiving_addresses": {"TRON":null,"BSC":null,"SOLANA":null,"private_keys_required":false},
   "automatic_entitlement": {
     "prepared": true,
@@ -57,10 +42,13 @@
     "automatic_wallet_debit": false
   },
   "database": {
-    "payment_tables_total": 10,
-    "active_valid_owner_decision_records": 1,
-    "owner_decision_record_immutable": true,
-    "canonical_constraints_present": 3,
+    "active_valid_owner_decision_records": 0,
+    "superseded_invalid_owner_decision_records": 1,
+    "superseded_invalid_owner_correction_records": 1,
+    "invalid_records_excluded_from_launch_state": true,
+    "owner_approval_fail_closed": true,
+    "autonomous_owner_decision_insert_blocked": true,
+    "validated_candidate_only_constraints": 4,
     "all_tables_rls": true,
     "direct_browser_table_access": false,
     "browser_public_security_definer": false,
@@ -69,20 +57,11 @@
     "service_only_invoice_creation": true,
     "service_only_chain_ingestion": true,
     "adapter_activation_guarded": true,
-    "approved_network_set_guarded": true,
-    "silent_owner_approval_removal_blocked": true,
-    "silent_decision_required_reversion_blocked": true,
-    "owner_decision_integrity_checks": 6,
-    "owner_decision_integrity_state": "healthy",
     "onchain_integrity_checks": 11,
-    "onchain_integrity_state": "healthy",
-    "data_integrity_checks": 45,
-    "data_integrity_state": "healthy",
-    "launch_integrity_checks": 6,
-    "launch_integrity_state": "healthy"
+    "onchain_integrity_state": "healthy"
   },
   "runtime_state_expected": {
-    "approved_network_count": 3,
+    "approved_network_count": 0,
     "active_network_count": 0,
     "selected_asset_count": 0,
     "active_price_count": 0,
@@ -101,32 +80,31 @@
     "refunds_enabled": false
   },
   "authoritative_migration": {
-    "version": "20260805094628",
-    "name": "restore_canonical_owner_three_network_authority",
-    "source": "supabase/migrations/20260805094628_restore_canonical_owner_three_network_authority.sql",
-    "source_commit": "2b5ff1105c9e1ff65f7d192e08a368b0bb31cede"
+    "version": "20260805095124",
+    "name": "final_restore_candidate_only_after_false_owner_authority",
+    "source": "supabase/migrations/20260805095124_final_restore_candidate_only_after_false_owner_authority.sql",
+    "source_commit": "54861441ffbd1ff1ff2c4da053ecd42fc44948d3"
   },
-  "historical_conflicting_migrations": [
-    "20260805092723_fail_closed_onchain_owner_decision_gate",
-    "20260805092826_harden_candidate_network_metadata_provenance",
-    "20260805093547_add_owner_decision_supersession_audit",
-    "20260805093613_restore_onchain_candidate_only_state",
-    "20260805093641_install_fail_closed_payment_owner_decision_guards",
-    "20260805093754_enforce_fail_closed_owner_decision_constraints",
-    "20260805094250_archive_and_block_payment_owner_decision_records"
+  "historical_invalid_migrations_preserved": [
+    "20260805091540_record_owner_approved_three_onchain_networks",
+    "20260805092421_record_explicit_owner_three_network_decision",
+    "20260805092441_authorize_recorded_owner_three_network_decision",
+    "20260805093023_enforce_explicit_owner_three_network_decision_record",
+    "20260805093151_enforce_recorded_owner_three_network_decision",
+    "20260805094607_supersede_false_network_decision_denial_with_exact_owner_record",
+    "20260805094628_restore_canonical_owner_three_network_authority"
   ],
-  "historical_conflicting_state_superseded": true,
-  "remaining_decisions_and_inputs": [
-    "SETTLEMENT_ASSET_USDT_OR_USDC",
-    "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
+  "historical_invalid_state_superseded": true,
+  "required_decisions_and_inputs": [
+    "PAYMENT_PROVIDER_RAIL",
+    "NETWORK_SELECTION",
+    "SETTLEMENT_ASSET",
     "BASIC_PRICING_MODE_AND_AMOUNT",
     "PRO_PRICING_MODE_AND_AMOUNT",
-    "TRON_PUBLIC_RECEIVING_ADDRESS",
-    "BSC_PUBLIC_RECEIVING_ADDRESS",
-    "SOLANA_PUBLIC_RECEIVING_ADDRESS",
+    "PUBLIC_RECEIVING_ADDRESSES_FOR_SELECTED_NETWORKS",
     "RPC_OR_INDEXER_CONFIGURATION",
-    "WALLETCONNECT_PROJECT_ID",
-    "CONTROLLED_SANDBOX_EVIDENCE",
+    "WALLETCONNECT_PROJECT_ID_IF_USED",
+    "CONTROLLED_SANDBOX_AUTHORIZATION",
     "PAYMENT_ACTIVATION_APPROVAL"
   ],
   "publication_allowed": false,
