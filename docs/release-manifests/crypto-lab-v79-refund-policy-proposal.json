@@ -1,0 +1,104 @@
+{
+  "schema_version": 2,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "updated_at": "2026-08-05T19:45:11Z",
+  "status": "decision_required_not_published",
+  "proposal_code": "REFUND_POLICY_V1_APPROVAL",
+  "proposal_version": "2026-08-05-v1",
+  "proposal_sha256": "2b88bb0518cce25f24847b31adae688e2a70caeeb45d593f9e128f6fcac15e05",
+  "draft_path": "docs/REFUND_POLICY_PROPOSAL_7930.md",
+  "owner_approved": false,
+  "published": false,
+  "refund_execution_enabled": false,
+  "automatic_refunds_enabled": false,
+  "payments_enabled": false,
+  "maximum_processing_days_when_legally_required": 14,
+  "eligible_reasons": [
+    "duplicate_payment",
+    "verified_non_delivery",
+    "material_nonconformity",
+    "adverse_material_modification",
+    "confirmed_unauthorized_payment",
+    "mandatory_law"
+  ],
+  "cancellation_stops_future_renewal": true,
+  "same_asset_and_network_preferred": true,
+  "mandatory_refund_fee_pass_through": false,
+  "full_refund_ends_paid_access": true,
+  "statutory_rights_preserved": true,
+  "official_sources": {
+    "ukraine_digital_content_law": "https://zakon.rada.gov.ua/laws/show/3321-20",
+    "ukraine_consumer_protection_law": "https://zakon.rada.gov.ua/laws/show/1023-12",
+    "eu_consumer_reference": "https://europa.eu/youreurope/citizens/consumers/shopping/returns/index_en.htm"
+  },
+  "address_intake": {
+    "required_networks": [
+      "ETHEREUM",
+      "TRON",
+      "SOLANA"
+    ],
+    "configured_count": 0,
+    "verified_inactive_count": 0,
+    "active_count": 0,
+    "staging_service": "private.service_stage_crypto_onchain_receiving_address(text,text,text,jsonb)",
+    "verification_service": "private.service_verify_crypto_onchain_receiving_address(text,text,text,jsonb)",
+    "readiness_service": "private.service_crypto_onchain_address_intake_readiness()",
+    "supported_verification_methods": [
+      "owner_wallet_display",
+      "signed_message",
+      "controlled_test_transfer"
+    ],
+    "sensitive_material_required": false,
+    "staged_addresses_forced_inactive": true
+  },
+  "security_hardening": {
+    "security_advisor_lints": 0,
+    "public_trigger_rpc_exposure_removed": true,
+    "service_only_deny_policy_count": 5,
+    "recap_foreign_key_index_added": true,
+    "migrations": [
+      {
+        "version": "20260805193725",
+        "name": "harden_crypto_x_internal_triggers_and_service_tables",
+        "source": "supabase/migrations/20260805193725_harden_crypto_x_internal_triggers_and_service_tables.sql"
+      },
+      {
+        "version": "20260805194511",
+        "name": "harden_crypto_x_source_learning_services",
+        "source": "supabase/migrations/20260805194511_harden_crypto_x_source_learning_services.sql"
+      }
+    ]
+  },
+  "preparation_migration": {
+    "version": "20260805194211",
+    "name": "prepare_refund_policy_and_onchain_address_intake",
+    "source": "supabase/migrations/20260805194211_prepare_refund_policy_and_onchain_address_intake.sql"
+  },
+  "database_runtime": {
+    "receiving_address_count": 0,
+    "active_price_count": 0,
+    "invoice_count": 0,
+    "transaction_claim_count": 0,
+    "chain_observation_count": 0,
+    "configuration_ready": false,
+    "activation_ready": false
+  },
+  "activation_boundary": {
+    "checkout_enabled": false,
+    "refunds_enabled": false,
+    "recurring_enabled": false,
+    "receiving_addresses_active": 0,
+    "real_transfers_allowed": false
+  },
+  "next_owner_decision": "REFUND_POLICY_V1_APPROVAL",
+  "remaining_external_inputs": [
+    "PUBLIC_RECEIVING_ADDRESS_FOR_ETHEREUM",
+    "PUBLIC_RECEIVING_ADDRESS_FOR_TRON",
+    "PUBLIC_RECEIVING_ADDRESS_FOR_SOLANA",
+    "RPC_OR_INDEXER_CONFIGURATION",
+    "CONTROLLED_SANDBOX_EVIDENCE",
+    "EXPLICIT_PAYMENT_ACTIVATION_APPROVAL"
+  ],
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+}

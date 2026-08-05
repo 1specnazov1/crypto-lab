@@ -1,0 +1,40 @@
+name: Validate v79 Refund and Address Preparation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/REFUND_POLICY_PROPOSAL_7930.md'
+      - 'docs/release-manifests/crypto-lab-v79-refund-policy-proposal.json'
+      - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json'
+      - 'supabase/migrations/20260805193725_harden_crypto_x_internal_triggers_and_service_tables.sql'
+      - 'supabase/migrations/20260805194211_prepare_refund_policy_and_onchain_address_intake.sql'
+      - 'supabase/migrations/20260805194511_harden_crypto_x_source_learning_services.sql'
+      - 'scripts/v79_validate_refund_address_preparation.py'
+      - '.github/workflows/v79-refund-address-preparation-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-refund-address-preparation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate existing on-chain foundation
+        run: python scripts/v79_validate_onchain_foundation.py
+      - name: Validate refund proposal, address intake, and security hardening
+        run: python scripts/v79_validate_refund_address_preparation.py
+      - name: Preserve immutable public boundaries
+        run: |
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
