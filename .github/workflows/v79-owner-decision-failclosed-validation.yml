@@ -71,7 +71,8 @@ jobs:
           db=manifest.get('database',{})
           check(db.get('active_valid_owner_decision_records')==0,'active owner decisions zero')
           check(db.get('effective_payment_authority_events')==0,'effective authority events zero')
-          check(db.get('validated_candidate_only_constraints')==5,'validated constraints')
+          for key in ['validated_candidate_network_constraint','validated_provider_decision_required_constraint','validated_sandbox_owner_claim_constraint','validated_owner_record_archive_constraint','validated_authority_event_archive_constraint']:
+              check(db.get(key) is True,f'database guard {key}')
           check(db.get('authority_event_guard_trigger_enabled') is True,'authority guard')
           check(manifest.get('activation_allowed') is False,'activation disabled')
           auth=manifest.get('authoritative_migration',{})
