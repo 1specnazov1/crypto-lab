@@ -1,0 +1,77 @@
+name: Validate v79 Security Hardening
+
+on:
+  push:
+    paths:
+      - 'supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql'
+      - 'docs/SECURITY_ACL_REPAIR_7930.md'
+      - '.github/workflows/v79-security-hardening-validation.yml'
+  pull_request:
+    paths:
+      - 'supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql'
+      - 'docs/SECURITY_ACL_REPAIR_7930.md'
+      - '.github/workflows/v79-security-hardening-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-security-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate service-only function ACL migration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          path=Path('supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql')
+          text=path.read_text(encoding='utf-8')
+          normalized=re.sub(r'\s+',' ',text.lower())
+          required=[
+            'revoke all on function public.crypto_x_claim_publish_job() from public;',
+            'revoke all on function public.crypto_x_claim_publish_job() from anon;',
+            'revoke all on function public.crypto_x_claim_publish_job() from authenticated;',
+            'grant execute on function public.crypto_x_claim_publish_job() to service_role;',
+            'alter function public.crypto_x_claim_publish_job() set search_path = public, pg_temp;'
+          ]
+          errors=[item for item in required if item not in normalized]
+          forbidden=[
+            'grant execute on function public.crypto_x_claim_publish_job() to public',
+            'grant execute on function public.crypto_x_claim_publish_job() to anon',
+            'grant execute on function public.crypto_x_claim_publish_job() to authenticated'
+          ]
+          errors.extend(item for item in forbidden if item in normalized)
+          if errors:
+            print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
+          print('service-only ACL migration contract passed')
+          PY
+
+      - name: Validate repair evidence document
+        run: |
+          set -euo pipefail
+          grep -F 'PUBLIC: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          grep -F 'anon: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          grep -F 'authenticated: no execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          grep -F 'service_role: execute' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          grep -F 'data-integrity state: healthy' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+          grep -F 'live publishing was disabled' docs/SECURITY_ACL_REPAIR_7930.md >/dev/null
+
+      - name: Preserve stable and public release hashes
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
+          test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
