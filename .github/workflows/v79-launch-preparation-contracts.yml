@@ -1,0 +1,88 @@
+name: Validate v79 Launch Preparation Contracts
+
+on:
+  push:
+    paths:
+      - 'docs/schemas/crypto-mail-relay-request-v1.schema.json'
+      - 'docs/release-manifests/crypto-lab-v79-mail-relay-contract.json'
+      - 'docs/release-manifests/crypto-lab-v79-backup-restore-plan.json'
+      - 'docs/release-manifests/crypto-lab-v79-device-beta-plan.json'
+      - 'docs/MAIL_RELAY_DEPLOYMENT_CONTRACT_7930.md'
+      - 'docs/BACKUP_RESTORE_RUNBOOK_7930.md'
+      - 'docs/PHYSICAL_DEVICE_BETA_EVIDENCE_7930.md'
+      - 'scripts/backup/crypto-lab-logical-backup.sh'
+      - 'scripts/backup/crypto-lab-restore-rehearsal.sh'
+      - 'tests/validate_v79_launch_preparation_contracts.py'
+      - '.github/workflows/v79-launch-preparation-contracts.yml'
+  pull_request:
+    paths:
+      - 'docs/schemas/crypto-mail-relay-request-v1.schema.json'
+      - 'docs/release-manifests/crypto-lab-v79-mail-relay-contract.json'
+      - 'docs/release-manifests/crypto-lab-v79-backup-restore-plan.json'
+      - 'docs/release-manifests/crypto-lab-v79-device-beta-plan.json'
+      - 'docs/MAIL_RELAY_DEPLOYMENT_CONTRACT_7930.md'
+      - 'docs/BACKUP_RESTORE_RUNBOOK_7930.md'
+      - 'docs/PHYSICAL_DEVICE_BETA_EVIDENCE_7930.md'
+      - 'scripts/backup/crypto-lab-logical-backup.sh'
+      - 'scripts/backup/crypto-lab-restore-rehearsal.sh'
+      - 'tests/validate_v79_launch_preparation_contracts.py'
+      - '.github/workflows/v79-launch-preparation-contracts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v79-launch-preparation-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate JSON, runbooks, safety guards and redaction
+        run: python tests/validate_v79_launch_preparation_contracts.py
+
+      - name: Check guarded shell syntax
+        run: |
+          bash -n scripts/backup/crypto-lab-logical-backup.sh
+          bash -n scripts/backup/crypto-lab-restore-rehearsal.sh
+
+      - name: Preserve stable and public release boundaries
+        run: |
+          set -euo pipefail
+          test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+          test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
+          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"
+          grep -F "crypto-lab-v79-7930-auth1" v79/service-worker.js >/dev/null
+
+      - name: Confirm preparation remains non-activating
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          paths = [
+              Path('docs/release-manifests/crypto-lab-v79-mail-relay-contract.json'),
+              Path('docs/release-manifests/crypto-lab-v79-backup-restore-plan.json'),
+              Path('docs/release-manifests/crypto-lab-v79-device-beta-plan.json'),
+          ]
+          documents = [json.loads(path.read_text(encoding='utf-8')) for path in paths]
+          assert documents[0]['activation_allowed'] is False
+          assert documents[1]['purchase_authorized'] is False
+          assert documents[1]['production_backup_execution_authorized'] is False
+          assert documents[1]['restore_execution_authorized'] is False
+          assert documents[2]['physical_execution_authorized'] is False
+          assert documents[2]['beta_execution_authorized'] is False
+          assert documents[2]['publication_authorized'] is False
+          print('Preparation remains non-activating')
+          PY
