@@ -307,23 +307,33 @@
     },
     {
       "version": "20260805093754",
-      "name": "enforce_fail_closed_owner_decision_constraints"
+      "name": "enforce_fail_closed_owner_decision_constraints",
+      "source": "supabase/migrations/20260805093754_enforce_fail_closed_owner_decision_constraints.sql",
+      "source_commit": "2934cd36e26e448e0299e513f26a59c44966a9e8"
     },
     {
       "version": "20260805094250",
-      "name": "archive_and_block_payment_owner_decision_records"
+      "name": "archive_and_block_payment_owner_decision_records",
+      "source": "supabase/migrations/20260805094250_archive_and_block_payment_owner_decision_records.sql",
+      "source_commit": "387b9f93e7104b136fd576498f082e369f7fc1db"
     },
     {
       "version": "20260805094607",
-      "name": "supersede_false_network_decision_denial_with_exact_owner_record"
+      "name": "supersede_false_network_decision_denial_with_exact_owner_record",
+      "source": "supabase/migrations/20260805094607_supersede_false_network_decision_denial_with_exact_owner_record.sql",
+      "source_commit": "07dc878da30adeaa90ece6a7c15c8c70c82491cb"
     },
     {
       "version": "20260805094628",
-      "name": "restore_canonical_owner_three_network_authority"
+      "name": "restore_canonical_owner_three_network_authority",
+      "source": "supabase/migrations/20260805094628_restore_canonical_owner_three_network_authority.sql",
+      "source_commit": "2b5ff1105c9e1ff65f7d192e08a368b0bb31cede"
     },
     {
       "version": "20260805095124",
-      "name": "final_restore_candidate_only_after_false_owner_authority"
+      "name": "final_restore_candidate_only_after_false_owner_authority",
+      "source": "supabase/migrations/20260805095124_final_restore_candidate_only_after_false_owner_authority.sql",
+      "source_commit": "54861441ffbd1ff1ff2c4da053ecd42fc44948d3"
     },
     {
       "version": "20260805095447",
@@ -331,7 +341,9 @@
     },
     {
       "version": "20260805095547",
-      "name": "finalize_explicit_owner_three_network_selection_after_race"
+      "name": "finalize_explicit_owner_three_network_selection_after_race",
+      "source": "supabase/migrations/20260805095547_finalize_explicit_owner_three_network_selection_after_race.sql",
+      "source_commit": "2cc1e4eaee419c69533139eb6e615865aa9ea2d1"
     },
     {
       "version": "20260805100027",
@@ -340,7 +352,7 @@
       "source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08"
     }
   ],
-  "updated_at": "2026-08-05T10:07:00Z",
+  "updated_at": "2026-08-05T10:08:00Z",
   "application": {
     "assets": [
       {
@@ -610,9 +622,6 @@
     "real_admin_runbook_ready": true,
     "real_admin_assigned": false,
     "payment_adapter_map_ready": true,
-    "onchain_billing_schema_v2_draft_ready": true,
-    "onchain_runtime_schema_migration_applied": false,
-    "direct_onchain_payment_activation_allowed": false,
     "identity_payment_preparation_gate_run_id": "30990270213",
     "identity_plan_path": "docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json",
     "payment_adapter_map_path": "docs/release-manifests/crypto-lab-v79-payment-adapter-map.json",
@@ -627,16 +636,25 @@
     "crypto_x_generation_enabled": false,
     "crypto_x_queues_empty_at_verification": true,
     "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md",
-    "onchain_payment_foundation": "three_network_owner_approved_disabled_pending_asset_pricing_addresses",
-    "onchain_payment_gate_run_id": "30994527619",
-    "onchain_sandbox_scenario_count": 27,
-    "onchain_observation_lifecycle_hardened": true,
-    "onchain_network_approval_recorded": true,
-    "onchain_lifecycle_manifest": "docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json",
-    "onchain_lifecycle_integrity_checks": 11,
-    "onchain_lifecycle_integrity_state": "healthy",
+    "candidate_only_payment_repair_verified": true,
+    "candidate_only_manifest_contract_repaired": true,
+    "authoritative_payment_recovery_migration": "20260805100027",
+    "authoritative_payment_recovery_source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08",
+    "payment_provider_status": "decision_required",
+    "fabricated_text_was_not_user_content": true,
+    "overlapping_recurring_automation_disabled": true,
+    "payment_sandbox_matrix_schema_version": 8,
+    "automatic_wallet_debit": false,
+    "crypto_x_cost_activation_guarded": true,
+    "registration_enabled": false,
+    "recovery_enabled": false,
+    "v79_publication_authorized": false,
     "onchain_payment_manifest": "docs/release-manifests/crypto-lab-v79-onchain-payments.json",
     "onchain_payment_sandbox_matrix": "docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json",
+    "onchain_provenance_repair_document": "docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md",
+    "onchain_authoritative_migration_version": "20260805100027",
+    "onchain_authoritative_migration_name": "authoritative_candidate_only_payment_recovery",
+    "onchain_authoritative_migration_source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08",
     "onchain_candidate_networks": [
       "TRON",
       "BSC",
@@ -645,48 +663,24 @@
     "onchain_approved_network_count": 0,
     "onchain_active_network_count": 0,
     "onchain_selected_asset_count": 0,
+    "onchain_enabled_network_asset_count": 0,
     "onchain_active_price_count": 0,
     "onchain_receiving_address_count": 0,
     "onchain_invoice_count": 0,
     "onchain_chain_observation_count": 0,
+    "onchain_transaction_claim_count": 0,
+    "onchain_active_owner_decision_record_count": 0,
+    "onchain_reconstructed_owner_record_inactive": true,
     "onchain_owner_approval_recorded": false,
     "onchain_provider_decision_recorded": false,
-    "onchain_invalid_owner_decision_superseded": true,
-    "onchain_superseded_owner_decision_audit_preserved": true,
     "onchain_owner_approval_fail_closed": true,
     "onchain_autonomous_owner_decision_insert_blocked": true,
+    "onchain_validated_candidate_only_constraint_count": 4,
     "onchain_transaction_lifecycle_hardened": true,
     "onchain_automatic_entitlement_prepared": true,
     "onchain_automatic_entitlement_enabled": false,
     "onchain_automatic_wallet_debit": false,
-    "candidate_only_payment_repair_verified": true,
-    "candidate_only_manifest_contract_repaired": true,
-    "authoritative_payment_recovery_migration": "20260805100027",
-    "authoritative_payment_recovery_source_commit": "83ca5ebc71e68e25f881344d93ec39d38125aa08",
-    "payment_provider_status": "decision_required",
-    "approved_onchain_network_count": 0,
-    "active_onchain_network_count": 0,
-    "selected_onchain_asset_count": 0,
-    "active_onchain_price_count": 0,
-    "active_onchain_address_count": 0,
-    "onchain_observation_count": 0,
-    "onchain_credited_claim_count": 0,
-    "active_payment_owner_decision_records": 0,
-    "superseded_invalid_owner_decision_records": 1,
-    "owner_decision_constraints_validated": true,
-    "owner_decision_negative_probes_passed": true,
-    "fabricated_owner_decision_incident_document": "docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md",
-    "fabricated_owner_decision_text": "Три сети утверждаю.",
-    "fabricated_text_was_not_user_content": true,
-    "overlapping_recurring_automation_disabled": true,
-    "self_rewriting_owner_decision_workflows_removed": true,
-    "onchain_manifest_schema_version": 8,
-    "payment_sandbox_matrix_schema_version": 8,
-    "onchain_payment_activation_allowed": false,
-    "automatic_wallet_debit": false,
-    "crypto_x_cost_activation_guarded": true,
-    "registration_enabled": false,
-    "recovery_enabled": false,
-    "v79_publication_authorized": false
+    "onchain_sandbox_scenario_count": 29,
+    "direct_onchain_payment_activation_allowed": false
   }
 }
