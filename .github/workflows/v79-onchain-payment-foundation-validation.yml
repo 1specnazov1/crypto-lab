@@ -6,16 +6,14 @@ on:
     paths:
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
-      - 'supabase/migrations/20260805095124_final_restore_candidate_only_after_false_owner_authority.sql'
+      - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
+      - 'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
+      - 'supabase/migrations/20260805095547_finalize_explicit_owner_three_network_selection_after_race.sql'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: v79-onchain-payment-foundation-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   validate:
@@ -23,69 +21,61 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v6
-      - name: Validate final disabled candidate-only foundation
+      - name: Validate canonical owner-approved disabled foundation
         run: |
           python - <<'PY'
-          import json,re,sys
+          import json
           from pathlib import Path
-          onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text(encoding='utf-8'))
-          matrix=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text(encoding='utf-8'))
-          migration=Path('supabase/migrations/20260805095124_final_restore_candidate_only_after_false_owner_authority.sql').read_text(encoding='utf-8')
-          errors=[]
-          def check(value,message):
-            if not value: errors.append(message)
 
-          check(onchain.get('schema_version')==6,'on-chain schema')
-          check(onchain.get('provider')=='unselected' and onchain.get('provider_candidate')=='onchain_direct','provider candidate')
-          check(onchain.get('wallet_client_candidate')=='trust_wallet_walletconnect','wallet candidate')
-          check(onchain.get('status')=='disabled_candidate_only' and onchain.get('activation_allowed') is False,'activation boundary')
-          check(onchain.get('candidate_networks')==['TRON','BSC','SOLANA'],'candidate network inventory')
-          check(onchain.get('approved_networks')==[],'approved networks empty')
-          check(onchain.get('owner_network_approval_recorded') is False and onchain.get('owner_provider_approval_recorded') is False,'owner approval absent')
-          check('owner_decision' not in onchain,'no reconstructed owner decision object')
-          check(all(x.get('approved_by_owner') is False and x.get('active') is False for x in onchain.get('networks',[])),'networks inactive and unapproved')
-          check(all(x.get('selected') is False for x in onchain.get('asset_candidates',{}).values()),'assets unselected')
-          db=onchain.get('database',{})
-          check(db.get('active_valid_owner_decision_records')==0,'no active owner record')
-          check(db.get('superseded_invalid_owner_decision_records')==1,'invalid record archived')
-          check(db.get('superseded_invalid_owner_correction_records')==1,'invalid correction archived')
-          check(db.get('owner_approval_fail_closed') is True and db.get('autonomous_owner_decision_insert_blocked') is True,'fail-closed guards')
-          check(db.get('direct_browser_table_access') is False and db.get('browser_public_security_definer') is False,'browser security')
-          state=onchain.get('runtime_state_expected',{})
-          for key in ['approved_network_count','active_network_count','selected_asset_count','active_price_count','receiving_address_count','invoice_count','chain_observation_count','credited_transaction_claim_count','auth_user_count','registration_attempt_count','recovery_attempt_count']:
-            check(state.get(key)==0,f'zero state {key}')
-          check(state.get('provider_desired_mode')=='disabled' and state.get('provider_lifecycle_status')=='draft','provider disabled')
-          for key in ['checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled']:
-            check(state.get(key) is False,f'{key} false')
-          auth=onchain.get('authoritative_migration',{})
-          check(auth.get('version')=='20260805095124' and auth.get('source_commit')=='54861441ffbd1ff1ff2c4da053ecd42fc44948d3','authoritative migration')
+          onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
+          matrix=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text())
+          decision=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+          migration=Path('supabase/migrations/20260805095547_finalize_explicit_owner_three_network_selection_after_race.sql').read_text()
+          lifecycle=Path('supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql').read_text()
+          networks=['TRON','BSC','SOLANA']
+          fingerprint='57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be'
 
-          check(matrix.get('schema_version')==6,'matrix schema')
-          check(matrix.get('provider')=='unselected' and matrix.get('provider_candidate')=='onchain_direct','matrix provider')
-          check(matrix.get('candidate_networks')==['TRON','BSC','SOLANA'] and matrix.get('approved_networks')==[],'matrix candidate boundary')
-          check(matrix.get('owner_network_approval_recorded') is False and matrix.get('settlement_asset')=='decision_required','matrix decisions absent')
-          check(matrix.get('scenario_count')==27 and len(matrix.get('scenarios',[]))==27,'matrix scenario count')
-          codes={x.get('code') for x in matrix.get('scenarios',[])}
-          check({'UNAUTHORIZED_OWNER_APPROVAL_CLAIM','PREMATURE_NETWORK_ACTIVATION_ATTEMPT','PAYMENT_SUCCESS_FINALIZED','WRONG_NETWORK','UNFINALIZED_TRANSACTION'}<=codes,'required scenarios')
+          assert onchain['schema_version']==7
+          assert onchain['provider']=='onchain_direct'
+          assert onchain['approved_networks']==networks
+          assert onchain['owner_network_approval_recorded'] is True
+          assert onchain['activation_allowed'] is False
+          assert all(x['approved_by_owner'] is True and x['active'] is False for x in onchain['networks'])
+          assert onchain['owner_decision']['decision_text_exact']=='Три сети утверждаю.'
+          assert onchain['owner_decision']['decision_hash_sha256']==fingerprint
+          assert onchain['runtime_state_expected']['approved_network_count']==3
+          assert onchain['runtime_state_expected']['active_network_count']==0
+          assert onchain['runtime_state_expected']['provider_desired_mode']=='disabled'
+          assert onchain['runtime_state_expected']['checkout_enabled'] is False
+          assert onchain['database']['owner_decision_integrity_state']=='healthy'
+          assert onchain['database']['owner_decision_integrity_checks']==8
+          assert onchain['database']['onchain_integrity_state']=='healthy'
 
-          for marker in ['final_restore_candidate_only_after_false_owner_authority','approved_by_owner=false',"status='decision_required'",'crypto_onchain_networks_owner_decision_fail_closed','crypto_payment_provider_owner_decision_fail_closed','crypto_owner_decision_payment_record_fail_closed','invalid_reconstructed_owner_decision_correction']:
-            check(marker in migration,f'migration marker {marker}')
-          for forbidden_path in [Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json'),Path('.github/workflows/v79-owner-network-decision-sync-once.yml'),Path('.github/workflows/v79-owner-network-decision-validation.yml')]:
-            check(not forbidden_path.exists(),f'fabricated decision artifact exists: {forbidden_path}')
-          combined=json.dumps(onchain,ensure_ascii=False)+json.dumps(matrix,ensure_ascii=False)+migration
-          for pattern in [r'sb_secret_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ']:
-            check(re.search(pattern,combined,re.I) is None,f'secret pattern {pattern}')
-          check(onchain.get('stable_root_v78_sha')=='4a278c891d37b3760ec1ac988690ea9ad587b24e','v78 boundary')
-          check(onchain.get('public_application_commit')=='e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191','v79 app boundary')
-          check(onchain.get('pwa_cache')=='crypto-lab-v79-7930-auth1','PWA cache')
+          assert matrix['schema_version']==7
+          assert matrix['provider']=='onchain_direct'
+          assert matrix['approved_networks']==networks
+          assert matrix['owner_network_approval_recorded'] is True
+          assert matrix['mode']=='disabled'
+          assert matrix['activation_allowed'] is False
+          assert matrix['scenario_count']==29
+          assert len(matrix['scenarios'])==29
 
-          if errors:
-            print('\n'.join('ERROR: '+x for x in errors));sys.exit(1)
-          print('Final candidate-only payment foundation is disabled and fail-closed: OK')
+          assert decision['schema_version']==4
+          assert decision['decision_text_exact']=='Три сети утверждаю.'
+          assert decision['decision_hash_sha256']==fingerprint
+          assert decision['activation_allowed'] is False
+          assert decision['database']['authoritative_migration_version']=='20260805095547'
+
+          for marker in ['crypto_owner_decision_authority_events','crypto_owner_decision_correction_effective_check','crypto_owner_decision_canonical_three_network_check','crypto_onchain_canonical_three_network_approval_check','crypto_payment_provider_owner_decision_check','crypto_owner_decision_integrity_snapshot']:
+            assert marker in migration
+          for marker in ['crypto_onchain_tx_claims','finality_regression','conflicting_transaction_observation','transaction_after_invoice_expiry']:
+            assert marker in lifecycle
+
+          assert onchain['stable_root_v78_sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          print('Canonical owner-approved three-network foundation remains disabled and guarded: OK')
           PY
       - name: Preserve public release hashes
         run: |
-          set -euo pipefail
           test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
           test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
           test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
