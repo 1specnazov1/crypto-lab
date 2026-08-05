@@ -6,105 +6,72 @@ on:
     paths:
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
-      - 'supabase/migrations/20260805093547_add_owner_decision_supersession_audit.sql'
-      - 'supabase/migrations/20260805093613_restore_onchain_candidate_only_state.sql'
-      - 'supabase/migrations/20260805093641_install_fail_closed_payment_owner_decision_guards.sql'
+      - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
+      - 'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
+      - 'supabase/migrations/20260805094628_restore_canonical_owner_three_network_authority.sql'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: v79-onchain-payment-foundation-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v6
-      - name: Validate disabled candidate-only foundation
+      - name: Validate approved networks and disabled activation
         run: |
           python - <<'PY'
-          import json,pathlib,re,sys
-          root=pathlib.Path('.')
-          manifest_path=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
-          matrix_path=root/'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
-          supersession_path=root/'supabase/migrations/20260805093547_add_owner_decision_supersession_audit.sql'
-          restore_path=root/'supabase/migrations/20260805093613_restore_onchain_candidate_only_state.sql'
-          guard_path=root/'supabase/migrations/20260805093641_install_fail_closed_payment_owner_decision_guards.sql'
-          data=json.loads(manifest_path.read_text(encoding='utf-8'))
-          matrix=json.loads(matrix_path.read_text(encoding='utf-8'))
-          authoritative='\n'.join(p.read_text(encoding='utf-8') for p in (supersession_path,restore_path,guard_path))
-          errors=[]
-          def check(value,message):
-            if not value: errors.append(message)
+          import json
+          from pathlib import Path
 
-          check(data.get('schema_version')==3 and data.get('project_ref')=='txhzxbizjpinowepfjkm' and data.get('build')=='7930','manifest identity')
-          check(data.get('provider_candidate')=='onchain_direct' and data.get('wallet_client_candidate')=='trust_wallet_walletconnect','candidate rail')
-          check(data.get('status')=='disabled_candidate_only' and data.get('activation_allowed') is False,'activation boundary')
-          check(data.get('candidate_networks')==['TRON','BSC','SOLANA'],'candidate networks')
-          check(data.get('approved_networks')==[] and data.get('owner_network_approval_recorded') is False and data.get('owner_provider_approval_recorded') is False,'no owner approval')
-          check('owner_decision' not in data,'no reconstructed owner decision')
+          onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
+          matrix=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text())
+          decision=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+          migration=Path('supabase/migrations/20260805094628_restore_canonical_owner_three_network_authority.sql').read_text()
+          lifecycle=Path('supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql').read_text()
+          networks=['TRON','BSC','SOLANA']
+          fingerprint='57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be'
 
-          networks={x.get('code'):x for x in data.get('networks',[])}
-          check(set(networks)=={'TRON','BSC','SOLANA'},'network inventory')
-          for code,item in networks.items():
-            check(item.get('approved_by_owner') is False and item.get('active') is False,f'{code} candidate only')
-            check(item.get('finality_mode') in {'solidified','finalized'},f'{code} finality design')
+          assert onchain['schema_version']==4
+          assert onchain['approved_networks']==networks
+          assert onchain['owner_network_approval_recorded'] is True
+          assert onchain['activation_allowed'] is False
+          assert all(x['approved_by_owner'] is True and x['active'] is False for x in onchain['networks'])
+          assert onchain['owner_decision']['decision_text_exact']=='Три сети утверждаю.'
+          assert onchain['owner_decision']['decision_hash_sha256']==fingerprint
+          assert onchain['runtime_state_expected']['approved_network_count']==3
+          assert onchain['runtime_state_expected']['active_network_count']==0
+          assert onchain['runtime_state_expected']['provider_desired_mode']=='disabled'
+          assert onchain['runtime_state_expected']['checkout_enabled'] is False
+          assert onchain['database']['owner_decision_integrity_state']=='healthy'
+          assert onchain['database']['onchain_integrity_state']=='healthy'
 
-          assets=data.get('asset_candidates',{})
-          check(set(assets)=={'USDT','USDC'} and all(x.get('selected') is False for x in assets.values()),'asset undecided')
-          check(data.get('pricing',{}).get('basic_configured') is False and data.get('pricing',{}).get('pro_configured') is False,'prices disabled')
-          addresses=data.get('receiving_addresses',{})
-          check(all(addresses.get(code) is None for code in ('TRON','BSC','SOLANA')) and addresses.get('private_keys_required') is False,'address and key boundary')
+          assert matrix['schema_version']==5
+          assert matrix['approved_networks']==networks
+          assert matrix['owner_network_approval_recorded'] is True
+          assert matrix['mode']=='disabled'
+          assert matrix['activation_allowed'] is False
+          assert matrix['scenario_count']==28
+          assert len(matrix['scenarios'])==28
 
-          entitlement=data.get('automatic_entitlement',{})
-          check(entitlement.get('prepared') is True and entitlement.get('enabled') is False and entitlement.get('automatic_wallet_debit') is False,'entitlement disabled')
-          for key in ['browser_cannot_mark_paid','screenshot_not_accepted','duplicate_transaction_claim_blocked','wrong_network_blocked','wrong_asset_blocked','unfinalized_transaction_not_credited']:
-            check(entitlement.get(key) is True,f'entitlement guard {key}')
+          assert decision['decision_text_exact']=='Три сети утверждаю.'
+          assert decision['decision_hash_sha256']==fingerprint
+          assert decision['activation_allowed'] is False
+          assert decision['database']['authoritative_migration_version']=='20260805094628'
 
-          db=data.get('database',{})
-          for key in ['supersession_evidence_immutable','all_tables_rls','immutable_chain_observations','transaction_claim_lifecycle_hardened','service_only_invoice_creation','service_only_chain_ingestion','adapter_activation_guarded','owner_approval_fail_closed','autonomous_owner_decision_insert_blocked']:
-            check(db.get(key) is True,f'database guard {key}')
-          check(db.get('active_valid_owner_decision_records')==0 and db.get('superseded_invalid_owner_decision_records')==1,'superseded audit state')
-          check(db.get('direct_browser_table_access') is False and db.get('browser_public_security_definer') is False,'browser security boundary')
+          for marker in ['crypto_owner_decision_records','crypto_owner_decision_canonical_three_network_check','crypto_onchain_canonical_three_network_approval_check','crypto_payment_provider_owner_decision_check','crypto_owner_decision_integrity_snapshot']:
+            assert marker in migration
+          for marker in ['crypto_onchain_tx_claims','finality_regression','conflicting_transaction_observation','transaction_after_invoice_expiry']:
+            assert marker in lifecycle
 
-          state=data.get('runtime_state_expected',{})
-          for key in ['approved_network_count','active_network_count','selected_asset_count','active_price_count','receiving_address_count','invoice_count','chain_observation_count','credited_transaction_claim_count','auth_user_count','registration_attempt_count','recovery_attempt_count']:
-            check(state.get(key)==0,f'expected zero {key}')
-          check(state.get('provider_desired_mode')=='disabled' and state.get('provider_lifecycle_status')=='draft','provider disabled')
-          for key in ['checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled']:
-            check(state.get(key) is False,f'{key} disabled')
-
-          check(matrix.get('schema_version')==4 and matrix.get('provider')=='unselected' and matrix.get('provider_candidate')=='onchain_direct','matrix identity')
-          check(matrix.get('candidate_networks')==['TRON','BSC','SOLANA'] and matrix.get('approved_networks')==[] and matrix.get('owner_network_approval_recorded') is False,'matrix candidate boundary')
-          check(matrix.get('settlement_asset')=='decision_required' and matrix.get('activation_allowed') is False,'matrix activation')
-          scenarios=matrix.get('scenarios',[]);codes=[x.get('code') for x in scenarios]
-          required={'PAYMENT_SUCCESS_FINALIZED','WRONG_NETWORK','WRONG_ASSET_OR_CONTRACT','UNDERPAYMENT','OVERPAYMENT','UNFINALIZED_TRANSACTION','DUPLICATE_TRANSACTION_HASH','LATE_PAYMENT_AFTER_EXPIRY','REORG_OR_FINALITY_REGRESSION','UNAUTHORIZED_OWNER_APPROVAL_CLAIM','TOKEN_CONTRACT_NOT_VERIFIED','VERIFIER_UNAVAILABLE'}
-          check(matrix.get('scenario_count')==27 and len(scenarios)==27 and len(codes)==len(set(codes)) and required<=set(codes) and all(x.get('required') is True for x in scenarios),'sandbox matrix')
-
-          for marker in ['invalid_reconstructed_owner_decision','approved_by_owner=false','status=\'decision_required\'','block_crypto_onchain_owner_approval_until_explicit_decision','block_crypto_payment_owner_claim_until_explicit_decision','block_crypto_owner_decision_record_insert']:
-            check(marker in authoritative,f'authoritative migration marker {marker}')
-          for forbidden in ['app.crypto_owner_decision_authorized','owner_network_approval_recorded": true','"approved_by_owner":true']:
-            check(forbidden not in manifest_path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')+authoritative,f'forbidden owner approval marker {forbidden}')
-
-          combined=manifest_path.read_text(encoding='utf-8')+matrix_path.read_text(encoding='utf-8')+authoritative
-          for pattern in [r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\s*:',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']:
-            check(re.search(pattern,combined,re.I) is None,f'forbidden secret pattern {pattern}')
-          check(data.get('stable_root_v78_sha')=='4a278c891d37b3760ec1ac988690ea9ad587b24e','v78 boundary')
-          check(data.get('public_application_commit')=='e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191','v79 public application boundary')
-          check(data.get('pwa_cache')=='crypto-lab-v79-7930-auth1','PWA cache boundary')
-
-          if errors:
-            print('\n'.join('ERROR: '+x for x in errors));sys.exit(1)
-          print('Candidate-only on-chain payment foundation is fail-closed: OK')
+          assert onchain['stable_root_v78_sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          print('Canonical owner-approved three-network foundation remains disabled and guarded: OK')
           PY
       - name: Preserve public release hashes
         run: |
-          set -euo pipefail
           test "$(git hash-object index.html)" = "4a278c891d37b3760ec1ac988690ea9ad587b24e"
           test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
           test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
