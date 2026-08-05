@@ -8,7 +8,7 @@ on:
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
       - 'docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md'
       - 'supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql'
-      - 'supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql'
+      - 'supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
@@ -25,89 +25,80 @@ jobs:
     timeout-minutes: 7
     steps:
       - uses: actions/checkout@v6
-
-      - name: Validate authoritative candidate-only foundation
+      - name: Validate final candidate-only foundation
         run: |
           python - <<'PY'
           import json,re,sys
           from pathlib import Path
-
           errors=[]
           def check(value,message):
               if not value: errors.append(message)
 
           onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
           matrix=json.loads(Path('docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json').read_text())
-          migration=Path('supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql').read_text()
+          migration=Path('supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql').read_text()
           lifecycle=Path('supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql').read_text()
           evidence=Path('docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md').read_text()
 
-          check(onchain['schema_version']==8,'onchain schema version')
-          check(onchain['provider']=='unselected','provider must be unselected')
-          check(onchain['provider_candidate']=='onchain_direct','provider candidate')
-          check(onchain['status']=='disabled_candidate_only','candidate-only status')
-          check(onchain['approved_networks']==[],'approved networks must be empty')
-          check(onchain['candidate_networks']==['TRON','BSC','SOLANA'],'candidate network set')
-          check(onchain['owner_network_approval_recorded'] is False,'network approval false')
-          check(onchain['owner_provider_approval_recorded'] is False,'provider approval false')
-          check(onchain['activation_allowed'] is False,'activation false')
-          check(all(x['approved_by_owner'] is False and x['active'] is False for x in onchain['networks']),'network runtime boundary')
+          check(onchain['schema_version']==12,'onchain schema version')
+          check(onchain['provider']=='unselected' and onchain['provider_candidate']=='onchain_direct','provider boundary')
+          check(onchain['status']=='disabled_candidate_only' and onchain['activation_allowed'] is False,'candidate-only activation')
+          check(onchain['approved_networks']==[] and onchain['candidate_networks']==['TRON','BSC','SOLANA'],'network boundary')
+          check(onchain['owner_network_approval_recorded'] is False and onchain['owner_provider_approval_recorded'] is False,'owner approval absent')
+          check(all(x['approved_by_owner'] is False and x['active'] is False for x in onchain['networks']),'network rows')
           check(all(x['selected'] is False for x in onchain['asset_candidates'].values()),'assets unselected')
           check(onchain['pricing']['basic_configured'] is False and onchain['pricing']['pro_configured'] is False,'prices inactive')
           check(all(onchain['receiving_addresses'][x] is None for x in ['TRON','BSC','SOLANA']),'addresses absent')
-          check(onchain['automatic_entitlement']['enabled'] is False,'entitlement disabled')
-          check(onchain['automatic_entitlement']['automatic_wallet_debit'] is False,'wallet debit disabled')
-          check(onchain['database']['active_valid_owner_decision_records']==0,'active owner records zero')
-          check(onchain['database']['superseded_invalid_owner_decision_records']==1,'superseded audit retained')
-          check(onchain['provenance_incident']['user_never_wrote_fabricated_text'] is True,'conversation fact')
-          check(onchain['provenance_incident']['recurring_automation_disabled'] is True,'overlap disabled')
-          check(onchain['authoritative_migration']['version']=='20260805100027','authoritative migration')
-          check(onchain['runtime_state_expected']['approved_network_count']==0,'approved runtime count')
-          check(onchain['runtime_state_expected']['active_network_count']==0,'active runtime count')
-          check(onchain['runtime_state_expected']['provider_status']=='decision_required','provider runtime status')
+          check(onchain['automatic_entitlement']['enabled'] is False and onchain['automatic_entitlement']['automatic_wallet_debit'] is False,'entitlement disabled')
+          db=onchain['database']
+          check(db['active_valid_owner_decision_records']==0 and db['effective_payment_authority_events']==0,'owner authority inactive')
+          check(db['validated_candidate_only_constraints']==5,'validated constraints')
+          check(db['authority_event_guard_trigger_enabled'] is True,'authority-event guard')
+          auth=onchain['authoritative_migration']
+          check(auth['version']=='20260805101600' and auth['name']=='authoritative_candidate_only_recovery_after_100805','authoritative migration')
+          check(auth['source_commit']=='09dfd70b1ee55fc48023b019309e6e5f41798fc6','authoritative source commit')
+          check(onchain['runtime_state']['provider_status']=='decision_required','provider decision required')
           check(onchain['publication_allowed'] is False,'publication disabled')
 
-          check(matrix['schema_version']==8,'matrix schema version')
-          check(matrix['provider']=='unselected','matrix provider unselected')
-          check(matrix['mode']=='disabled' and matrix['activation_allowed'] is False,'matrix disabled')
-          check(matrix['approved_networks']==[],'matrix approved networks empty')
-          check(matrix['candidate_networks']==['TRON','BSC','SOLANA'],'matrix candidates')
-          check(matrix['owner_network_approval_recorded'] is False,'matrix owner approval false')
-          check(matrix['settlement_asset']=='decision_required','asset decision required')
-          check(matrix['scenario_count']==29 and len(matrix['scenarios'])==29,'scenario count')
-          check(len({x['code'] for x in matrix['scenarios']})==29,'scenario uniqueness')
-          for required in ['UNAUTHORIZED_NETWORK_APPROVAL_ATTEMPT','UNAUTHORIZED_APPROVAL_METADATA_ATTEMPT','UNAUTHORIZED_PROVIDER_DECISION_ATTEMPT','UNAUTHORIZED_OWNER_RECORD_INSERT_ATTEMPT','PREMATURE_NETWORK_ACTIVATION_ATTEMPT']:
-              check(required in {x['code'] for x in matrix['scenarios']},f'missing {required}')
+          check(matrix['schema_version']==9,'matrix schema')
+          check(matrix['provider']=='unselected' and matrix['activation_allowed'] is False,'matrix disabled')
+          check(matrix['approved_networks']==[] and matrix['candidate_networks']==['TRON','BSC','SOLANA'],'matrix networks')
+          check(matrix['owner_network_approval_recorded'] is False and matrix['settlement_asset']=='decision_required','matrix decisions absent')
+          check(matrix['scenario_count']==30 and len(matrix['scenarios'])==30,'scenario count')
+          codes={x['code'] for x in matrix['scenarios']}
+          for required in ['UNAUTHORIZED_NETWORK_APPROVAL_ATTEMPT','UNAUTHORIZED_PROVIDER_DECISION_ATTEMPT','UNAUTHORIZED_OWNER_RECORD_INSERT_ATTEMPT','UNAUTHORIZED_AUTHORITY_EVENT_INSERT_ATTEMPT','PREMATURE_NETWORK_ACTIVATION_ATTEMPT']:
+              check(required in codes,f'missing {required}')
 
           for marker in [
               'crypto_onchain_networks_owner_decision_fail_closed',
               'crypto_payment_provider_owner_decision_fail_closed',
               'crypto_payment_sandbox_owner_claim_fail_closed',
               'crypto_owner_decision_payment_record_fail_closed',
+              'crypto_owner_authority_event_payment_fail_closed',
               'block_crypto_onchain_owner_approval',
               'block_crypto_payment_owner_decision_claim',
-              'block_crypto_payment_owner_decision_record'
+              'block_crypto_payment_owner_decision_record',
+              'block_crypto_payment_owner_authority_event'
           ]:
               check(marker in migration,f'missing migration marker {marker}')
           for marker in ['crypto_onchain_tx_claims','finality_regression','conflicting_transaction_observation','transaction_after_invoice_expiry']:
               check(marker in lifecycle,f'missing lifecycle marker {marker}')
-          for marker in ['did **not** write `Три сети утверждаю.`','Overlapping autonomous writers repeatedly reconstructed','There is deliberately no autonomous bypass']:
+          for marker in ['did **not** write `Три сети утверждаю.`','20260805100805_final_lock_explicit_owner_three_network_selection','20260805101600_authoritative_candidate_only_recovery_after_100805','There is deliberately no autonomous bypass']:
               check(marker in evidence,f'missing evidence marker {marker}')
 
-          check(not Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').exists(),'fabricated decision artifact exists')
-          check(not Path('.github/workflows/v79-owner-network-decision-sync-once.yml').exists(),'fabricated sync workflow exists')
-          check(not Path('.github/workflows/v79-owner-network-decision-validation.yml').exists(),'fabricated validation workflow exists')
+          for path in [Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json'),Path('.github/workflows/v79-owner-network-decision-sync-once.yml'),Path('.github/workflows/v79-owner-network-decision-validation.yml')]:
+              check(not path.exists(),f'false decision artifact exists: {path}')
 
           combined=json.dumps(onchain)+json.dumps(matrix)+migration+evidence
           for pattern in [r'sb_secret_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ']:
               check(re.search(pattern,combined,re.I) is None,f'possible secret {pattern}')
           check(onchain['stable_root_v78_sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e','v78 boundary')
+          check(onchain['public_application_commit']=='e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191','v79 app boundary')
 
           if errors:
               print('\n'.join('ERROR: '+x for x in errors));sys.exit(1)
-          print('Authoritative candidate-only on-chain foundation and 29-scenario matrix: OK')
+          print('Final candidate-only on-chain foundation and 30-scenario matrix: OK')
           PY
-
       - name: Preserve public release hashes
         run: |
           set -euo pipefail
