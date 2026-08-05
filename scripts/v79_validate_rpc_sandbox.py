@@ -8,6 +8,7 @@ MANIFEST = Path("docs/release-manifests/crypto-lab-v79-rpc-sandbox.json")
 MIGRATION = Path("supabase/migrations/20260805204216_prepare_multichain_rpc_verifier_and_isolated_sandbox.sql")
 INDEX_MIGRATION = Path("supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql")
 SEPOLIA_MIGRATION = Path("supabase/migrations/20260805210454_configure_publicnode_ethereum_sepolia_sandbox.sql")
+DECISION_MIGRATION = Path("supabase/migrations/20260805211218_prepare_owner_scoped_usdc_sandbox_transfer_decision.sql")
 FUNCTION = Path("supabase/functions/crypto-lab-v79-chain-verifier/index.ts")
 FUNCTION_TEST = Path("supabase/functions/crypto-lab-v79-chain-verifier/index_test.ts")
 DENO_CONFIG = Path("supabase/functions/crypto-lab-v79-chain-verifier/deno.json")
@@ -25,6 +26,7 @@ for path in [
     MIGRATION,
     INDEX_MIGRATION,
     SEPOLIA_MIGRATION,
+    DECISION_MIGRATION,
     FUNCTION,
     FUNCTION_TEST,
     DENO_CONFIG,
@@ -36,10 +38,11 @@ if not errors:
     migration = MIGRATION.read_text(encoding="utf-8")
     index_sql = INDEX_MIGRATION.read_text(encoding="utf-8")
     sepolia_sql = SEPOLIA_MIGRATION.read_text(encoding="utf-8")
+    decision_sql = DECISION_MIGRATION.read_text(encoding="utf-8")
     function = FUNCTION.read_text(encoding="utf-8")
     function_test = FUNCTION_TEST.read_text(encoding="utf-8")
 
-    check(manifest["schema_version"] == 2, "manifest schema")
+    check(manifest["schema_version"] == 3, "manifest schema")
     check(manifest["project_ref"] == "txhzxbizjpinowepfjkm", "project ref")
     check(manifest["build"] == "7930", "build")
     check(
@@ -63,6 +66,7 @@ if not errors:
             "20260805204216",
             "20260805204521",
             "20260805210454",
+            "20260805211218",
         ],
         "migration inventory",
     )
@@ -120,8 +124,18 @@ if not errors:
         "Ethereum USDC case",
     )
     check(
+        cases[("ETHEREUM", "USDC")]["recipient_address"]
+        == "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
+        "Ethereum test recipient",
+    )
+    check(
         cases[("SOLANA", "USDC")]["status"] == "ready_for_funding",
         "Solana USDC case",
+    )
+    check(
+        cases[("SOLANA", "USDC")]["recipient_address"]
+        == "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
+        "Solana test recipient",
     )
     for pair in [("ETHEREUM", "USDT"), ("TRON", "USDT"), ("SOLANA", "USDT")]:
         check(
@@ -136,6 +150,39 @@ if not errors:
     check(fixtures["ethereum_parser_fixture"] is True, "Ethereum fixture")
     check(fixtures["tron_address_checksum_fixture"] is True, "TRON fixture")
     check(fixtures["solana_parser_fixture"] is True, "Solana fixture")
+    check(fixtures["ci_passed"] is True, "fixture CI result")
+
+    funding = manifest["testnet_funding"]
+    check(funding["provider"] == "Circle Faucet", "testnet funding provider")
+    check(funding["url"] == "https://faucet.circle.com/", "Circle faucet URL")
+    check(
+        funding["testnet_tokens_have_no_financial_value"] is True,
+        "testnet value boundary",
+    )
+    check(funding["ethereum_sepolia_supported"] is True, "Sepolia faucet support")
+    check(funding["solana_devnet_supported"] is True, "Solana faucet support")
+
+    proposal = manifest["next_owner_decision_proposal"]
+    check(
+        proposal["decision_code"] == "SANDBOX_USDC_TRANSFER_EXECUTION_APPROVAL_V1",
+        "proposal code",
+    )
+    check(proposal["scope"] == "testnet_usdc_only", "proposal scope")
+    check(len(proposal["transfers"]) == 2, "proposal transfer count")
+    check(
+        [item["amount_base_units"] for item in proposal["transfers"]]
+        == ["10000", "10000"],
+        "proposal transfer amounts",
+    )
+    check(proposal["owner_confirmation_required"] is True, "owner decision gate")
+    for key in [
+        "mainnet_authorized",
+        "production_payment_activation_authorized",
+        "subscription_activation_authorized",
+        "refund_execution_authorized",
+        "wallet_secret_access_required",
+    ]:
+        check(proposal[key] is False, f"proposal disabled boundary: {key}")
 
     isolation = manifest["isolation"]
     check(isolation["can_grant_entitlement"] is False, "entitlement isolation")
@@ -199,6 +246,15 @@ if not errors:
         "Mainnet verifier profile activated",
     ]:
         check(marker in sepolia_sql, f"Sepolia migration marker: {marker}")
+    for marker in [
+        "SANDBOX_USDC_TRANSFER_EXECUTION_APPROVAL_V1",
+        "0.01 USDC",
+        "test_tokens_have_no_financial_value',true",
+        "mainnet_authorized',false",
+        "owner_confirmation_required',true",
+        "No transfer or production payment evidence may exist at proposal stage",
+    ]:
+        check(marker in decision_sql, f"decision migration marker: {marker}")
 
     function_markers = [
         'VERIFIER_VERSION = "7930-rpc1"',
@@ -238,6 +294,7 @@ if not errors:
         migration
         + index_sql
         + sepolia_sql
+        + decision_sql
         + function
         + function_test
         + json.dumps(manifest, ensure_ascii=False)
@@ -257,4 +314,4 @@ if errors:
     print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
 
-print("Healthy multichain RPC sandbox, fixtures, and fail-closed boundaries: OK")
+print("Scoped no-value USDC sandbox decision and fail-closed boundaries: OK")
