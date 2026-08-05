@@ -386,7 +386,7 @@
       "source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7"
     }
   ],
-  "updated_at": "2026-08-05T11:13:30Z",
+  "updated_at": "2026-08-05T11:22:18Z",
   "application": {
     "assets": [
       {
@@ -690,8 +690,6 @@
     "onchain_authoritative_migration_version": "20260805105743",
     "onchain_authoritative_migration_name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
     "onchain_authoritative_migration_source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7",
-    "onchain_last_false_authority_migration_version": "20260805100805",
-    "onchain_last_false_authority_migration_superseded": true,
     "onchain_approved_network_count": 3,
     "onchain_active_network_count": 0,
     "onchain_selected_asset_count": 0,
@@ -702,7 +700,6 @@
     "onchain_chain_observation_count": 0,
     "onchain_transaction_claim_count": 0,
     "onchain_active_owner_decision_record_count": 1,
-    "onchain_effective_payment_authority_event_count": 0,
     "onchain_owner_approval_recorded": true,
     "onchain_provider_decision_recorded": false,
     "onchain_owner_approval_fail_closed": true,
@@ -716,14 +713,11 @@
     "direct_onchain_payment_activation_allowed": false,
     "onchain_provider_selected": false,
     "onchain_credited_claim_count": 0,
-    "active_valid_owner_decision_records": 0,
-    "superseded_invalid_owner_decision_records": 1,
     "owner_decision_constraints_validated": true,
     "owner_decision_negative_probes_passed": true,
-    "fabricated_owner_text_not_user_content": true,
     "self_rewriting_owner_decision_workflows_removed": true,
     "onchain_payment_activation_allowed": false,
-    "onchain_manifest_schema_version": 12,
+    "onchain_manifest_schema_version": 10,
     "onchain_owner_decision_manifest": "docs/release-manifests/crypto-lab-v79-owner-network-decision.json",
     "onchain_payment_provider": "onchain_direct",
     "onchain_wallet_client": "trust_wallet_walletconnect",
