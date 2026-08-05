@@ -1,0 +1,50 @@
+name: Finalize v79 Launch Preparation Evidence Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-launch-preparation-finalize-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Bind preparation evidence to the release manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest = json.loads(path.read_text(encoding='utf-8'))
+          manifest['updated_at'] = '2026-08-05T07:55:00Z'
+          manifest['application']['evidence_commit'] = '154ab23aeb99d4478239c2530d712494ab525d87'
+          path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          rm .github/workflows/v79-launch-preparation-finalize-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-launch-preparation-finalize-once.yml
+          git commit -m 'Bind launch preparation contracts to release evidence'
+          git push
+
+      - name: Dispatch post-binding gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sleep 20
+          gh workflow run v79-launch-preparation-contracts.yml --ref main
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
