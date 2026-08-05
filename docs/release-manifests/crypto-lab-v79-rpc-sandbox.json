@@ -1,8 +1,8 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T21:04:54Z",
+  "updated_at": "2026-08-05T21:12:18Z",
   "status": "rpc_ready_transfer_execution_blocked",
   "edge_function": {
     "slug": "crypto-lab-v79-chain-verifier",
@@ -29,6 +29,11 @@
       "version": "20260805210454",
       "name": "configure_publicnode_ethereum_sepolia_sandbox",
       "source": "supabase/migrations/20260805210454_configure_publicnode_ethereum_sepolia_sandbox.sql"
+    },
+    {
+      "version": "20260805211218",
+      "name": "prepare_owner_scoped_usdc_sandbox_transfer_decision",
+      "source": "supabase/migrations/20260805211218_prepare_owner_scoped_usdc_sandbox_transfer_decision.sql"
     }
   ],
   "profiles": [
@@ -110,6 +115,7 @@
       "network_code": "ETHEREUM",
       "asset_code": "USDC",
       "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "recipient_address": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
       "expected_amount_base_units": "10000",
       "status": "ready_for_funding"
     },
@@ -131,6 +137,7 @@
       "network_code": "SOLANA",
       "asset_code": "USDC",
       "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      "recipient_address": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
       "expected_amount_base_units": "10000",
       "status": "ready_for_funding"
     },
@@ -148,7 +155,44 @@
     "uses_private_keys": false,
     "ethereum_parser_fixture": true,
     "tron_address_checksum_fixture": true,
-    "solana_parser_fixture": true
+    "solana_parser_fixture": true,
+    "ci_passed": true
+  },
+  "testnet_funding": {
+    "provider": "Circle Faucet",
+    "url": "https://faucet.circle.com/",
+    "testnet_tokens_have_no_financial_value": true,
+    "published_limit": "20 testnet USDC per address per blockchain every 2 hours",
+    "ethereum_sepolia_supported": true,
+    "solana_devnet_supported": true
+  },
+  "next_owner_decision_proposal": {
+    "decision_code": "SANDBOX_USDC_TRANSFER_EXECUTION_APPROVAL_V1",
+    "scope": "testnet_usdc_only",
+    "transfers": [
+      {
+        "network": "Ethereum Sepolia",
+        "asset": "USDC",
+        "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "recipient": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
+        "amount_display": "0.01 USDC",
+        "amount_base_units": "10000"
+      },
+      {
+        "network": "Solana Devnet",
+        "asset": "USDC",
+        "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "recipient": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
+        "amount_display": "0.01 USDC",
+        "amount_base_units": "10000"
+      }
+    ],
+    "owner_confirmation_required": true,
+    "mainnet_authorized": false,
+    "production_payment_activation_authorized": false,
+    "subscription_activation_authorized": false,
+    "refund_execution_authorized": false,
+    "wallet_secret_access_required": false
   },
   "isolation": {
     "separate_from_billing": true,
@@ -180,10 +224,10 @@
     "v79_published_over_v78": false
   },
   "remaining_external_inputs": [
+    "OWNER_APPROVAL_SANDBOX_USDC_TRANSFER_EXECUTION_V1",
     "TESTNET_USDC_FUNDING_FOR_ETHEREUM_SEPOLIA",
     "TESTNET_USDC_FUNDING_FOR_SOLANA_DEVNET",
-    "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK",
-    "EXPLICIT_SANDBOX_TRANSFER_EXECUTION_APPROVAL"
+    "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK"
   ],
   "official_sources": {
     "ethereum_testnets": "https://ethereum.org/developers/docs/networks/",
@@ -191,7 +235,8 @@
     "ethereum_publicnode_sepolia": "https://ethereum-sepolia.publicnode.com/",
     "tron_networks": "https://developers.tron.network/docs/connect-to-the-tron-network",
     "solana_clusters": "https://solana.com/docs/references/clusters",
-    "circle_testnet_usdc": "https://developers.circle.com/stablecoins/usdc-contract-addresses"
+    "circle_testnet_usdc": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+    "circle_faucet": "https://faucet.circle.com/"
   },
   "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 }
