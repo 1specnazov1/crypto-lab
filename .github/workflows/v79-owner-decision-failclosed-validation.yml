@@ -5,8 +5,8 @@ on:
     paths:
       - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
-      - 'docs/release-manifests/crypto-lab-v79-7930.json'
-      - 'supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql'
+      - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
+      - 'supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - '.github/workflows/v79-owner-decision-failclosed-validation.yml'
   workflow_dispatch:
@@ -18,15 +18,24 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: python scripts/v79_validate_onchain_foundation.py
-      - name: Reject activation by the network-selection decision
+      - name: Assert explicit activation denial
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           owner=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
-          assert owner['decision_scope']=='network_selection_only'
-          assert owner['activation_allowed'] is False and owner['publication_allowed'] is False
-          assert owner['settlement_asset']=='pending'
+          onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
+          assert owner['decision_scope']=='network_and_settlement_asset_selection'
+          assert owner['approved_networks'][0]['network_code']=='ETHEREUM'
+          assert [x['asset_code'] for x in owner['selected_assets']]==['USDT','USDC']
+          assert owner['unsupported_official_pairs'][0]['pair']=='TRON_USDC'
+          assert owner['activation_allowed'] is False
+          assert owner['publication_allowed'] is False
           assert all(owner[k] is False for k in ['checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled'])
-          print('Owner decision remains network-selection-only and fail-closed: OK')
+          runtime=onchain['runtime_state']
+          assert runtime['active_network_count']==0
+          assert runtime['selected_asset_count']==2
+          assert runtime['enabled_network_asset_count']==0
+          assert all(runtime[k] is False for k in ['checkout_enabled','webhook_enabled','recurring_enabled','refunds_enabled'])
+          print('Explicit owner activation denial remains enforced: OK')
           PY

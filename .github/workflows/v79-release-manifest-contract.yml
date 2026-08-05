@@ -16,38 +16,36 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: python scripts/v79_validate_onchain_foundation.py
-      - name: Validate release inventory and boundaries
+      - name: Validate release inventory and immutable boundaries
         run: |
           python - <<'PY'
-          import json,subprocess
+          import json
+          import subprocess
           from pathlib import Path
-          d=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930.json').read_text())
-          assert d['build']=='7930' and d['project_ref']=='txhzxbizjpinowepfjkm'
-          assert d['boundaries']['v79_published_over_v78'] is False
-          assert subprocess.check_output(['git','hash-object','index.html'],text=True).strip()==d['stable_root']['sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          release=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930.json').read_text())
+          onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
+          owner=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+          assert release['build']=='7930' and release['project_ref']=='txhzxbizjpinowepfjkm'
+          assert release['boundaries']['v79_published_over_v78'] is False
+          expected='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          assert subprocess.check_output(['git','hash-object','index.html'],text=True).strip()==expected
+          assert release['stable_root']['sha']==expected
           seen=set()
-          for m in d['migrations']:
-            key=(m.get('version'),m.get('name')); assert key not in seen; seen.add(key)
-            if m.get('source'): assert Path(m['source']).is_file(),m['source']
-          op=d['operational_hardening']
-          assert op['onchain_authoritative_migration_version']=='20260805105743'
-          assert op['onchain_authoritative_migration_name']=='restore_exact_owner_three_network_authority_after_104812_stale_cycle'
-          assert op['onchain_manifest_schema_version']==10
-          assert op['onchain_approved_network_count']==3 and op['onchain_active_network_count']==0
-          assert op['onchain_active_owner_decision_record_count']==1
-          assert op['onchain_effective_authority_event_count']==1
-          assert op['onchain_effective_false_supersession_count']==0
-          assert op['onchain_sandbox_scenario_count']==29
-          assert op['onchain_automation_resume_allowed'] is False
-          assert all(op[k] is False for k in ['onchain_checkout_enabled','onchain_webhook_enabled','onchain_recurring_enabled','onchain_refunds_enabled','direct_onchain_payment_activation_allowed','v79_publication_authorized'])
-          legacy_keys={
-            'onchain_effective_payment_authority_event_count',
-            'active_valid_owner_decision_records',
-            'superseded_invalid_owner_decision_records',
-            'fabricated_owner_text_not_user_content',
-            'onchain_last_false_authority_migration_version',
-            'onchain_last_false_authority_migration_superseded',
-          }
-          assert legacy_keys.isdisjoint(op), sorted(legacy_keys.intersection(op))
-          print('Release manifest contract: OK')
+          for item in release['migrations']:
+            key=(item.get('version'),item.get('name'))
+            assert key not in seen
+            seen.add(key)
+            if item.get('source'):
+              assert Path(item['source']).is_file(),item['source']
+          assert onchain['schema_version']==11
+          assert onchain['authoritative_migration']['version']=='20260805180435'
+          assert onchain['approved_networks']==['ETHEREUM','TRON','SOLANA']
+          assert onchain['selected_assets']==['USDT','USDC']
+          assert onchain['runtime_state']['approved_network_count']==3
+          assert onchain['runtime_state']['active_network_count']==0
+          assert onchain['runtime_state']['selected_asset_count']==2
+          assert onchain['runtime_state']['enabled_network_asset_count']==0
+          assert onchain['activation_allowed'] is False and onchain['publication_allowed'] is False
+          assert owner['decision_hash_sha256']=='df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750'
+          print('Release contract and owner payment overlay: OK')
           PY

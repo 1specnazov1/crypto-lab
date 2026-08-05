@@ -1,43 +1,51 @@
 {
-  "schema_version": 10,
+  "schema_version": 11,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T11:13:30Z",
+  "updated_at": "2026-08-05T18:04:35Z",
   "provider": "onchain_direct",
   "wallet_client": "trust_wallet_walletconnect",
-  "status": "disabled_pending_remaining_decisions",
+  "status": "disabled_owner_selected_networks_and_assets",
   "activation_allowed": false,
   "publication_allowed": false,
   "approved_networks": [
+    "ETHEREUM",
     "TRON",
-    "BSC",
     "SOLANA"
   ],
+  "superseded_networks": [
+    "BSC"
+  ],
+  "selected_assets": [
+    "USDT",
+    "USDC"
+  ],
   "owner_network_approval_recorded": true,
+  "owner_asset_selection_recorded": true,
   "owner_provider_approval_recorded": false,
   "owner_decision": {
-    "decision_code": "ONCHAIN_THREE_NETWORK_SELECTION",
-    "decision_text_exact": "Три сети утверждаю.",
-    "decision_hash_sha256": "57458fbfe9da805c8dc8bec7ad2d8500516ca4568c35903565402aed62d848be",
-    "decision_scope": "network_selection_only",
-    "network_activation_authorized": false,
+    "decision_code": "ONCHAIN_ETHEREUM_TRON_SOLANA_USDT_USDC_SELECTION",
+    "decision_text_exact": "USDT, USDC утверждаю для Ethereum TRON и Solana. Активацию платежей не разрешаю.",
+    "decision_hash_sha256": "df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750",
+    "decision_scope": "network_and_settlement_asset_selection",
+    "payment_activation_authorized": false,
     "active": true,
     "source_channel": "owner_chat"
   },
   "networks": [
     {
-      "code": "TRON",
-      "standard": "TRC20",
-      "finality_mode": "solidified",
-      "required_confirmations": 19,
+      "code": "ETHEREUM",
+      "standard": "ERC20",
+      "finality_mode": "finalized",
+      "required_confirmations": 12,
       "approved_by_owner": true,
       "active": false
     },
     {
-      "code": "BSC",
-      "standard": "BEP20",
-      "finality_mode": "finalized",
-      "required_confirmations": 2,
+      "code": "TRON",
+      "standard": "TRC20",
+      "finality_mode": "solidified",
+      "required_confirmations": 19,
       "approved_by_owner": true,
       "active": false
     },
@@ -48,35 +56,72 @@
       "required_confirmations": 0,
       "approved_by_owner": true,
       "active": false
+    },
+    {
+      "code": "BSC",
+      "standard": "BEP20",
+      "approved_by_owner": false,
+      "active": false,
+      "status": "superseded"
     }
   ],
-  "asset_candidates": {
-    "USDT": {
-      "selected": false,
-      "status": "decision_required",
-      "network_status": {
-        "TRON": "official_direct_issuer_contract_confirmed",
-        "SOLANA": "official_direct_issuer_contract_confirmed",
-        "BSC": "verified_pegged_contract_requires_separate_owner_acceptance"
-      }
+  "asset_matrix": [
+    {
+      "network_code": "ETHEREUM",
+      "asset_code": "USDT",
+      "standard": "ERC20",
+      "token_identifier": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "availability_status": "available_verified",
+      "enabled": false
     },
-    "USDC": {
-      "selected": false,
-      "status": "decision_required",
-      "network_status": {
-        "SOLANA": "official_issuer_support",
-        "TRON": "official_issuer_support_not_available",
-        "BSC": "official_issuer_support_not_available"
-      }
+    {
+      "network_code": "ETHEREUM",
+      "asset_code": "USDC",
+      "standard": "ERC20",
+      "token_identifier": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "availability_status": "available_verified",
+      "enabled": false
+    },
+    {
+      "network_code": "TRON",
+      "asset_code": "USDT",
+      "standard": "TRC20",
+      "token_identifier": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "availability_status": "available_verified",
+      "enabled": false
+    },
+    {
+      "network_code": "TRON",
+      "asset_code": "USDC",
+      "standard": "TRC20",
+      "token_identifier": null,
+      "availability_status": "unsupported_official",
+      "enabled": false
+    },
+    {
+      "network_code": "SOLANA",
+      "asset_code": "USDT",
+      "standard": "SPL",
+      "token_identifier": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "availability_status": "available_verified",
+      "enabled": false
+    },
+    {
+      "network_code": "SOLANA",
+      "asset_code": "USDC",
+      "standard": "SPL",
+      "token_identifier": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "availability_status": "available_verified",
+      "enabled": false
     }
-  },
+  ],
   "pricing": {
     "basic_configured": false,
     "pro_configured": false
   },
   "receiving_addresses": {
+    "ETHEREUM": null,
     "TRON": null,
-    "BSC": null,
     "SOLANA": null,
     "private_keys_required": false
   },
@@ -90,24 +135,26 @@
     "automatic_wallet_debit": false
   },
   "database": {
-    "active_valid_owner_decision_records": 1,
-    "effective_payment_authority_events": 1,
-    "effective_false_supersessions": 0,
+    "active_owner_decision_records": 1,
+    "effective_authority_events": 1,
+    "multi_asset_selection_supported": true,
+    "selected_asset_count": 2,
     "canonical_owner_decision_constraint": true,
-    "canonical_three_network_constraint": true,
-    "payment_provider_owner_decision_constraint": true,
+    "canonical_network_constraint": true,
+    "selected_asset_constraint": true,
+    "selected_pair_disabled_constraint": true,
+    "adapter_activation_denied_constraint": true,
     "network_guard_trigger_enabled": true,
-    "provider_guard_trigger_enabled": true,
+    "launch_requirement_guard_trigger_enabled": true,
     "owner_record_immutable_trigger_enabled": true,
     "authority_event_immutable_trigger_enabled": true,
-    "correction_history_immutable_trigger_enabled": true,
     "all_tables_rls": true,
     "direct_browser_table_access": false
   },
   "runtime_state": {
     "approved_network_count": 3,
     "active_network_count": 0,
-    "selected_asset_count": 0,
+    "selected_asset_count": 2,
     "enabled_network_asset_count": 0,
     "active_price_count": 0,
     "receiving_address_count": 0,
@@ -125,36 +172,31 @@
     "recurring_enabled": false,
     "refunds_enabled": false
   },
-  "provenance_incident": {
-    "overlapping_automation_runs_confirmed": true,
-    "recurring_automation_disabled": true,
-    "exact_owner_text_preserved": true,
-    "stale_candidate_only_migration_superseded": "20260805104812",
-    "historical_false_migrations_preserved_for_audit": true,
-    "autonomous_owner_decision_bypass_available": false,
-    "latest_stale_candidate_only_migration": "20260805104812_authoritative_candidate_only_recovery_after_103945"
+  "official_sources": {
+    "tether_supported_protocols": "https://tether.to/en/supported-protocols/",
+    "circle_usdc_contract_addresses": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+    "circle_tron_discontinuation": "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-on-the-tron-blockchain"
   },
   "authoritative_migration": {
-    "version": "20260805105743",
-    "name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
-    "source": "supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql",
-    "source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7"
+    "version": "20260805180435",
+    "name": "record_owner_ethereum_tron_solana_usdt_usdc_selection",
+    "source": "supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql",
+    "source_commit": null
   },
   "remaining_decisions_and_inputs": [
-    "SETTLEMENT_ASSET_USDT_OR_USDC",
-    "BSC_PEGGED_USDT_ACCEPTANCE_IF_USDT",
     "BASIC_AND_PRO_PRICE_POLICY",
     "PUBLIC_RECEIVING_ADDRESS_FOR_EACH_APPROVED_NETWORK",
     "RPC_OR_INDEXER_CONFIGURATION",
+    "MULTI_ASSET_INVOICE_ROUTING_DESIGN",
     "WALLETCONNECT_PROJECT_ID_IF_USED",
     "CONTROLLED_SANDBOX_EVIDENCE",
-    "PAYMENT_ACTIVATION_APPROVAL"
+    "EXPLICIT_PAYMENT_ACTIVATION_APPROVAL"
   ],
   "repository_sync": {
-    "sandbox_matrix_schema_version": 10,
-    "release_manifest_aligned": true,
+    "payment_manifests_aligned": true,
+    "sandbox_matrix_schema_version": 11,
     "foundation_workflow_aligned": true,
-    "stale_candidate_only_artifacts_removed": true,
+    "main_release_manifest_payment_overlay_pending": true,
     "automation_resume_allowed": false
   },
   "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",

@@ -1,11 +1,12 @@
-# Revalidated against final owner-authority migration 20260805105743.
-name: Validate v79 Owner Network Decision
+name: Validate v79 Owner Network and Asset Decision
 on:
   push:
     branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
+      - 'supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
       - '.github/workflows/v79-owner-network-decision-validation.yml'
   workflow_dispatch:
