@@ -1,0 +1,86 @@
+name: Validate v79 On-chain Payment Foundation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+      - 'supabase/migrations/20260805085503_crypto_billing_onchain_adapter_contract.sql'
+      - 'supabase/migrations/20260805085615_crypto_three_network_onchain_catalog.sql'
+      - 'supabase/migrations/20260805085735_crypto_three_network_onchain_services.sql'
+      - 'supabase/migrations/20260805085807_crypto_three_network_onchain_security_and_launch_control.sql'
+      - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate on-chain payment contract
+        run: |
+          python - <<'PY'
+          import json, pathlib, re, sys
+          root=pathlib.Path('.')
+          path=root/'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
+          data=json.loads(path.read_text(encoding='utf-8'))
+          errors=[]
+          if data.get('schema_version')!=1: errors.append('schema_version')
+          if data.get('project_ref')!='txhzxbizjpinowepfjkm': errors.append('project_ref')
+          if data.get('build')!='7930': errors.append('build')
+          if data.get('provider')!='onchain': errors.append('provider')
+          if data.get('status')!='disabled_pending_decisions': errors.append('status')
+          if data.get('owner_approved_networks')!=['TRON','BSC','SOLANA']: errors.append('networks')
+          networks={n['code']:n for n in data.get('networks',[])}
+          if set(networks)!={'TRON','BSC','SOLANA'}: errors.append('network inventory')
+          for code,item in networks.items():
+            if item.get('active') is not False: errors.append(f'{code} active')
+            if item.get('finality_mode') not in {'solidified','finalized'}: errors.append(f'{code} finality')
+          assets=data.get('asset_candidates',{})
+          if set(assets)!={'USDT','USDC'}: errors.append('asset candidates')
+          if assets.get('USDT',{}).get('selected') is not False or assets.get('USDC',{}).get('selected') is not False: errors.append('asset selected before decision')
+          if assets.get('USDT',{}).get('network_status',{}).get('BSC')!='pegged_token_contract_and_owner_acceptance_required': errors.append('BSC USDT risk not explicit')
+          if assets.get('USDC',{}).get('network_status',{}).get('TRON')!='not_listed_by_circle': errors.append('TRON USDC status')
+          if assets.get('USDC',{}).get('network_status',{}).get('BSC')!='not_listed_by_circle': errors.append('BSC USDC status')
+          pricing=data.get('pricing',{})
+          if set(pricing.get('supported_modes',[]))!={'fixed_asset','fiat_pegged'}: errors.append('pricing modes')
+          if pricing.get('basic_configured') or pricing.get('pro_configured'): errors.append('pricing activated')
+          addresses=data.get('receiving_addresses',{})
+          for code in ('TRON','BSC','SOLANA'):
+            if addresses.get(code) is not None: errors.append(f'{code} address unexpectedly present')
+          if addresses.get('private_keys_required') is not False: errors.append('private key boundary')
+          entitlement=data.get('automatic_entitlement',{})
+          required_true=['browser_cannot_mark_paid','screenshot_not_accepted','duplicate_transaction_claim_blocked','wrong_network_blocked','wrong_asset_blocked','underpayment_reviewed','overpayment_reviewed','unfinalized_transaction_not_credited']
+          for key in required_true:
+            if entitlement.get(key) is not True: errors.append(key)
+          if entitlement.get('enabled') is not False or entitlement.get('automatic_wallet_debit') is not False: errors.append('entitlement activation')
+          db=data.get('database',{})
+          if db.get('tables')!=8: errors.append('table count')
+          for key in ['all_tables_rls','immutable_chain_observations','service_only_invoice_creation','service_only_chain_ingestion']:
+            if db.get(key) is not True: errors.append(key)
+          for key in ['direct_browser_table_access','browser_public_security_definer']:
+            if db.get(key) is not False: errors.append(key)
+          migrations=data.get('migrations',[])
+          expected=['20260805085503','20260805085615','20260805085735','20260805085807']
+          if [m.get('version') for m in migrations]!=expected: errors.append('migration versions')
+          for m in migrations:
+            source=root/m.get('source','')
+            if not source.is_file(): errors.append(f'missing {source}')
+            if not re.fullmatch(r'[0-9a-f]{40}',str(m.get('source_commit',''))): errors.append(f'bad source commit {source}')
+          combined='\n'.join((root/m['source']).read_text(encoding='utf-8') for m in migrations)+path.read_text(encoding='utf-8')
+          required_markers=['crypto_onchain_networks','crypto_onchain_assets','crypto_onchain_invoices','crypto_onchain_tx_observations','service_create_crypto_onchain_invoice','service_record_crypto_onchain_observation','verified_chain_observation','wallet_transaction']
+          for marker in required_markers:
+            if marker not in combined: errors.append(f'missing marker {marker}')
+          forbidden=[r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'\bseed phrase\b',r'\bmnemonic\s*:',r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'Bearer\s+eyJ']
+          for pattern in forbidden:
+            if re.search(pattern,combined,re.I): errors.append(f'forbidden secret pattern {pattern}')
+          if data.get('activation_allowed') is not False: errors.append('activation allowed')
+          if data.get('stable_root_v78_sha')!='4a278c891d37b3760ec1ac988690ea9ad587b24e': errors.append('v78 boundary')
+          if errors:
+            print('\n'.join('ERROR: '+e for e in errors));sys.exit(1)
+          print('Three-network on-chain payment foundation: OK')
+          PY
