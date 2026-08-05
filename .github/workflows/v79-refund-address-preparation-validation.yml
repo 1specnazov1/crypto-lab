@@ -11,6 +11,8 @@ on:
       - 'supabase/migrations/20260805193725_harden_crypto_x_internal_triggers_and_service_tables.sql'
       - 'supabase/migrations/20260805194211_prepare_refund_policy_and_onchain_address_intake.sql'
       - 'supabase/migrations/20260805194511_harden_crypto_x_source_learning_services.sql'
+      - 'supabase/migrations/20260805200914_record_owner_refund_policy_v1_approval.sql'
+      - 'supabase/migrations/20260805201008_finalize_refund_policy_owner_approval_evidence.sql'
       - 'scripts/v79_validate_refund_address_preparation.py'
       - '.github/workflows/v79-refund-address-preparation-validation.yml'
   workflow_dispatch:
@@ -30,7 +32,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Validate existing on-chain foundation
         run: python scripts/v79_validate_onchain_foundation.py
-      - name: Validate refund proposal, address intake, and security hardening
+      - name: Validate refund approval, address intake, and security hardening
         run: python scripts/v79_validate_refund_address_preparation.py
       - name: Preserve immutable public boundaries
         run: |

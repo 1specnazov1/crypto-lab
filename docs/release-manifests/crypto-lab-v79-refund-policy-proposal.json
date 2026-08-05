@@ -1,14 +1,25 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T19:45:11Z",
-  "status": "decision_required_not_published",
+  "updated_at": "2026-08-05T20:10:08Z",
+  "status": "owner_approved_unpublished",
   "proposal_code": "REFUND_POLICY_V1_APPROVAL",
   "proposal_version": "2026-08-05-v1",
   "proposal_sha256": "2b88bb0518cce25f24847b31adae688e2a70caeeb45d593f9e128f6fcac15e05",
   "draft_path": "docs/REFUND_POLICY_PROPOSAL_7930.md",
-  "owner_approved": false,
+  "owner_approved": true,
+  "approval_decision": {
+    "decision_code": "REFUND_POLICY_V1_APPROVAL",
+    "decision_text_exact": "Политику возвратов v1 утверждаю.",
+    "decision_hash_sha256": "564665bf2203c0cd86838b669516c516c73f562bf3f362a1ee5762a79ec19e11",
+    "source_channel": "owner_chat",
+    "decision_scope": "refund_policy_approval_only",
+    "publication_authorized": false,
+    "payment_activation_authorized": false,
+    "refund_execution_authorized": false,
+    "automatic_refunds_authorized": false
+  },
   "published": false,
   "refund_execution_enabled": false,
   "automatic_refunds_enabled": false,
@@ -75,12 +86,25 @@
     "name": "prepare_refund_policy_and_onchain_address_intake",
     "source": "supabase/migrations/20260805194211_prepare_refund_policy_and_onchain_address_intake.sql"
   },
+  "approval_migrations": [
+    {
+      "version": "20260805200914",
+      "name": "record_owner_refund_policy_v1_approval",
+      "source": "supabase/migrations/20260805200914_record_owner_refund_policy_v1_approval.sql"
+    },
+    {
+      "version": "20260805201008",
+      "name": "finalize_refund_policy_owner_approval_evidence",
+      "source": "supabase/migrations/20260805201008_finalize_refund_policy_owner_approval_evidence.sql"
+    }
+  ],
   "database_runtime": {
     "receiving_address_count": 0,
     "active_price_count": 0,
     "invoice_count": 0,
     "transaction_claim_count": 0,
     "chain_observation_count": 0,
+    "verified_configuration_requirements": 2,
     "configuration_ready": false,
     "activation_ready": false
   },
@@ -91,7 +115,8 @@
     "receiving_addresses_active": 0,
     "real_transfers_allowed": false
   },
-  "next_owner_decision": "REFUND_POLICY_V1_APPROVAL",
+  "next_owner_decision": null,
+  "next_external_input": "PUBLIC_RECEIVING_ADDRESSES_FOR_ETHEREUM_TRON_SOLANA",
   "remaining_external_inputs": [
     "PUBLIC_RECEIVING_ADDRESS_FOR_ETHEREUM",
     "PUBLIC_RECEIVING_ADDRESS_FOR_TRON",
