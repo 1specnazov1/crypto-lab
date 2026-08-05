@@ -22,9 +22,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Commit exact owner-approved inactive state and diagnostic
+      - name: Commit exact owner-approved inactive manifests and diagnostic
         run: |
-          set -u
+          set -euo pipefail
           git config user.name 'CRYPTO LAB Release Bot'
           git config user.email 'actions@users.noreply.github.com'
           git fetch origin main
@@ -39,8 +39,19 @@ jobs:
           python scripts/v79_validate_onchain_foundation.py >> "$log" 2>&1
           validation_status=$?
           printf 'sync_status=%s\nvalidation_status=%s\n```\n' "$sync_status" "$validation_status" >> "$log"
+          set -e
 
-          git add -A
+          git restore \
+            .github/workflows/v79-onchain-payment-foundation-validation.yml \
+            .github/workflows/v79-owner-decision-failclosed-validation.yml \
+            .github/workflows/v79-release-manifest-contract.yml
+
+          git add \
+            docs/release-manifests/crypto-lab-v79-onchain-payments.json \
+            docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json \
+            docs/release-manifests/crypto-lab-v79-owner-network-decision.json \
+            docs/release-manifests/crypto-lab-v79-7930.json \
+            scripts/v79_validate_onchain_foundation.py
           git add -f "$log"
-          git commit --allow-empty -m 'Capture final owner-authority synchronization result'
+          git commit -m 'Synchronize final owner-approved inactive payment manifests'
           git push origin HEAD:main
