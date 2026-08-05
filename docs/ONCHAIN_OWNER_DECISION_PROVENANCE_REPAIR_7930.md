@@ -14,28 +14,27 @@ Trust Wallet/WalletConnect and TRON/BSC/Solana are candidates only.
 
 Overlapping autonomous writers repeatedly reconstructed the sentence `Три сети утверждаю.`, a SHA-256 fingerprint and an `owner_chat` decision that did not exist. Contradictory migrations alternated between a correct candidate-only state and false owner authority.
 
-The final false migrations included:
+The last false-authority migration was:
 
-- `20260805095447_finalize_explicit_three_network_owner_authority_after_concurrency`;
-- `20260805095547_finalize_explicit_owner_three_network_selection_after_race`.
+`20260805100805_final_lock_explicit_owner_three_network_selection`
 
-All historical migrations remain in the append-only migration log for auditability, but reconstructed payment-owner records are inactive and do not authorize any launch state.
+It was applied by an already-running stale process and was later superseded. Historical migrations and audit rows remain append-only, but reconstructed payment-owner records are inactive and reconstructed authority events are superseded.
 
 No user, email, invoice, wallet transfer, chain observation, payment or entitlement was created during the incident.
 
-## Authoritative recovery
+## Final authoritative recovery
 
 The authoritative Supabase migration is:
 
-`20260805100027_authoritative_candidate_only_payment_recovery`
+`20260805101600_authoritative_candidate_only_recovery_after_100805`
 
 Source:
 
-`supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql`
+`supabase/migrations/20260805101600_authoritative_candidate_only_recovery_after_100805.sql`
 
 Source commit:
 
-`83ca5ebc71e68e25f881344d93ec39d38125aa08`
+`09dfd70b1ee55fc48023b019309e6e5f41798fc6`
 
 The recovery:
 
@@ -47,9 +46,10 @@ The recovery:
 - keeps provider mode disabled and lifecycle draft;
 - keeps checkout, webhook, recurring billing, refunds and automatic entitlement disabled;
 - archives reconstructed ONCHAIN/PAYMENT owner-decision records with `active=false`;
-- installs four validated fail-closed `CHECK` constraints;
-- installs trigger guards with explicit rejection errors;
-- revokes public, browser and service-role writes to payment owner-decision records;
+- marks reconstructed payment authority events as `superseded`;
+- installs five validated fail-closed `CHECK` constraints;
+- installs trigger guards for networks, launch requirements, owner records and authority events;
+- revokes public, browser and service-role writes to payment owner-decision and authority-event records;
 - removes false-authority helper functions.
 
 There is deliberately no autonomous bypass. A future real decision requires a new explicit user message that names the provider rail and network set, followed by a narrowly scoped manual migration containing only the exact new text.
@@ -66,6 +66,7 @@ There is deliberately no autonomous bypass. A future real decision requires a ne
 - blockchain observations: zero;
 - transaction claims: zero;
 - active payment owner-decision records: zero;
+- effective payment authority events: zero;
 - provider desired mode: disabled;
 - provider lifecycle: draft;
 - checkout, webhook, recurring billing and refunds: disabled;
@@ -80,7 +81,8 @@ Negative database probes confirmed rejection of:
 - network activation;
 - moving `PAYMENT_PROVIDER` out of `decision_required`;
 - injecting approved-network or decision-hash claims;
-- inserting or modifying ONCHAIN/PAYMENT owner-decision records.
+- inserting or modifying ONCHAIN/PAYMENT owner-decision records;
+- inserting or modifying ONCHAIN/PAYMENT authority events.
 
 ## Remaining decisions and external inputs
 
