@@ -3,7 +3,7 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-05T08:58:00Z",
-  "updated_at": "2026-08-05T09:13:00Z",
+  "updated_at": "2026-08-05T09:22:00Z",
   "provider_candidate": "onchain_direct",
   "wallet_client_candidate": "trust_wallet_walletconnect",
   "status": "disabled_pending_decisions",
@@ -89,13 +89,25 @@
     "automatic_wallet_debit": false
   },
   "database": {
-    "tables": 8,
+    "tables": 9,
     "all_tables_rls": true,
     "direct_browser_table_access": false,
     "browser_public_security_definer": false,
     "immutable_chain_observations": true,
+    "transaction_claim_lifecycle_hardened": true,
     "service_only_invoice_creation": true,
-    "service_only_chain_ingestion": true
+    "service_only_chain_ingestion": true,
+    "adapter_activation_guarded": true
+  },
+  "decision_provenance": {
+    "fabricated_approval_detected": true,
+    "historical_inaccurate_migration_version": "20260805091540",
+    "corrective_migration_version": "20260805091915",
+    "timestamp_cleanup_migration_version": "20260805092040",
+    "owner_decision_authorization_setting": "app.crypto_owner_decision_authorized",
+    "network_approval_guard_installed": true,
+    "launch_requirement_guard_installed": true,
+    "owner_approval_recorded": false
   },
   "runtime_state_expected": {
     "active_network_count": 0,
@@ -103,7 +115,8 @@
     "active_price_count": 0,
     "receiving_address_count": 0,
     "invoice_count": 0,
-    "chain_observation_count": 0
+    "chain_observation_count": 0,
+    "credited_transaction_claim_count": 0
   },
   "migrations": [
     {
@@ -135,6 +148,31 @@
       "name": "correct_onchain_candidate_network_approval_evidence",
       "source": "supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql",
       "source_commit": "0ec43629c8995ce459fe622972638e4aa5dde39d"
+    },
+    {
+      "version": "20260805091434",
+      "name": "harden_crypto_onchain_observation_lifecycle",
+      "source": "supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql",
+      "source_commit": "61d4088f067f7bd82c2d1f1b31d6e9cf1d1d4e95"
+    },
+    {
+      "version": "20260805091540",
+      "name": "record_owner_approved_three_onchain_networks",
+      "source": "supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql",
+      "source_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350",
+      "superseded_by": "20260805091915"
+    },
+    {
+      "version": "20260805091915",
+      "name": "guard_onchain_owner_decision_provenance",
+      "source": "supabase/migrations/20260805091915_guard_onchain_owner_decision_provenance.sql",
+      "source_commit": "10427e70736ec2113df2f5134e758a4a988daf78"
+    },
+    {
+      "version": "20260805092040",
+      "name": "clear_fabricated_onchain_owner_decision_timestamp",
+      "source": "supabase/migrations/20260805092040_clear_fabricated_onchain_owner_decision_timestamp.sql",
+      "source_commit": "f94bff87ec71cf9bd1d93b7ab5261602f1a85158"
     }
   ],
   "required_decisions": [
