@@ -24,7 +24,7 @@ jobs:
 
       - name: Commit exact owner-approved inactive state and diagnostic
         run: |
-          set -u
+          set -euo pipefail
           git config user.name 'CRYPTO LAB Release Bot'
           git config user.email 'actions@users.noreply.github.com'
           git fetch origin main
@@ -43,9 +43,15 @@ jobs:
           printf 'sync_status=%s\nvalidation_status=%s\n' "$sync_status" "$validation_status" >> "$log"
           cat "$log"
 
-          git rm --ignore-unmatch \
-            .github/workflows/v79-sync-105743-once.yml \
-            scripts/v79_sync_105743.py
-          git add -A
+          git add \
+            docs/release-manifests/crypto-lab-v79-onchain-payments.json \
+            docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json \
+            docs/release-manifests/crypto-lab-v79-owner-network-decision.json \
+            docs/release-manifests/crypto-lab-v79-7930.json \
+            docs/release-manifests/v79-owner-authority-105743-sync.log \
+            scripts/v79_validate_onchain_foundation.py \
+            .github/workflows/v79-onchain-payment-foundation-validation.yml \
+            .github/workflows/v79-owner-decision-failclosed-validation.yml \
+            .github/workflows/v79-release-manifest-contract.yml
           git commit -m 'Synchronize final owner-approved inactive payment state'
           git push origin HEAD:main
