@@ -54,17 +54,12 @@ jobs:
           evidence['browser_smoke_run_id']='pending'
           evidence['pages_run_id']='pending'
           path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-
-          contract=pathlib.Path('.github/workflows/v79-release-manifest-contract.yml')
-          text=contract.read_text(encoding='utf-8')
-          text=text.replace("if app.get('application_commit')!='6be2e93d3933ef6339b059978e24af891ef1fa83': errors.append('application_commit mismatch')", "if app.get('application_commit')!='e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191': errors.append('application_commit mismatch')")
-          contract.write_text(text,encoding='utf-8')
           PY
 
           rm .github/workflows/v79-auth-manifest-sync-once.yml
           git config user.name 'CRYPTO LAB Release Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-release-manifest-contract.yml .github/workflows/v79-auth-manifest-sync-once.yml
+          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-auth-manifest-sync-once.yml
           git commit -m 'Sync protected auth gateway release manifest'
           git push
 
