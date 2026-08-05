@@ -1,3 +1,4 @@
+# Revalidated against final owner-authority migration 20260805105743.
 name: Validate v79 Owner Network Decision
 on:
   push:
