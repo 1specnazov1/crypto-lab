@@ -1,0 +1,50 @@
+name: Finalize v79 Release Evidence Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-release-evidence-finalize-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Synchronize final checkpoint evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          manifest=json.loads(path.read_text(encoding='utf-8'))
+          evidence=manifest['release_evidence']
+          evidence['release_gate_run_id']='30996209180'
+          evidence['browser_smoke_run_id']='30996210610'
+          evidence['pages_run_id']='30996202623'
+          manifest['updated_at']='2026-08-05T10:14:00Z'
+          path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          rm .github/workflows/v79-release-evidence-finalize-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/release-manifests/crypto-lab-v79-7930.json .github/workflows/v79-release-evidence-finalize-once.yml
+          git commit -m 'Finalize authoritative release evidence'
+          git push
+      - name: Dispatch final contract gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sleep 20
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-owner-decision-failclosed-validation.yml --ref main
