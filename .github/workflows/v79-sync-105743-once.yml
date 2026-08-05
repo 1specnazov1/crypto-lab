@@ -24,25 +24,23 @@ jobs:
 
       - name: Commit exact owner-approved inactive state and diagnostic
         run: |
-          set -euo pipefail
+          set -u
           git config user.name 'CRYPTO LAB Release Bot'
           git config user.email 'actions@users.noreply.github.com'
           git fetch origin main
           git reset --hard origin/main
 
-          log=docs/release-manifests/v79-owner-authority-105743-sync.txt
-          : > "$log"
+          log=docs/release-manifests/v79-owner-authority-105743-sync.md
+          printf '# v79 owner-authority 105743 synchronization\n\n```text\n' > "$log"
 
           set +e
           python scripts/v79_sync_105743.py >> "$log" 2>&1
           sync_status=$?
           python scripts/v79_validate_onchain_foundation.py >> "$log" 2>&1
           validation_status=$?
-          set -e
-
-          printf 'sync_status=%s\nvalidation_status=%s\n' "$sync_status" "$validation_status" >> "$log"
-          cat "$log"
+          printf 'sync_status=%s\nvalidation_status=%s\n```\n' "$sync_status" "$validation_status" >> "$log"
 
           git add -A
-          git commit -m 'Synchronize final owner-approved inactive payment state'
+          git add -f "$log"
+          git commit --allow-empty -m 'Capture final owner-authority synchronization result'
           git push origin HEAD:main
