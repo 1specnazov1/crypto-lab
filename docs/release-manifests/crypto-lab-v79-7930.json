@@ -3,14 +3,14 @@
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
   "created_at": "2026-08-04T16:05:00Z",
-  "updated_at": "2026-08-05T01:39:00Z",
+  "updated_at": "2026-08-05T01:47:00Z",
   "stable_root": {
     "path": "index.html",
     "sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
   },
   "application": {
     "application_commit": "6be2e93d3933ef6339b059978e24af891ef1fa83",
-    "evidence_commit": "6e94c921223360b1486628945ec2200375fc725e",
+    "evidence_commit": "0f1c8efcdd91d6e63b05a46f6f15ff90189d5e0c",
     "pwa_cache": "crypto-lab-v79-7930-maintenance2",
     "assets": [
       {"path":"v79/index.html","sha":"b92335b3a3d76e349f1845fd653e1c1021d6d7f6","marker":"app.html?v=7930"},
@@ -47,7 +47,8 @@
     {"version":"20260805002217","name":"crypto_maintenance_checkpoint_target_binding","source":"supabase/migrations/20260805002217_crypto_maintenance_checkpoint_target_binding.sql","source_commit":"79058e305522b7974087a4fbcf9e3c6e3635c529"},
     {"version":"20260805012125","name":"crypto_maintenance_cron_manifest_binding","source":"supabase/migrations/202608050121_crypto_maintenance_cron_manifest_binding.sql","source_commit":"c3f0204c3a6da025d1568cc87212da4ef5466883"},
     {"version":"20260805012227","name":"crypto_maintenance_cron_binding_monitor","source":"supabase/migrations/202608050122_crypto_maintenance_cron_binding_monitor.sql","source_commit":"8e8009efba19cf46ac6a9042e272b3ed2de90c66"},
-    {"version":"20260805013436","name":"crypto_daily_maintenance_cron_failure_propagation","source":"supabase/migrations/20260805013436_crypto_daily_maintenance_cron_failure_propagation.sql","source_commit":"e318a73c1a9979f71cec1a69b1e1031d4683dcec"}
+    {"version":"20260805013436","name":"crypto_daily_maintenance_cron_failure_propagation","source":"supabase/migrations/20260805013436_crypto_daily_maintenance_cron_failure_propagation.sql","source_commit":"e318a73c1a9979f71cec1a69b1e1031d4683dcec"},
+    {"version":"20260805014439","name":"crypto_signal_notification_flag_semantics","source":"supabase/migrations/20260805014439_crypto_signal_notification_flag_semantics.sql","source_commit":"0f1c8efcdd91d6e63b05a46f6f15ff90189d5e0c"}
   ],
   "edge_functions": [
     {"slug":"crypto-ai-advisor","version":9,"verify_jwt":true,"status":"ACTIVE"},
@@ -72,10 +73,10 @@
     {"slug":"crypto-lab-v79-billing-webhook","version":1,"verify_jwt":false,"status":"ACTIVE"}
   ],
   "release_evidence": {
-    "release_gate_run_id": "30966908380",
-    "maintenance_evidence_gate_run_id": "30966908370",
+    "release_gate_run_id": "pending",
+    "maintenance_evidence_gate_run_id": "pending",
     "browser_smoke_run_id": "30933361064",
-    "pages_run_id": "30966907466",
+    "pages_run_id": "pending",
     "technical_score": 100,
     "commercial_score": 60
   },
@@ -112,6 +113,11 @@
     "daily_cron_binding_self_monitored": true,
     "daily_cron_binding_fail_closed": true,
     "daily_cron_persistence_verified": true
+  },
+  "operational_hardening": {
+    "signal_notification_flags_exact": true,
+    "skipped_targets_not_marked_notified": true,
+    "postcutover_flag_without_sent_reconciled": true
   },
   "boundaries": {
     "registration_enabled": false,
