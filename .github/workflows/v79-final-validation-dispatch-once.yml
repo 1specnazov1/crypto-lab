@@ -1,0 +1,38 @@
+name: Final Unified Validation Dispatch Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v79-final-validation-dispatch-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Remove one-shot dispatcher
+        run: |
+          rm .github/workflows/v79-final-validation-dispatch-once.yml
+          git config user.name 'CRYPTO LAB Release Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add .github/workflows/v79-final-validation-dispatch-once.yml
+          git commit -m 'Remove final validation dispatcher'
+          git push
+      - name: Dispatch all final gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run v79-release-manifest-contract.yml --ref main
+          gh workflow run v79-onchain-payment-foundation-validation.yml --ref main
+          gh workflow run v79-owner-decision-failclosed-validation.yml --ref main
+          gh workflow run v79-preview-validation.yml --ref main
+          gh workflow run v79-browser-smoke.yml --ref main
