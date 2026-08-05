@@ -168,9 +168,23 @@
       "name": "crypto_maintenance_counter_contract_guard",
       "source": "supabase/migrations/20260805024550_crypto_maintenance_counter_contract_guard.sql",
       "source_commit": "457da876ed3c99d0ea7105c274d1ff93d3744094"
+    },
+    {
+      "version": "20260805085106",
+      "name": "secure_and_schedule_crypto_x_pipeline_v2"
+    },
+    {
+      "version": "20260805085155",
+      "name": "route_crypto_x_cron_through_dispatcher"
+    },
+    {
+      "version": "20260805085208",
+      "name": "harden_crypto_x_claim_publish_job_execution",
+      "source": "supabase/migrations/20260805085208_harden_crypto_x_claim_publish_job_execution.sql",
+      "source_commit": "794af91d96bbb65dac191d7af19d882de037d65f"
     }
   ],
-  "updated_at": "2026-08-05T08:47:00Z",
+  "updated_at": "2026-08-05T09:01:00Z",
   "application": {
     "assets": [
       {
@@ -220,7 +234,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "dcbb15236cee42d70d99fcfbe9794badd1f3b5d8",
+    "evidence_commit": "29d94da6e83061990b04da64ca64de5eda27b508",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -446,6 +460,16 @@
     "identity_payment_preparation_gate_run_id": "30990270213",
     "identity_plan_path": "docs/release-manifests/crypto-lab-v79-identity-provisioning-plan.json",
     "payment_adapter_map_path": "docs/release-manifests/crypto-lab-v79-payment-adapter-map.json",
-    "billing_v2_draft_path": "docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json"
+    "billing_v2_draft_path": "docs/schemas/crypto-billing-normalized-event-v2.draft.schema.json",
+    "security_hardening_gate_run_id": "30991272596",
+    "browser_public_definers_zero": true,
+    "crypto_x_claim_service_role_only": true,
+    "crypto_x_claim_search_path_hardened": true,
+    "crypto_x_automation_enabled": false,
+    "crypto_x_live_publish_enabled": false,
+    "crypto_x_dry_run": true,
+    "crypto_x_generation_enabled": false,
+    "crypto_x_queues_empty_at_verification": true,
+    "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md"
   }
 }
