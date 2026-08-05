@@ -36,10 +36,11 @@
   "recurring_enabled": false,
   "refunds_enabled": false,
   "authoritative_migration": {
-    "version": "20260805103945",
-    "name": "restore_exact_owner_three_network_authority_after_103527_stale_cycle",
-    "source": "supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql",
-    "source_commit": "f738236f0b71cfb3eb96e29fa20a81b96eb4d545"
+    "version": "20260805105743",
+    "name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
+    "source": "supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql",
+    "source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7"
   },
-  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "updated_at": "2026-08-05T11:13:30Z"
 }

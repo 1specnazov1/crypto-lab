@@ -2,7 +2,7 @@
   "schema_version": 10,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T10:51:55Z",
+  "updated_at": "2026-08-05T11:13:30Z",
   "provider": "onchain_direct",
   "wallet_client": "trust_wallet_walletconnect",
   "status": "disabled_pending_remaining_decisions",
@@ -129,15 +129,16 @@
     "overlapping_automation_runs_confirmed": true,
     "recurring_automation_disabled": true,
     "exact_owner_text_preserved": true,
-    "stale_candidate_only_migration_superseded": "20260805103527",
+    "stale_candidate_only_migration_superseded": "20260805104812",
     "historical_false_migrations_preserved_for_audit": true,
-    "autonomous_owner_decision_bypass_available": false
+    "autonomous_owner_decision_bypass_available": false,
+    "latest_stale_candidate_only_migration": "20260805104812_authoritative_candidate_only_recovery_after_103945"
   },
   "authoritative_migration": {
-    "version": "20260805103945",
-    "name": "restore_exact_owner_three_network_authority_after_103527_stale_cycle",
-    "source": "supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql",
-    "source_commit": "f738236f0b71cfb3eb96e29fa20a81b96eb4d545"
+    "version": "20260805105743",
+    "name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
+    "source": "supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql",
+    "source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7"
   },
   "remaining_decisions_and_inputs": [
     "SETTLEMENT_ASSET_USDT_OR_USDC",

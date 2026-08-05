@@ -374,9 +374,19 @@
       "name": "restore_exact_owner_three_network_authority_after_103527_stale_cycle",
       "source": "supabase/migrations/20260805103945_restore_exact_owner_three_network_authority_after_103527_stale_cycle.sql",
       "source_commit": "f738236f0b71cfb3eb96e29fa20a81b96eb4d545"
+    },
+    {
+      "version": "20260805104812",
+      "name": "authoritative_candidate_only_recovery_after_103945"
+    },
+    {
+      "version": "20260805105743",
+      "name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
+      "source": "supabase/migrations/20260805105743_restore_exact_owner_three_network_authority_after_104812_stale_cycle.sql",
+      "source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7"
     }
   ],
-  "updated_at": "2026-08-05T10:51:55Z",
+  "updated_at": "2026-08-05T11:13:30Z",
   "application": {
     "assets": [
       {
@@ -677,9 +687,9 @@
     "onchain_payment_manifest": "docs/release-manifests/crypto-lab-v79-onchain-payments.json",
     "onchain_payment_sandbox_matrix": "docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json",
     "onchain_provenance_repair_document": "docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md",
-    "onchain_authoritative_migration_version": "20260805103945",
-    "onchain_authoritative_migration_name": "restore_exact_owner_three_network_authority_after_103527_stale_cycle",
-    "onchain_authoritative_migration_source_commit": "f738236f0b71cfb3eb96e29fa20a81b96eb4d545",
+    "onchain_authoritative_migration_version": "20260805105743",
+    "onchain_authoritative_migration_name": "restore_exact_owner_three_network_authority_after_104812_stale_cycle",
+    "onchain_authoritative_migration_source_commit": "221297c139df5ba975d8450d0f11b4145caa18f7",
     "onchain_last_false_authority_migration_version": "20260805100805",
     "onchain_last_false_authority_migration_superseded": true,
     "onchain_approved_network_count": 3,
@@ -740,6 +750,8 @@
     "onchain_concurrency_race_confirmed": true,
     "onchain_recurring_automation_disabled": true,
     "onchain_automation_resume_allowed": false,
-    "onchain_false_supersession_invalidated": true
+    "onchain_false_supersession_invalidated": true,
+    "onchain_latest_stale_candidate_only_migration": "20260805104812_authoritative_candidate_only_recovery_after_103945",
+    "onchain_latest_repair_migration_version": "20260805105743"
   }
 }
