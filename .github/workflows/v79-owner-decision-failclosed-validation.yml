@@ -33,13 +33,15 @@ jobs:
           def check(value,message):
             if not value: errors.append(message)
 
-          migration=Path('supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql').read_text(encoding='utf-8')
+          migration_path=Path('supabase/migrations/20260805100027_authoritative_candidate_only_payment_recovery.sql')
+          migration=migration_path.read_text(encoding='utf-8')
           evidence=Path('docs/ONCHAIN_OWNER_DECISION_PROVENANCE_REPAIR_7930.md').read_text(encoding='utf-8')
           manifest=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text(encoding='utf-8'))
           combined=migration+'\n'+evidence+json.dumps(manifest,ensure_ascii=False)
 
+          check(migration_path.is_file(),'authoritative migration source missing')
           for marker in [
-            'authoritative_candidate_only_payment_recovery',
+            'Authoritative candidate-only recovery',
             'crypto_onchain_networks_owner_decision_fail_closed',
             'crypto_payment_provider_owner_decision_fail_closed',
             'crypto_payment_sandbox_owner_claim_fail_closed',
@@ -72,13 +74,12 @@ jobs:
           db=manifest.get('database',{})
           check(db.get('active_valid_owner_decision_records')==0,'active owner decisions zero')
           check(db.get('superseded_invalid_owner_decision_records')==1,'invalid record retained inactive')
-          check(db.get('validated_candidate_network_constraint') is True,'network constraint')
-          check(db.get('validated_provider_decision_required_constraint') is True,'provider constraint')
-          check(db.get('validated_sandbox_owner_claim_constraint') is True,'sandbox constraint')
-          check(db.get('validated_owner_record_archive_constraint') is True,'record archive constraint')
+          for key in ['validated_candidate_network_constraint','validated_provider_decision_required_constraint','validated_sandbox_owner_claim_constraint','validated_owner_record_archive_constraint']:
+            check(db.get(key) is True,f'database guard {key}')
           check(manifest.get('activation_allowed') is False,'activation disabled')
           auth=manifest.get('authoritative_migration',{})
           check(auth.get('version')=='20260805100027','authoritative migration version')
+          check(auth.get('name')=='authoritative_candidate_only_payment_recovery','authoritative migration name')
           check(auth.get('source_commit')=='83ca5ebc71e68e25f881344d93ec39d38125aa08','authoritative source commit')
 
           for forbidden_path in [
