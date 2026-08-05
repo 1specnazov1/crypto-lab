@@ -206,9 +206,25 @@
       "name": "crypto_three_network_onchain_security_and_launch_control",
       "source": "supabase/migrations/20260805085807_crypto_three_network_onchain_security_and_launch_control.sql",
       "source_commit": "3450b8dbaae838a3b543edf4d4e8553f69439817"
+    },
+    {
+      "version": "20260805091147",
+      "name": "correct_onchain_candidate_network_approval_evidence",
+      "source": "supabase/migrations/20260805091147_correct_onchain_candidate_network_approval_evidence.sql",
+      "source_commit": "0ec43629c8995ce459fe622972638e4aa5dde39d"
+    },
+    {
+      "version": "20260805091434",
+      "name": "harden_crypto_onchain_observation_lifecycle"
+    },
+    {
+      "version": "20260805091540",
+      "name": "record_owner_approved_three_onchain_networks",
+      "source": "supabase/migrations/20260805091540_record_owner_approved_three_onchain_networks.sql",
+      "source_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350"
     }
   ],
-  "updated_at": "2026-08-05T09:15:00Z",
+  "updated_at": "2026-08-05T09:20:00Z",
   "application": {
     "assets": [
       {
@@ -258,7 +274,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "c0ee44d9f08eaff43a6541cfdfe448fbe91bf4ee",
+    "evidence_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -495,7 +511,10 @@
     "crypto_x_generation_enabled": false,
     "crypto_x_queues_empty_at_verification": true,
     "security_acl_repair_document": "docs/SECURITY_ACL_REPAIR_7930.md",
-    "onchain_payment_foundation": "three_network_disabled_pending_decisions",
-    "onchain_payment_gate_run_id": "30992203761"
+    "onchain_payment_foundation": "three_network_owner_approved_disabled_pending_asset_pricing_addresses",
+    "onchain_payment_gate_run_id": "30992203761",
+    "onchain_sandbox_scenario_count": 24,
+    "onchain_observation_lifecycle_hardened": true,
+    "onchain_network_approval_recorded": true
   }
 }
