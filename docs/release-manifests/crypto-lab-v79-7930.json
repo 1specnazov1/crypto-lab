@@ -370,7 +370,7 @@
       "source_commit": "09dfd70b1ee55fc48023b019309e6e5f41798fc6"
     }
   ],
-  "updated_at": "2026-08-05T10:25:00Z",
+  "updated_at": "2026-08-05T10:27:00Z",
   "application": {
     "assets": [
       {
@@ -710,8 +710,5 @@
     "onchain_automatic_wallet_debit": false,
     "onchain_sandbox_scenario_count": 30,
     "direct_onchain_payment_activation_allowed": false
-  },
-  "payment_activation_allowed": false,
-  "publication_allowed": false,
-  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+  }
 }
