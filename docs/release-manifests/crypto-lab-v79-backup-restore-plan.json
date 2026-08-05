@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "created_at": "2026-08-05T07:45:00Z",
+  "current_plan": "free",
+  "managed_automatic_backup_available": false,
+  "pitr_available": false,
+  "purchase_authorized": false,
+  "production_backup_execution_authorized": false,
+  "restore_execution_authorized": false,
+  "objectives": {
+    "pre_paid_launch_rpo_hours": 24,
+    "pre_paid_launch_rto_hours": 8,
+    "recommended_paid_rpo_hours": 1,
+    "recommended_paid_rto_hours": 4
+  },
+  "logical_backup": {
+    "format": "postgres_custom",
+    "command": "pg_dump",
+    "owner_privileges_included": false,
+    "plaintext_retained": false,
+    "encryption_required": true,
+    "supported_encryption_tool": "age",
+    "checksum": "sha256",
+    "minimum_copies": 3,
+    "minimum_offsite_copies": 1,
+    "retention": {
+      "daily_days": 7,
+      "weekly_weeks": 4,
+      "monthly_months": 3
+    },
+    "automatic_upload": false,
+    "production_credentials_in_github": false
+  },
+  "restore_rehearsal": {
+    "production_target_forbidden": true,
+    "production_project_ref_denylist": [
+      "txhzxbizjpinowepfjkm"
+    ],
+    "explicit_guard_value": "CRYPTO_LAB_NONPROD_ONLY",
+    "separate_target_required": true,
+    "target_project_ref_required": true,
+    "clean_restore": true,
+    "exit_on_error": true,
+    "post_restore_checks": [
+      "database reachable",
+      "expected CRYPTO LAB tables exist",
+      "RLS enabled on CRYPTO LAB tables",
+      "no orphan profiles or subscriptions",
+      "no invalid constraints",
+      "release manifest and checkpoint readable",
+      "integrity query completes",
+      "restored Auth access is isolated from production",
+      "restore target is destroyed or retained under an approved non-production policy"
+    ]
+  },
+  "scripts": {
+    "backup": "scripts/backup/crypto-lab-logical-backup.sh",
+    "restore": "scripts/backup/crypto-lab-restore-rehearsal.sh"
+  },
+  "required_evidence": [
+    "UTC start and completion time",
+    "source project ref",
+    "tool versions",
+    "encrypted archive size",
+    "encrypted archive sha256",
+    "manifest sha256",
+    "restore target project ref",
+    "restore duration",
+    "post-restore assertions",
+    "operator identity",
+    "redaction review",
+    "destruction or retention decision for non-production target"
+  ],
+  "activation_prerequisites": [
+    "owner chooses paid managed backups or approved logical-backup alternative",
+    "secure execution host selected",
+    "production database credential supplied outside GitHub",
+    "encryption recipient supplied outside GitHub",
+    "off-site destination selected",
+    "non-production restore target supplied",
+    "controlled backup and restore rehearsal explicitly authorized",
+    "all evidence recorded without secrets or personal data"
+  ],
+  "completion_rule": "BACKUP_PITR remains unverified until a real encrypted backup and a restore into a separate non-production target complete successfully. This plan and its scripts do not authorize production access or a paid purchase."
+}
