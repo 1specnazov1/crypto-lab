@@ -1,0 +1,102 @@
+name: Validate v79 Full Launch Control
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/release-manifests/crypto-lab-v79-7930-launch-control.json'
+      - 'supabase/migrations/20260805061231_crypto_full_launch_control_registry.sql'
+      - 'supabase/migrations/20260805061540_crypto_launch_readiness_dynamic_control.sql'
+      - 'supabase/migrations/20260805061806_crypto_launch_requirements_explicit_deny_policy.sql'
+      - '.github/workflows/v79-launch-control-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate launch-control contract
+        run: |
+          python - <<'PY'
+          import json, pathlib, re
+
+          root = pathlib.Path('.')
+          path = root / 'docs/release-manifests/crypto-lab-v79-7930-launch-control.json'
+          data = json.loads(path.read_text(encoding='utf-8'))
+
+          assert data['schema_version'] == 1
+          assert data['project_ref'] == 'txhzxbizjpinowepfjkm'
+          assert data['build'] == '7930'
+          assert data['stable_root']['sha'] == '4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          assert data['application_commit'] == '6be2e93d3933ef6339b059978e24af891ef1fa83'
+
+          requirements = data['requirements']
+          expected = {
+            'TURNSTILE_CONFIG','MAIL_RELAY','REAL_ADMIN','AUTH_E2E',
+            'PRICING_MODEL','PAYMENT_PROVIDER','MERCHANT_CREDENTIALS','REFUND_POLICY',
+            'PAYMENT_SANDBOX_E2E','BACKUP_PITR','IOS_PWA_REVIEW','ANDROID_PWA_REVIEW',
+            'CONTROLLED_BETA','BETA_UX_FIXES','PUBLISH_V79','FINAL_LAUNCH_SMOKE'
+          }
+          codes = [r['code'] for r in requirements]
+          assert len(requirements) == 16
+          assert len(codes) == len(set(codes))
+          assert set(codes) == expected
+          assert sum(r['weight'] for r in requirements) == 100
+          assert sum(bool(r['decision_required']) for r in requirements) == 5
+          assert sum(bool(r['sensitive_input_required']) for r in requirements) == 3
+          assert sum(bool(r['physical_action_required']) for r in requirements) == 3
+          for r in requirements:
+            assert re.fullmatch(r'[A-Z][A-Z0-9_]{2,80}', r['code'])
+            assert r['phase'] in {'identity','commercial','reliability','validation','release'}
+            assert r['owner_type'] in {'user_decision','external_configuration','physical_validation','autonomous'}
+            assert 1 <= r['weight'] <= 100
+            assert r['code'] not in r['dependencies']
+            assert set(r['dependencies']) <= expected
+
+          security = data['security']
+          for key in ('rls_enabled','explicit_direct_access_deny','admin_read_wrapper','service_update_only','sensitive_json_key_guard','audit_enabled'):
+            assert security[key] is True
+          for key in ('browser_table_access','browser_write_rpc','sensitive_values_stored'):
+            assert security[key] is False
+
+          for key, value in data['boundaries'].items():
+            assert value is False, f'{key} must remain disabled'
+
+          migrations = data['migrations']
+          assert [m['version'] for m in migrations] == ['20260805061231','20260805061540','20260805061806']
+          for m in migrations:
+            assert re.fullmatch(r'[0-9a-f]{40}', m['source_commit'])
+            source = root / m['source']
+            assert source.is_file(), source
+
+          registry = (root / migrations[0]['source']).read_text(encoding='utf-8')
+          readiness = (root / migrations[1]['source']).read_text(encoding='utf-8')
+          deny = (root / migrations[2]['source']).read_text(encoding='utf-8')
+          for marker in ('crypto_launch_requirements','assert_crypto_launch_json_safe','crypto_full_launch_control_snapshot','get_crypto_admin_full_launch_control'):
+            assert marker in registry
+          for marker in ('full_launch_progress_pct','decision_queue','external_input_queue','physical_action_queue'):
+            assert marker in readiness
+          assert 'using (false)' in deny.lower()
+          assert 'with check (false)' in deny.lower()
+
+          public_text = '\n'.join([
+            path.read_text(encoding='utf-8'), registry, readiness, deny
+          ])
+          forbidden = [r'sb_secret_', r'sk_live_', r'sk_test_', r'whsec_', r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----', r'Bearer\s+eyJ']
+          for pattern in forbidden:
+            assert not re.search(pattern, public_text, re.I), pattern
+
+          snapshot = data['initial_snapshot']
+          assert snapshot['remaining_count'] == 16
+          assert snapshot['decision_count'] == 5
+          assert snapshot['external_input_count'] == 4
+          assert snapshot['physical_action_count'] == 3
+          assert snapshot['technical_beta_score'] == 100
+          assert snapshot['paid_public_launch_score'] == 60
+          print('Full launch control manifest: OK')
+          PY
