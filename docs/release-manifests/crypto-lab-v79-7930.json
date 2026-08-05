@@ -215,7 +215,9 @@
     },
     {
       "version": "20260805091434",
-      "name": "harden_crypto_onchain_observation_lifecycle"
+      "name": "harden_crypto_onchain_observation_lifecycle",
+      "source": "supabase/migrations/20260805091434_harden_crypto_onchain_observation_lifecycle.sql",
+      "source_commit": "61d4088f067f7bd82c2d1f1b31d6e9cf1d1d4e95"
     },
     {
       "version": "20260805091540",
@@ -224,7 +226,7 @@
       "source_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350"
     }
   ],
-  "updated_at": "2026-08-05T09:20:00Z",
+  "updated_at": "2026-08-05T09:22:00Z",
   "application": {
     "assets": [
       {
@@ -274,7 +276,7 @@
       }
     ],
     "pwa_cache": "crypto-lab-v79-7930-auth1",
-    "evidence_commit": "b6acd3771ddcb3cc83c21f9227187bdcac4d7350",
+    "evidence_commit": "cafb9715b7ff6d30f7210d18812520c1d060e802",
     "application_commit": "e1cbe2eb1cb9d97295ecfc9836d0f9bac9cfc191"
   },
   "project_ref": "txhzxbizjpinowepfjkm",
@@ -515,6 +517,9 @@
     "onchain_payment_gate_run_id": "30992203761",
     "onchain_sandbox_scenario_count": 24,
     "onchain_observation_lifecycle_hardened": true,
-    "onchain_network_approval_recorded": true
+    "onchain_network_approval_recorded": true,
+    "onchain_lifecycle_manifest": "docs/release-manifests/crypto-lab-v79-onchain-lifecycle-hardening.json",
+    "onchain_lifecycle_integrity_checks": 11,
+    "onchain_lifecycle_integrity_state": "healthy"
   }
 }
