@@ -6,6 +6,8 @@ on:
       - 'docs/release-manifests/**'
       - 'supabase/migrations/**'
       - 'scripts/v79_validate_onchain_foundation.py'
+      - 'v79/commercial-extension.js'
+      - 'v79/pricing-overlay.js'
       - '.github/workflows/v79-release-manifest-contract.yml'
   workflow_dispatch:
 permissions: {contents: read}
@@ -25,6 +27,7 @@ jobs:
           release=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930.json').read_text())
           onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
           owner=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
+          pricing=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json').read_text())
           assert release['build']=='7930' and release['project_ref']=='txhzxbizjpinowepfjkm'
           assert release['boundaries']['v79_published_over_v78'] is False
           expected='4a278c891d37b3760ec1ac988690ea9ad587b24e'
@@ -37,19 +40,29 @@ jobs:
             seen.add(key)
             if item.get('source'):
               assert Path(item['source']).is_file(),item['source']
-          assert onchain['schema_version']==12
+          assert onchain['schema_version']==13
           assert onchain['authoritative_migration']['version']=='20260805180435'
-          assert [x['version'] for x in onchain['preparation_migrations']]==['20260805183433','20260805183530']
+          assert [x['version'] for x in onchain['preparation_migrations']]==[
+            '20260805183433','20260805183530','20260805185155'
+          ]
           assert all(Path(x['source']).is_file() for x in onchain['preparation_migrations'])
           assert onchain['approved_networks']==['ETHEREUM','TRON','SOLANA']
           assert onchain['selected_assets']==['USDT','USDC']
+          assert onchain['pricing']['currency']=='USD'
+          assert onchain['pricing']['basic_amount_minor']==2000
+          assert onchain['pricing']['pro_amount_minor']==4000
+          assert onchain['pricing']['owner_approved'] is True
+          assert onchain['pricing']['active_row_count']==0
           runtime=onchain['runtime_state']
           assert runtime['approved_network_count']==3 and runtime['active_network_count']==0
           assert runtime['selected_asset_count']==2 and runtime['official_supported_pair_count']==5
-          assert runtime['draft_price_count']==4 and runtime['active_price_count']==0
+          assert runtime['approved_price_count']==4 and runtime['active_price_count']==0
           assert runtime['enabled_network_asset_count']==0 and runtime['receiving_address_count']==0
           assert runtime['configuration_ready'] is False and runtime['activation_ready'] is False
           assert onchain['activation_allowed'] is False and onchain['publication_allowed'] is False
           assert owner['decision_hash_sha256']=='df7a3a536fc641c961f0f54187d76f44aecc2b8ccd0edbfdd33623cc32773750'
-          print('Release contract and disabled preactivation overlay: OK')
+          assert pricing['decision_hash_sha256']=='db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0'
+          assert [x['amount_minor'] for x in pricing['plans']]==[2000,4000]
+          assert all(x['active'] is False for x in pricing['plans'])
+          print('Release contract and owner-approved inactive USD pricing: OK')
           PY

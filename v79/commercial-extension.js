@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930';
+  const BUILD='7930-pricing1';
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
@@ -11,6 +11,7 @@
         add(doc,'registrationConsentScript','./registration-consent.js');
         add(doc,'protectedAuthGatewayScript','./auth-gateway.js');
         add(doc,'commercialCenterScript','./commercial.js');
+        add(doc,'pricingOverlayScript','./pricing-overlay.js');
         add(doc,'subscriptionLifecycleScript','./subscription-lifecycle.js');
         add(doc,'sessionSecurityScript','./session-security.js');
       }

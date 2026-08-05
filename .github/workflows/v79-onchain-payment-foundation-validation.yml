@@ -7,11 +7,15 @@ on:
       - 'docs/release-manifests/crypto-lab-v79-onchain-payments.json'
       - 'docs/release-manifests/crypto-lab-v79-payment-sandbox-matrix.json'
       - 'docs/release-manifests/crypto-lab-v79-owner-network-decision.json'
+      - 'docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json'
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
       - 'supabase/migrations/20260805180435_record_owner_ethereum_tron_solana_usdt_usdc_selection.sql'
       - 'supabase/migrations/20260805183433_prepare_multi_asset_onchain_checkout_and_draft_pricing.sql'
       - 'supabase/migrations/20260805183530_index_onchain_payment_foreign_keys.sql'
+      - 'supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql'
       - 'scripts/v79_validate_onchain_foundation.py'
+      - 'v79/commercial-extension.js'
+      - 'v79/pricing-overlay.js'
       - '.github/workflows/v79-onchain-payment-foundation-validation.yml'
   workflow_dispatch:
 
@@ -28,7 +32,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
-      - name: Validate inactive multi-asset preactivation foundation
+      - name: Validate owner-approved inactive USD pricing
         run: python scripts/v79_validate_onchain_foundation.py
       - name: Preserve public release hashes
         run: |
@@ -36,5 +40,6 @@ jobs:
           test "$(git hash-object v79/index.html)" = "b92335b3a3d76e349f1845fd653e1c1021d6d7f6"
           test "$(git hash-object v79/app.html)" = "432fe33542bf58b41bab590caf0fcf5d635f8da4"
           test "$(git hash-object v79/auth-gateway.js)" = "d87c76418461a133c97464452eea020b66e4f30f"
-          test "$(git hash-object v79/commercial-extension.js)" = "9d300dd2276e55ffc4ad1b8fcb60766046bba8f6"
+          test "$(git hash-object v79/commercial-extension.js)" = "a0298baf91cf105f209f8ae85ba8dded7e0c5dd0"
+          test "$(git hash-object v79/pricing-overlay.js)" = "4a481e4bff74fc58cbd60f669bd83c6897a3006d"
           test "$(git hash-object v79/service-worker.js)" = "33bfb7856afa2c49d870fb3607f8bb1279e47f32"

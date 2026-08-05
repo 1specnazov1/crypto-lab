@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "updated_at": "2026-08-05T18:51:55Z",
+  "decision_code": "ONCHAIN_BASIC_PRO_USD_MONTHLY_PRICING",
+  "decision_text_exact": "BASIC — 20 грн/месяц;\nPRO — 40 грн/месяц - внеси изменения для крипто лаб пиши в долларах. И напиши для мен ниже кратко по пунктам что включают в себя эти тарифы",
+  "decision_hash_sha256": "db8ef6f56587b0aa05c602c838dc94acc06d6dca5a42d6f2e76130a7c7e198c0",
+  "source_channel": "owner_chat",
+  "decision_scope": "pricing_selection_only",
+  "currency": "USD",
+  "billing_interval": "month",
+  "plans": [
+    {
+      "plan": "BASIC",
+      "amount_minor": 2000,
+      "display": "$20/month",
+      "active": false,
+      "limits": {
+        "daily_ai_requests": 30,
+        "daily_backtests": 20,
+        "daily_scanner_views": 100,
+        "max_portfolio_assets": 50,
+        "max_favorites": 100
+      },
+      "features": {
+        "telegram": true,
+        "portfolio_sync": true,
+        "advanced_backtest": true,
+        "priority_ai": false
+      }
+    },
+    {
+      "plan": "PRO",
+      "amount_minor": 4000,
+      "display": "$40/month",
+      "active": false,
+      "limits": {
+        "daily_ai_requests": -1,
+        "daily_backtests": -1,
+        "daily_scanner_views": -1,
+        "max_portfolio_assets": -1,
+        "max_favorites": -1
+      },
+      "features": {
+        "telegram": true,
+        "portfolio_sync": true,
+        "advanced_backtest": true,
+        "priority_ai": true
+      }
+    }
+  ],
+  "settlement_assets": [
+    "USDT",
+    "USDC"
+  ],
+  "onchain_price_row_count": 4,
+  "active_price_row_count": 0,
+  "obsolete_uah_rows_removed": true,
+  "payment_activation_authorized": false,
+  "pricing_activation_authorized": false,
+  "checkout_enabled": false,
+  "publication_allowed": false,
+  "migration": {
+    "version": "20260805185155",
+    "name": "record_owner_basic_pro_usd_monthly_pricing",
+    "source": "supabase/migrations/20260805185155_record_owner_basic_pro_usd_monthly_pricing.sql"
+  },
+  "ui": {
+    "pricing_overlay": "v79/pricing-overlay.js",
+    "shows_approved_inactive_prices": true,
+    "payment_inactive_notice": true
+  },
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
+}
