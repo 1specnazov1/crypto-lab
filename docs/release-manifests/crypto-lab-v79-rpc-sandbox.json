@@ -1,9 +1,9 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-06T05:30:53Z",
-  "status": "scoped_transfer_approved_waiting_funding_and_signer",
+  "updated_at": "2026-08-06T14:46:38Z",
+  "status": "test_senders_registered_waiting_testnet_funding",
   "edge_function": {
     "slug": "crypto-lab-v79-chain-verifier",
     "version": 1,
@@ -44,6 +44,26 @@
       "version": "20260806053053",
       "name": "finalize_scoped_usdc_sandbox_approval_evidence",
       "source": "supabase/migrations/20260806053053_finalize_scoped_usdc_sandbox_approval_evidence.sql"
+    },
+    {
+      "version": "20260806055345",
+      "name": "register_ethereum_sepolia_test_sender",
+      "source": "supabase/migrations/20260806055345_register_ethereum_sepolia_test_sender.sql"
+    },
+    {
+      "version": "20260806070941",
+      "name": "register_solana_devnet_test_sender",
+      "source": "supabase/migrations/20260806070941_register_solana_devnet_test_sender.sql"
+    },
+    {
+      "version": "20260806071522",
+      "name": "record_solana_devnet_airdrop_attempt",
+      "source": "supabase/migrations/20260806071522_record_solana_devnet_airdrop_attempt.sql"
+    },
+    {
+      "version": "20260806144638",
+      "name": "record_testnet_funding_route_audit",
+      "source": "supabase/migrations/20260806144638_record_testnet_funding_route_audit.sql"
     }
   ],
   "profiles": [
@@ -120,11 +140,48 @@
       "health_run_id": 3
     }
   ],
+  "sender_accounts": [
+    {
+      "network_code": "ETHEREUM",
+      "environment": "sandbox",
+      "network_name": "Sepolia",
+      "address": "0x4eadfbe9665265527e9a5d6bde6fb15a70f05555",
+      "wallet_label": "CRYPTO LAB Test Sender",
+      "custody_model": "owner_signed_external_wallet",
+      "verified": true,
+      "configured": true,
+      "mainnet_authorized": false,
+      "entitlement_capable": false,
+      "secret_material_received": false,
+      "allowed_asset": "USDC",
+      "allowed_amount_base_units": "10000",
+      "native_gas_funded": false,
+      "test_usdc_funded": false
+    },
+    {
+      "network_code": "SOLANA",
+      "environment": "sandbox",
+      "network_name": "Devnet",
+      "address": "4XErSn1UpvFaULFXVK6GY8nLULKLJKi2d6qtSFpJVPJ4",
+      "wallet_label": "CRYPTO LAB Test Sender",
+      "custody_model": "owner_signed_external_wallet",
+      "verified": true,
+      "configured": true,
+      "mainnet_authorized": false,
+      "entitlement_capable": false,
+      "secret_material_received": false,
+      "allowed_asset": "USDC",
+      "allowed_amount_base_units": "10000",
+      "native_gas_funded": false,
+      "test_usdc_funded": false
+    }
+  ],
   "sandbox_cases": [
     {
       "network_code": "ETHEREUM",
       "asset_code": "USDC",
       "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "source_address": "0x4eadfbe9665265527e9a5d6bde6fb15a70f05555",
       "recipient_address": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
       "expected_amount_base_units": "10000",
       "status": "ready_for_funding",
@@ -148,6 +205,7 @@
       "network_code": "SOLANA",
       "asset_code": "USDC",
       "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      "source_address": "4XErSn1UpvFaULFXVK6GY8nLULKLJKi2d6qtSFpJVPJ4",
       "recipient_address": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
       "expected_amount_base_units": "10000",
       "status": "ready_for_funding",
@@ -171,15 +229,29 @@
     "ci_passed": true
   },
   "testnet_funding": {
-    "provider": "Circle Faucet",
-    "url": "https://faucet.circle.com/",
-    "testnet_tokens_have_no_financial_value": true,
-    "published_limit": "20 testnet USDC per address per blockchain every 2 hours",
-    "published_wallet_constraint": "Circle Wallets address required by current public faucet FAQ",
-    "ethereum_sepolia_supported": true,
-    "solana_devnet_supported": true,
-    "direct_faucet_to_recipient_not_authorized": true,
-    "reason": "The faucet amount is 20 USDC, while owner authorization is exactly 0.01 USDC per transfer"
+    "tokens_have_no_financial_value": true,
+    "background_balance_watch_enabled": true,
+    "background_retry_interval_hours": 4,
+    "solana_latest_official_rpc_request_id": "18008",
+    "solana_latest_official_rpc_result": "internal_error",
+    "solana_foundation_web_faucet_result": "github_account_too_new",
+    "ankr_result": "api_key_required",
+    "devnetfaucet_org_requirement": "github_auth_and_solana_ecosystem_eligibility",
+    "quicknode_requirement": "wallet_connect_or_web_interaction",
+    "coinbase_cdp_requirement": "cdp_api_bearer_token",
+    "circle_faucet_requirement": "human_recaptcha",
+    "remaining_safe_routes": [
+      "official_rpc_periodic_retry",
+      "human_web_faucet_with_captcha_or_oauth",
+      "authenticated_provider_faucet"
+    ],
+    "rejected_routes": [
+      "mainnet_sol_exchange_faucet",
+      "seed_phrase_export",
+      "private_key_export",
+      "rate_limit_bypass"
+    ],
+    "direct_faucet_to_recipient_not_authorized": true
   },
   "owner_transfer_approval": {
     "decision_code": "SANDBOX_USDC_TRANSFER_EXECUTION_APPROVAL_V1",
@@ -192,7 +264,6 @@
       {
         "network": "Ethereum Sepolia",
         "asset": "USDC",
-        "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
         "recipient": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
         "amount_display": "0.01 USDC",
         "amount_base_units": "10000"
@@ -200,7 +271,6 @@
       {
         "network": "Solana Devnet",
         "asset": "USDC",
-        "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
         "recipient": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
         "amount_display": "0.01 USDC",
         "amount_base_units": "10000"
@@ -225,6 +295,7 @@
   },
   "runtime_counts": {
     "health_runs": 4,
+    "sandbox_sender_accounts": 2,
     "sandbox_runs": 0,
     "production_invoices": 0,
     "production_claims": 0,
@@ -247,10 +318,9 @@
     "v79_published_over_v78": false
   },
   "remaining_external_inputs": [
-    "TEST_SENDER_WALLET",
     "TESTNET_USDC_FUNDING",
     "TESTNET_NATIVE_GAS",
-    "OWNER_WALLET_SIGNATURE_OR_CONTROLLED_TEST_SIGNER",
+    "OWNER_WALLET_SIGNATURE",
     "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK"
   ],
   "official_sources": {
@@ -260,7 +330,8 @@
     "tron_networks": "https://developers.tron.network/docs/connect-to-the-tron-network",
     "solana_clusters": "https://solana.com/docs/references/clusters",
     "circle_testnet_usdc": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
-    "circle_faucet": "https://faucet.circle.com/"
+    "circle_faucet": "https://faucet.circle.com/",
+    "solana_web_faucet": "https://faucet.solana.com/"
   },
   "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e"
 }
