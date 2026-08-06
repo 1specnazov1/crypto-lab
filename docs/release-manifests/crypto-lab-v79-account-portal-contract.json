@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "project": "CRYPTO LAB",
+  "candidate": "v79",
+  "stable_public_version": "v78",
+  "generated_at": "2026-08-06T20:05:00Z",
+  "supabase_migration": {
+    "version": "20260806200413",
+    "name": "prepare_closed_account_portal",
+    "repository_path": "supabase/migrations/20260806200328_prepare_closed_account_portal.sql"
+  },
+  "runtime_state": {
+    "mode": "closed_prelaunch",
+    "registration_enabled": false,
+    "login_enabled": false,
+    "recovery_enabled": false,
+    "portal_enabled": false,
+    "public_registration_enabled": false,
+    "production_launch_authorized": false,
+    "real_users_invited": false
+  },
+  "prepared_contracts": {
+    "public_status_rpc": "crypto_account_portal_status",
+    "authenticated_snapshot_rpc": "crypto_my_account_snapshot",
+    "activation_guard": "ACCOUNT_PORTAL_ACTIVATION_NOT_AUTHORIZED",
+    "profile_table": "crypto_user_profiles",
+    "subscription_table": "crypto_subscriptions",
+    "plan_request_table": "crypto_plan_requests",
+    "account_deletion_table": "crypto_account_deletion_requests"
+  },
+  "security": {
+    "config_rls_enabled": true,
+    "config_anon_access": "denied",
+    "config_authenticated_access": "denied",
+    "snapshot_rpc_anon_access": "denied",
+    "snapshot_rpc_authenticated_access": "allowed_own_rows_only",
+    "activation_requires_production_authorization": true,
+    "activation_requires_owner_decision_hash": true
+  },
+  "verification": {
+    "auth_user_count": 0,
+    "profile_count": 0,
+    "subscription_count": 0,
+    "unauthorized_activation_test": "rejected",
+    "unauthorized_activation_error": "ACCOUNT_PORTAL_ACTIVATION_NOT_AUTHORIZED",
+    "account_portal_requirement": "ready",
+    "auth_e2e_requirement": "blocked_dependency"
+  },
+  "external_blockers": [
+    "TURNSTILE_CONFIG",
+    "MAIL_RELAY",
+    "AUTH_E2E",
+    "REAL_ADMIN",
+    "OWNER_ACTIVATION_DECISION"
+  ],
+  "prohibited_without_owner_approval": [
+    "public_registration",
+    "login_activation",
+    "password_recovery_activation",
+    "account_portal_activation",
+    "mainnet_payments",
+    "paid_entitlements",
+    "refund_execution",
+    "publishing_v79_over_v78"
+  ]
+}
