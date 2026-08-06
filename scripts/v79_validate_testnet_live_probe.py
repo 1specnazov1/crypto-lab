@@ -8,7 +8,7 @@ ETH_SENDER = "0x4eadfbe9665265527e9a5d6bde6fb15a70f05555"
 SOL_SENDER = "4XErSn1UpvFaULFXVK6GY8nLULKLJKi2d6qtSFpJVPJ4"
 ETH_USDC = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
 SOL_USDC = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
-TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+TOKEN_PROGRAM = "TokenkegQfeZyiNwAJBNbGKPFXCWuBvf9Ss623VQ5DA"
 ETH_CALLDATA = (
     "0xa9059cbb000000000000000000000000"
     "bcd27864ea603643bc8aebb3fe2cec2ffdb39eb9"
@@ -167,7 +167,7 @@ if not errors:
         r"sb_secret_",
         r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
         r"Bearer\s+eyJ",
-        r"\b(?:seed phrase|mnemonic phrase)\b",
+        r'"(?:seed|mnemonic|private_key)"\s*:\s*"[^"\n]{20,}"',
     ]:
         check(re.search(pattern, combined, re.I) is None, f"secret-like material: {pattern}")
 
