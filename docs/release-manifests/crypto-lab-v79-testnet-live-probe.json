@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "build": "7930",
+  "recorded_at": "2026-08-06T17:03:14Z",
+  "scope": "isolated_testnet_payment_contour",
+  "status": "rpc_ready_funding_required",
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "migrations": [
+    {
+      "version": "20260806160423",
+      "name": "complete_testnet_payment_contour_fixture_v1",
+      "source": "supabase/migrations/20260806160423_complete_testnet_payment_contour_fixture_v1.sql"
+    },
+    {
+      "version": "20260806170314",
+      "name": "finalize_testnet_payment_contour_live_probe_v1",
+      "source": "supabase/migrations/20260806170314_finalize_testnet_payment_contour_live_probe_v1.sql"
+    }
+  ],
+  "official_assets": {
+    "ethereum_sepolia_usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "solana_devnet_usdc": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "solana_token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "decimals": 6,
+    "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses"
+  },
+  "live_observations": [
+    {
+      "network_code": "ETHEREUM",
+      "environment": "sandbox",
+      "network_name": "Sepolia",
+      "chain_reference": "11155111",
+      "chain_id_hex": "0xaa36a7",
+      "rpc": "https://ethereum-sepolia-rpc.publicnode.com",
+      "sender_address": "0x4eadfbe9665265527e9a5d6bde6fb15a70f05555",
+      "native_balance_base_units": "0",
+      "test_usdc_balance_base_units": "0",
+      "request_ids": [18330, 18331, 18332],
+      "observed_at": "2026-08-06T17:00:16Z",
+      "rpc_success": true,
+      "funding_ready": false,
+      "evidence_hash": "4b1b8cf87ac99634d03b6eedc8858af9b5e1b9c31c0d72a35a4ae05c033a961c"
+    },
+    {
+      "network_code": "SOLANA",
+      "environment": "sandbox",
+      "network_name": "Devnet",
+      "chain_reference": "devnet",
+      "confirmed_slot": "481666787",
+      "rpc": "https://api.devnet.solana.com",
+      "sender_address": "4XErSn1UpvFaULFXVK6GY8nLULKLJKi2d6qtSFpJVPJ4",
+      "native_balance_base_units": "0",
+      "test_usdc_balance_base_units": "0",
+      "token_account_count": 0,
+      "request_ids": [18333, 18334],
+      "observed_at": "2026-08-06T17:00:15Z",
+      "rpc_success": true,
+      "funding_ready": false,
+      "evidence_hash": "3eee7feae84b56e12b32eba4501ebb52ddafaff2cd31efa109442b4e130b8d6a"
+    }
+  ],
+  "transfer_templates": [
+    {
+      "network_code": "ETHEREUM",
+      "environment": "sandbox",
+      "asset_code": "USDC",
+      "sender_address": "0x4eadfbe9665265527e9a5d6bde6fb15a70f05555",
+      "recipient_address": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
+      "amount_base_units": "10000",
+      "amount_display": "0.01 USDC",
+      "transaction_to": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "transaction_value_wei": "0",
+      "method_signature": "transfer(address,uint256)",
+      "method_selector": "0xa9059cbb",
+      "transaction_data": "0xa9059cbb000000000000000000000000bcd27864ea603643bc8aebb3fe2cec2ffdb39eb90000000000000000000000000000000000000000000000000000000000002710",
+      "owner_signature_required": true,
+      "broadcast_allowed": false
+    },
+    {
+      "network_code": "SOLANA",
+      "environment": "sandbox",
+      "asset_code": "USDC",
+      "sender_address": "4XErSn1UpvFaULFXVK6GY8nLULKLJKi2d6qtSFpJVPJ4",
+      "recipient_owner_address": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
+      "amount_base_units": "10000",
+      "amount_display": "0.01 USDC",
+      "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      "token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "instruction": "transfer_checked",
+      "recipient_ata_creation": "create_idempotently_if_absent",
+      "mint_decimals_check": 6,
+      "owner_signature_required": true,
+      "broadcast_allowed": false
+    }
+  ],
+  "fixture_results": {
+    "verifier_version": "sandbox-fixture-v1",
+    "ethereum_pass": true,
+    "solana_pass": true,
+    "wrong_amount_rejected": true,
+    "wrong_recipient_rejected": true,
+    "wrong_network_rejected": true,
+    "non_final_rejected": true,
+    "ethereum_evidence_hash": "b284ef72a695ebd2010e95810a0a423da152c13210d6e31cdee53ff7a4d8f72a",
+    "solana_evidence_hash": "01e5ef4c92b613ec227dbbb64c6bb4424dfd572efd191b9d2c2ef4e92fffb447"
+  },
+  "runtime_counts": {
+    "health_runs": 6,
+    "sandbox_sender_accounts": 2,
+    "sandbox_runs": 4,
+    "production_invoices": 0,
+    "production_claims": 0,
+    "production_observations": 0,
+    "active_addresses": 0,
+    "active_prices": 0,
+    "active_networks": 0,
+    "enabled_network_asset_pairs": 0,
+    "active_subscriptions": 0
+  },
+  "remaining_blockers": [
+    "TESTNET_USDC_FUNDING",
+    "TESTNET_NATIVE_GAS",
+    "OWNER_WALLET_SIGNATURE"
+  ],
+  "safety_boundary": {
+    "mainnet_authorized": false,
+    "real_payments_authorized": false,
+    "registration_enabled": false,
+    "pricing_enabled": false,
+    "subscription_entitlement_enabled": false,
+    "refunds_enabled": false,
+    "transaction_broadcast": false,
+    "secret_material_received": false,
+    "v79_published_over_v78": false
+  }
+}
