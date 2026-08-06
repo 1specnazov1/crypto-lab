@@ -11,6 +11,10 @@ on:
       - 'supabase/migrations/20260805211218_prepare_owner_scoped_usdc_sandbox_transfer_decision.sql'
       - 'supabase/migrations/20260806053020_record_scoped_usdc_sandbox_transfer_approval.sql'
       - 'supabase/migrations/20260806053053_finalize_scoped_usdc_sandbox_approval_evidence.sql'
+      - 'supabase/migrations/20260806055345_register_ethereum_sepolia_test_sender.sql'
+      - 'supabase/migrations/20260806070941_register_solana_devnet_test_sender.sql'
+      - 'supabase/migrations/20260806071522_record_solana_devnet_airdrop_attempt.sql'
+      - 'supabase/migrations/20260806144638_record_testnet_funding_route_audit.sql'
       - 'supabase/functions/crypto-lab-v79-chain-verifier/**'
       - 'scripts/v79_validate_rpc_sandbox.py'
       - '.github/workflows/v79-rpc-sandbox-validation.yml'
@@ -34,7 +38,7 @@ jobs:
           deno-version: v2.x
       - name: Validate existing on-chain foundation
         run: python scripts/v79_validate_onchain_foundation.py
-      - name: Validate effective scoped sandbox authorization
+      - name: Validate registered senders and funding watch
         run: python scripts/v79_validate_rpc_sandbox.py
       - name: Type-check chain verifier and fixtures
         run: |
