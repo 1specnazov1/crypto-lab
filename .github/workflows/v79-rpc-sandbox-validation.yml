@@ -9,6 +9,8 @@ on:
       - 'supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql'
       - 'supabase/migrations/20260805210454_configure_publicnode_ethereum_sepolia_sandbox.sql'
       - 'supabase/migrations/20260805211218_prepare_owner_scoped_usdc_sandbox_transfer_decision.sql'
+      - 'supabase/migrations/20260806053020_record_scoped_usdc_sandbox_transfer_approval.sql'
+      - 'supabase/migrations/20260806053053_finalize_scoped_usdc_sandbox_approval_evidence.sql'
       - 'supabase/functions/crypto-lab-v79-chain-verifier/**'
       - 'scripts/v79_validate_rpc_sandbox.py'
       - '.github/workflows/v79-rpc-sandbox-validation.yml'
@@ -32,7 +34,7 @@ jobs:
           deno-version: v2.x
       - name: Validate existing on-chain foundation
         run: python scripts/v79_validate_onchain_foundation.py
-      - name: Validate scoped sandbox decision contract
+      - name: Validate effective scoped sandbox authorization
         run: python scripts/v79_validate_rpc_sandbox.py
       - name: Type-check chain verifier and fixtures
         run: |
