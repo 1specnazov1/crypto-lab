@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "project_ref": "txhzxbizjpinowepfjkm",
+  "recorded_at": "2026-08-06T18:05:23Z",
+  "scope": "mainnet_rpc_indexer_readonly_preparation",
+  "status": "prepared_external_input_required",
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "migration": {
+    "version": "20260806180523",
+    "name": "prepare_mainnet_rpc_indexers_readonly",
+    "source": "supabase/migrations/20260806180523_prepare_mainnet_rpc_indexers_readonly.sql"
+  },
+  "networks": [
+    {
+      "network_code": "ETHEREUM",
+      "chain_reference": "1",
+      "provider_code": "ethereum_json_rpc",
+      "indexer_strategy": "rpc_polling",
+      "endpoint_secret_name": "ETHEREUM_MAINNET_RPC_URL",
+      "api_key_secret_name": null,
+      "public_smoke": {
+        "method": "eth_chainId",
+        "http_status": 200,
+        "observed": "0x1",
+        "ok": true
+      },
+      "production_enabled": false,
+      "read_only": true
+    },
+    {
+      "network_code": "SOLANA",
+      "chain_reference": "mainnet-beta",
+      "provider_code": "solana_json_rpc",
+      "indexer_strategy": "rpc_polling",
+      "endpoint_secret_name": "SOLANA_MAINNET_RPC_URL",
+      "api_key_secret_name": null,
+      "public_smoke": {
+        "method": "getGenesisHash",
+        "http_status": 200,
+        "observed": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+        "ok": true
+      },
+      "production_enabled": false,
+      "read_only": true
+    },
+    {
+      "network_code": "TRON",
+      "chain_reference": "mainnet",
+      "provider_code": "trongrid",
+      "indexer_strategy": "rpc_polling",
+      "endpoint_secret_name": "TRON_MAINNET_RPC_URL",
+      "api_key_secret_name": "TRONGRID_API_KEY",
+      "public_smoke": {
+        "method": "walletsolidity/getnowblock",
+        "http_status": 200,
+        "observed_block": "80516084",
+        "ok": true
+      },
+      "production_enabled": false,
+      "read_only": true
+    }
+  ],
+  "rpc_policy_counts": {
+    "allow_read": 20,
+    "deny_write": 9
+  },
+  "runtime_counts": {
+    "active_networks": 0,
+    "enabled_mainnet_verifiers": 0,
+    "enabled_mainnet_indexers": 0,
+    "active_receiving_addresses": 0,
+    "active_prices": 0
+  },
+  "external_inputs_required": [
+    "DEDICATED_ETHEREUM_MAINNET_RPC_URL",
+    "DEDICATED_SOLANA_MAINNET_RPC_URL",
+    "DEDICATED_TRON_MAINNET_RPC_URL",
+    "TRONGRID_API_KEY",
+    "OWNER_COMMERCIAL_ACTIVATION_DECISION"
+  ],
+  "safety_boundary": {
+    "mainnet_authorized": false,
+    "real_payments_authorized": false,
+    "transaction_broadcast": false,
+    "registration_enabled": false,
+    "pricing_enabled": false,
+    "refunds_enabled": false,
+    "v79_published_over_v78": false
+  }
+}
