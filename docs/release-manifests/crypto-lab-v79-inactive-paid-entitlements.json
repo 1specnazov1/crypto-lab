@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "scope": "inactive_paid_plan_entitlements",
+  "status": "prepared_owner_activation_required",
+  "recorded_at": "2026-08-06T19:13:30Z",
+  "migration": {
+    "version": "20260806191330",
+    "name": "prepare_inactive_paid_plan_entitlements",
+    "path": "supabase/migrations/20260806191330_prepare_inactive_paid_plan_entitlements.sql"
+  },
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "plans": [
+    {
+      "plan": "BASIC",
+      "amount_minor": 2000,
+      "currency": "USD",
+      "billing_interval": "month",
+      "access_period": "1 month",
+      "renewal_mode": "manual",
+      "cancellation_effect": "period_end",
+      "price_active": false,
+      "entitlement_activation_enabled": false
+    },
+    {
+      "plan": "PRO",
+      "amount_minor": 4900,
+      "currency": "USD",
+      "billing_interval": "month",
+      "access_period": "1 month",
+      "renewal_mode": "manual",
+      "cancellation_effect": "period_end",
+      "price_active": false,
+      "entitlement_activation_enabled": false
+    }
+  ],
+  "runtime_flags": {
+    "paid_checkout_enabled": false,
+    "paid_entitlement_enabled": false,
+    "public_registration_enabled": false,
+    "recurring_billing_enabled": false,
+    "refund_execution_enabled": false,
+    "production_launch_authorized": false
+  },
+  "contract_tests": {
+    "actual_basic_future_period": {
+      "access_granted": false,
+      "effective_plan": "FREE",
+      "reason": "launch_gate_closed"
+    },
+    "simulated_future_basic_period": {
+      "access_granted": true,
+      "effective_plan": "BASIC",
+      "reason": "eligible_paid_period"
+    },
+    "simulated_expired_pro_period": {
+      "access_granted": false,
+      "effective_plan": "FREE",
+      "reason": "period_expired"
+    }
+  },
+  "runtime_counts": {
+    "auth_users": 0,
+    "subscriptions": 0,
+    "paid_subscriptions": 0,
+    "billing_orders": 0,
+    "onchain_invoices": 0,
+    "active_paid_prices": 0,
+    "active_onchain_prices": 0
+  },
+  "launch_integrity": {
+    "state": "healthy",
+    "expected_requirement_count": 17,
+    "actual_requirement_count": 17,
+    "expected_weight_total": 120,
+    "actual_weight_total": 120,
+    "dependency_violations": 0,
+    "verified_evidence_violations": 0,
+    "secret_like_value_violations": 0
+  },
+  "safety_boundary": {
+    "mainnet_payments_enabled": false,
+    "real_transfers_executed": false,
+    "registration_enabled": false,
+    "paid_tariffs_activated": false,
+    "refunds_enabled": false,
+    "recurring_billing_enabled": false,
+    "v79_published_over_v78": false
+  }
+}
