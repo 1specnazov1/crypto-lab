@@ -1,0 +1,29 @@
+name: v79 legal draft contract
+
+on:
+  push:
+    paths:
+      - 'v79/terms.html'
+      - 'v79/privacy.html'
+      - 'v79/refund.html'
+      - 'v79/risk-disclosure.html'
+      - 'v79/legal-commercial-draft.js'
+      - 'docs/release-manifests/crypto-lab-v79-legal-draft-contract.json'
+      - 'supabase/migrations/20260806220823_prepare_commercial_legal_drafts.sql'
+      - 'scripts/v79_validate_legal_drafts.py'
+      - '.github/workflows/v79-legal-draft-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate commercial legal draft contract
+        run: python scripts/v79_validate_legal_drafts.py
