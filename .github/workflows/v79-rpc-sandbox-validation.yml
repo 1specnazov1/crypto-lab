@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-rpc-sandbox.json'
+      - 'docs/release-manifests/crypto-lab-v79-testnet-live-probe.json'
       - 'docs/commercial-readiness/2026-08-06-1900-testnet-payment-contour.md'
       - 'supabase/migrations/20260805204216_prepare_multichain_rpc_verifier_and_isolated_sandbox.sql'
       - 'supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql'
@@ -20,6 +21,7 @@ on:
       - 'supabase/migrations/20260806170314_finalize_testnet_payment_contour_live_probe_v1.sql'
       - 'supabase/functions/crypto-lab-v79-chain-verifier/**'
       - 'scripts/v79_validate_rpc_sandbox.py'
+      - 'scripts/v79_validate_testnet_live_probe.py'
       - '.github/workflows/v79-rpc-sandbox-validation.yml'
   workflow_dispatch:
 
@@ -43,6 +45,8 @@ jobs:
         run: python scripts/v79_validate_onchain_foundation.py
       - name: Validate registered senders and funding watch
         run: python scripts/v79_validate_rpc_sandbox.py
+      - name: Validate final testnet live probe
+        run: python scripts/v79_validate_testnet_live_probe.py
       - name: Type-check chain verifier and fixtures
         run: |
           deno check --config supabase/functions/crypto-lab-v79-chain-verifier/deno.json \
