@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "project": "CRYPTO LAB",
+  "candidate": "v79",
+  "stable_public_version": "v78",
+  "stable_root_v78_sha": "4a278c891d37b3760ec1ac988690ea9ad587b24e",
+  "generated_at": "2026-08-06T21:10:00Z",
+  "supabase_migrations": [
+    {
+      "version": "20260806210728",
+      "name": "prepare_account_billing_support_contract",
+      "repository_path": "supabase/migrations/20260806210728_prepare_account_billing_support_contract.sql"
+    },
+    {
+      "version": "20260806210907",
+      "name": "repair_launch_integrity_baseline_after_account_portal",
+      "repository_path": "supabase/migrations/20260806210907_repair_launch_integrity_baseline_after_account_portal.sql"
+    }
+  ],
+  "prepared_contracts": {
+    "commercial_account_rpc": "crypto_my_commercial_account",
+    "subscription_lifecycle_rpc": "get_my_crypto_subscription_lifecycle",
+    "cancellation_rpc": "request_crypto_subscription_cancellation",
+    "resume_cancellation_rpc": "resume_crypto_subscription",
+    "support_list_rpc": "get_my_crypto_support_tickets",
+    "support_create_rpc": "create_crypto_support_ticket",
+    "support_reply_rpc": "reply_crypto_support_ticket",
+    "payment_history_limit": 30,
+    "support_ticket_limit": 10
+  },
+  "pricing": {
+    "BASIC": {"currency": "USD", "amount_minor": 2000, "billing_interval": "month", "active": false},
+    "PRO": {"currency": "USD", "amount_minor": 4900, "billing_interval": "month", "active": false}
+  },
+  "access_policy": {
+    "BASIC": {"access_period": "1 month", "renewal_mode": "manual", "cancellation_effect": "period_end", "activation_enabled": false},
+    "PRO": {"access_period": "1 month", "renewal_mode": "manual", "cancellation_effect": "period_end", "activation_enabled": false}
+  },
+  "security": {
+    "commercial_account_anon_execute": false,
+    "commercial_account_authenticated_execute": true,
+    "subscription_lifecycle_anon_execute": false,
+    "subscription_lifecycle_authenticated_execute": true,
+    "cancellation_anon_execute": false,
+    "cancellation_authenticated_execute": true,
+    "resume_anon_execute": false,
+    "resume_authenticated_execute": true,
+    "authentication_guard": "AUTHENTICATION_REQUIRED"
+  },
+  "runtime_state": {
+    "paid_checkout_enabled": false,
+    "paid_entitlement_enabled": false,
+    "public_registration_enabled": false,
+    "recurring_billing_enabled": false,
+    "refund_execution_enabled": false,
+    "production_launch_authorized": false,
+    "portal_mode": "closed_prelaunch",
+    "portal_enabled": false,
+    "registration_enabled": false,
+    "login_enabled": false,
+    "recovery_enabled": false
+  },
+  "runtime_counts": {
+    "auth_users": 0,
+    "subscriptions": 0,
+    "billing_orders": 0,
+    "support_tickets": 0
+  },
+  "launch_integrity": {
+    "state": "healthy",
+    "requirement_count": 18,
+    "expected_requirement_count": 18,
+    "weight_total": 126,
+    "expected_weight_total": 126,
+    "dependency_violations": 0,
+    "self_dependency_violations": 0,
+    "verified_evidence_violations": 0,
+    "secret_like_value_violations": 0,
+    "baseline_repaired_after_account_portal": true
+  },
+  "safety_boundary": {
+    "mainnet_payments_activated": false,
+    "real_transfers_executed": false,
+    "public_registration_activated": false,
+    "paid_plans_activated": false,
+    "recurring_billing_activated": false,
+    "refund_execution_activated": false,
+    "v79_published_over_v78": false
+  },
+  "next_external_validation": [
+    "Authenticated account E2E with a controlled beta user",
+    "Real payment-history rendering after sandbox payment fixtures",
+    "Support ticket E2E with authenticated test account",
+    "Owner approval before any production activation"
+  ]
+}
