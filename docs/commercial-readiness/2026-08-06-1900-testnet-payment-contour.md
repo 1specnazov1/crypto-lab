@@ -53,7 +53,7 @@ Solana Devnet:
 
 Supabase migrations:
 - `20260806160423_complete_testnet_payment_contour_fixture_v1`
-- `20260806170016_finalize_testnet_payment_contour_live_probe_v1`
+- `20260806170314_finalize_testnet_payment_contour_live_probe_v1`
 
 The isolated `sandbox-fixture-v1` validator passed for both Ethereum and Solana. It checks:
 - network;
