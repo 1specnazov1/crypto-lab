@@ -17,7 +17,7 @@ on:
       - 'supabase/migrations/20260806071522_record_solana_devnet_airdrop_attempt.sql'
       - 'supabase/migrations/20260806144638_record_testnet_funding_route_audit.sql'
       - 'supabase/migrations/20260806160423_complete_testnet_payment_contour_fixture_v1.sql'
-      - 'supabase/migrations/20260806170016_finalize_testnet_payment_contour_live_probe_v1.sql'
+      - 'supabase/migrations/20260806170314_finalize_testnet_payment_contour_live_probe_v1.sql'
       - 'supabase/functions/crypto-lab-v79-chain-verifier/**'
       - 'scripts/v79_validate_rpc_sandbox.py'
       - '.github/workflows/v79-rpc-sandbox-validation.yml'
