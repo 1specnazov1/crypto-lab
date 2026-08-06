@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/release-manifests/crypto-lab-v79-rpc-sandbox.json'
+      - 'docs/commercial-readiness/2026-08-06-1900-testnet-payment-contour.md'
       - 'supabase/migrations/20260805204216_prepare_multichain_rpc_verifier_and_isolated_sandbox.sql'
       - 'supabase/migrations/20260805204521_index_multichain_sandbox_profile_fk.sql'
       - 'supabase/migrations/20260805210454_configure_publicnode_ethereum_sepolia_sandbox.sql'
@@ -15,6 +16,7 @@ on:
       - 'supabase/migrations/20260806070941_register_solana_devnet_test_sender.sql'
       - 'supabase/migrations/20260806071522_record_solana_devnet_airdrop_attempt.sql'
       - 'supabase/migrations/20260806144638_record_testnet_funding_route_audit.sql'
+      - 'supabase/migrations/20260806160423_complete_testnet_payment_contour_fixture_v1.sql'
       - 'supabase/functions/crypto-lab-v79-chain-verifier/**'
       - 'scripts/v79_validate_rpc_sandbox.py'
       - '.github/workflows/v79-rpc-sandbox-validation.yml'
