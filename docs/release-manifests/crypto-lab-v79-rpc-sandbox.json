@@ -1,9 +1,9 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "project_ref": "txhzxbizjpinowepfjkm",
   "build": "7930",
-  "updated_at": "2026-08-05T21:12:18Z",
-  "status": "rpc_ready_transfer_execution_blocked",
+  "updated_at": "2026-08-06T05:30:53Z",
+  "status": "scoped_transfer_approved_waiting_funding_and_signer",
   "edge_function": {
     "slug": "crypto-lab-v79-chain-verifier",
     "version": 1,
@@ -34,6 +34,16 @@
       "version": "20260805211218",
       "name": "prepare_owner_scoped_usdc_sandbox_transfer_decision",
       "source": "supabase/migrations/20260805211218_prepare_owner_scoped_usdc_sandbox_transfer_decision.sql"
+    },
+    {
+      "version": "20260806053020",
+      "name": "record_scoped_usdc_sandbox_transfer_approval",
+      "source": "supabase/migrations/20260806053020_record_scoped_usdc_sandbox_transfer_approval.sql"
+    },
+    {
+      "version": "20260806053053",
+      "name": "finalize_scoped_usdc_sandbox_approval_evidence",
+      "source": "supabase/migrations/20260806053053_finalize_scoped_usdc_sandbox_approval_evidence.sql"
     }
   ],
   "profiles": [
@@ -117,7 +127,8 @@
       "token_identifier": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
       "recipient_address": "0xbcd27864ea603643bc8aebb3fe2cec2ffdb39eb9",
       "expected_amount_base_units": "10000",
-      "status": "ready_for_funding"
+      "status": "ready_for_funding",
+      "scoped_execution_authorized": true
     },
     {
       "network_code": "ETHEREUM",
@@ -139,7 +150,8 @@
       "token_identifier": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
       "recipient_address": "EkNNjreEnhvigAnxY7kL2po3SaVXicCk1CLFyJkkv55F",
       "expected_amount_base_units": "10000",
-      "status": "ready_for_funding"
+      "status": "ready_for_funding",
+      "scoped_execution_authorized": true
     },
     {
       "network_code": "SOLANA",
@@ -163,12 +175,19 @@
     "url": "https://faucet.circle.com/",
     "testnet_tokens_have_no_financial_value": true,
     "published_limit": "20 testnet USDC per address per blockchain every 2 hours",
+    "published_wallet_constraint": "Circle Wallets address required by current public faucet FAQ",
     "ethereum_sepolia_supported": true,
-    "solana_devnet_supported": true
+    "solana_devnet_supported": true,
+    "direct_faucet_to_recipient_not_authorized": true,
+    "reason": "The faucet amount is 20 USDC, while owner authorization is exactly 0.01 USDC per transfer"
   },
-  "next_owner_decision_proposal": {
+  "owner_transfer_approval": {
     "decision_code": "SANDBOX_USDC_TRANSFER_EXECUTION_APPROVAL_V1",
-    "scope": "testnet_usdc_only",
+    "decision_hash_sha256": "5b43613baf3fa255e1c9c1b430d70c65cc534532492adcb64bb412599f792a2e",
+    "source_channel": "owner_chat",
+    "recorded_at": "2026-08-06T05:30:20Z",
+    "authority_state": "effective",
+    "scope": "two_testnet_usdc_transfers_only",
     "transfers": [
       {
         "network": "Ethereum Sepolia",
@@ -187,8 +206,10 @@
         "amount_base_units": "10000"
       }
     ],
-    "owner_confirmation_required": true,
+    "owner_confirmation_required": false,
+    "owner_approved": true,
     "mainnet_authorized": false,
+    "real_payments_authorized": false,
     "production_payment_activation_authorized": false,
     "subscription_activation_authorized": false,
     "refund_execution_authorized": false,
@@ -211,11 +232,13 @@
     "active_addresses": 0,
     "active_prices": 0,
     "active_networks": 0,
-    "enabled_network_asset_pairs": 0
+    "enabled_network_asset_pairs": 0,
+    "active_subscriptions": 0
   },
   "activation_boundary": {
     "payment_sandbox_status": "blocked_dependency",
-    "live_transfer_execution_authorized": false,
+    "scoped_test_transfer_execution_authorized": true,
+    "general_live_transfer_execution_authorized": false,
     "payment_activation_authorized": false,
     "checkout_enabled": false,
     "webhook_enabled": false,
@@ -224,9 +247,10 @@
     "v79_published_over_v78": false
   },
   "remaining_external_inputs": [
-    "OWNER_APPROVAL_SANDBOX_USDC_TRANSFER_EXECUTION_V1",
-    "TESTNET_USDC_FUNDING_FOR_ETHEREUM_SEPOLIA",
-    "TESTNET_USDC_FUNDING_FOR_SOLANA_DEVNET",
+    "TEST_SENDER_WALLET",
+    "TESTNET_USDC_FUNDING",
+    "TESTNET_NATIVE_GAS",
+    "OWNER_WALLET_SIGNATURE_OR_CONTROLLED_TEST_SIGNER",
     "TRON_NILE_TEST_TRC20_TOKEN_OR_DEPLOYED_MOCK"
   ],
   "official_sources": {
