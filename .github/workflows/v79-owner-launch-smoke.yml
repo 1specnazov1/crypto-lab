@@ -4,6 +4,20 @@ on:
   push:
     branches: [main]
     paths:
+      - 'tests/v79-mobile-smoke.spec.js'
+      - 'v79/app.html'
+      - 'v79/app.js'
+      - 'v79/app-extension.js'
+      - 'v79/commercial-extension.js'
+      - 'v79/registration-consent.js'
+      - 'v79/auth-gateway.js'
+      - 'v79/account.html'
+      - 'v79/account-actions.js'
+      - 'v79/chart.html'
+      - 'v79/scanner.html'
+      - 'v79/ai.html'
+      - 'v79/portfolio.html'
+      - 'v79/journal.html'
       - '.github/workflows/v79-owner-launch-smoke.yml'
   workflow_dispatch:
 
