@@ -1,0 +1,52 @@
+name: Validate v79 PWA Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'v79/manifest.webmanifest'
+      - 'v79/service-worker.js'
+      - 'v79/app-extension.js'
+      - 'v79/offline.html'
+      - 'v79/refund.html'
+      - '.github/workflows/v79-pwa-contract-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest contract
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('v79/manifest.webmanifest').read_text())
+          assert m['display']=='standalone'
+          assert m['scope']=='./'
+          assert m['start_url'].startswith('./')
+          assert m['name'].startswith('CRYPTO LAB')
+          assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
+          print('Manifest contract passed')
+          PY
+      - name: Validate service-worker safety
+        run: |
+          grep -F "./offline.html" v79/service-worker.js
+          grep -F "./refund.html" v79/service-worker.js
+          grep -F "supabase.co" v79/service-worker.js
+          grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
+          if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
+            echo 'Service worker must not perform write requests' >&2
+            exit 1
+          fi
+      - name: Validate install and legal navigation
+        run: |
+          grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
+          grep -F "addHeadLink('manifest'" v79/app-extension.js
+          grep -F "refundLink" v79/app-extension.js
+          test -s v79/offline.html
+          test -s v79/refund.html
