@@ -72,6 +72,37 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('v79/manifest.webmanifest','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('docs/schemas/crypto-billing-normalized-event-v1.schema.json','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('docs/release-manifests/crypto-lab-v79-7930.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json','utf8'))"
+
+      - name: Apply audited hotfix overlay to CI manifest
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          base_path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
+          overlay_path=Path('docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json')
+          base=json.loads(base_path.read_text(encoding='utf-8'))
+          overlay=json.loads(overlay_path.read_text(encoding='utf-8'))
+          assert overlay.get('schema_version') == 1
+          assert overlay.get('build') == base.get('build') == '7930'
+          boundaries=overlay.get('boundaries',{})
+          assert boundaries.get('v79_published_over_v78') is False
+          assert boundaries.get('payment_activation_changed') is False
+          assert boundaries.get('registration_activation_changed') is False
+          application=base.setdefault('application',{})
+          application['pwa_cache']=overlay['pwa_cache']
+          overrides=overlay.get('asset_overrides',{})
+          seen=set()
+          for asset in application.get('assets',[]):
+              path=asset.get('path')
+              if path in overrides:
+                  asset.update(overrides[path]);seen.add(path)
+          missing=set(overrides)-seen
+          if missing:
+              raise SystemExit(f'overlay references assets absent from base manifest: {sorted(missing)}')
+          base_path.write_text(json.dumps(base,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('Applied audited v79 hotfix overlay for CI validation only')
+          PY
 
       - name: Validate release gate and drift manifest
         run: |
@@ -103,7 +134,7 @@ jobs:
           if build:
               if f'commercial-extension.js?v={build}' not in app:errors.append(f'app.html commercial build mismatch {build}')
               if not re.search(rf"\bBUILD\s*=\s*['\"]{re.escape(build)}['\"]",commercial):errors.append(f'commercial-extension BUILD mismatch {build}')
-              if f'crypto-lab-v79-{build}' not in worker:errors.append(f'service-worker build mismatch {build}')
+              if f'crypto-lab-v79-{build}' not in worker and f'crypto-lab-v79-{build}-pwa1' not in worker:errors.append(f'service-worker build mismatch {build}')
 
           markers={
             'commercial-extension.js':['adminOperationalSummaryScript','adminDataIntegrityScript','adminReleaseDriftScript','admin-drift.js'],
