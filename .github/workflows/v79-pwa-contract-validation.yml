@@ -7,6 +7,7 @@ on:
       - 'v79/manifest.webmanifest'
       - 'v79/service-worker.js'
       - 'v79/app-extension.js'
+      - 'v79/app.html'
       - 'v79/offline.html'
       - 'v79/refund.html'
       - '.github/workflows/v79-pwa-contract-validation.yml'
@@ -35,6 +36,7 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
+          grep -F "const CACHE='crypto-lab-v79-7930-pwa1'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./refund.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
@@ -48,5 +50,6 @@ jobs:
           grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
           grep -F "addHeadLink('manifest'" v79/app-extension.js
           grep -F "refundLink" v79/app-extension.js
+          grep -F 'app-extension.js?v=7930pwa1' v79/app.html
           test -s v79/offline.html
           test -s v79/refund.html
