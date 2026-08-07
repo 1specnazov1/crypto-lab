@@ -1,0 +1,44 @@
+name: Validate v79 Mail Template Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/mail/crypto-lab-auth-mail-templates-v1.json'
+      - 'docs/schemas/crypto-mail-relay-request-v1.schema.json'
+      - '.github/workflows/v79-mail-template-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate template set
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('docs/mail/crypto-lab-auth-mail-templates-v1.json').read_text())
+          assert data['schema_version'] == 1
+          assert set(data['allowed_templates']) == {'signup_confirmation','password_recovery'}
+          assert set(data['templates']) == set(data['allowed_templates'])
+          forbidden = ('{{token}}','{{raw_token}}','seed phrase:','private key:')
+          for template, locales in data['templates'].items():
+              assert set(locales) == {'ru','uk','en'}
+              for locale, body in locales.items():
+                  assert 1 <= len(body['subject']) <= 160
+                  assert body['text'].count('{{action_url}}') == 1
+                  assert '{{action_url}}' not in body['subject']
+                  assert '{{action_url}}' not in body['button_label']
+                  combined = (body['subject']+' '+body['text']+' '+body['button_label']).lower()
+                  assert not any(item in combined for item in forbidden)
+                  assert 'guaranteed profit' not in combined
+                  assert 'гарантированн' not in combined
+                  assert 'гарантован' not in combined
+          print('Mail template contract passed')
+          PY
