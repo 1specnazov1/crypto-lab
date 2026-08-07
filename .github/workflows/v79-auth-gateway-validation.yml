@@ -36,7 +36,7 @@ jobs:
           grep -F "crypto_recover" v79/auth-gateway.js
           ! grep -F "new MutationObserver(render)" v79/registration-consent.js
 
-      - name: Verify live owner-bootstrap registration and disabled recovery readiness
+      - name: Verify live protected registration lifecycle and disabled recovery
         run: |
           curl --fail --silent --show-error \
             -H 'Origin: https://1specnazov1.github.io' \
@@ -51,20 +51,29 @@ jobs:
           register=json.load(open('/tmp/register.json'))
           recover=json.load(open('/tmp/recover.json'))
           assert register['ok'] is True
-          assert register['enabled'] is True
-          assert register['registration_mode']=='owner_bootstrap'
-          assert isinstance(register['site_key'],str) and register['site_key']
           assert register['captcha_provider']=='turnstile'
           assert register['captcha_action']=='crypto_register'
           assert register['password_min_length']==10
           assert set(register['required_legal_keys'])=={'terms','privacy','refund','risk'}
           assert len(register['documents'])==4
           assert register['readiness']['feature_flag'] is False
-          assert register['readiness']['owner_bootstrap'] is True
           assert register['readiness']['turnstile'] is True
           assert register['readiness']['mail_provider'] is True
           assert register['readiness']['mail_provider_code']=='resend'
           assert register['readiness']['legal_documents'] is True
+
+          mode=register['registration_mode']
+          assert mode in {'owner_bootstrap','disabled'}
+          if mode=='owner_bootstrap':
+              assert register['enabled'] is True
+              assert register['readiness']['owner_bootstrap'] is True
+              assert isinstance(register['site_key'],str) and register['site_key']
+          else:
+              # Expected after the one-time real owner bootstrap has been consumed.
+              assert register['enabled'] is False
+              assert register['readiness']['owner_bootstrap'] is False
+              assert register['site_key'] is None
+
           assert recover['ok'] is True
           assert recover['enabled'] is False
           assert recover['site_key'] is None
@@ -75,7 +84,7 @@ jobs:
           assert recover['readiness']['turnstile'] is True
           assert recover['readiness']['mail_provider'] is True
           assert recover['readiness']['mail_provider_code']=='resend'
-          print('Protected owner-bootstrap auth readiness: OK')
+          print(f"Protected auth lifecycle: {mode}; recovery disabled: OK")
           PY
 
       - name: Verify release boundaries and public-secret safety
