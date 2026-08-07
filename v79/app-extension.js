@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7922';
+  const BUILD = '7930pwa1';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -75,18 +75,23 @@
       <div class="platform-status"><span id="networkDot"></span><b id="networkText">ONLINE</b></div>
       <button id="installApp" hidden>Установить приложение</button>
       <button id="updateApp" hidden>Обновить приложение</button>
-      <div class="legal-links"><a id="riskLink" target="_blank" rel="noopener">Риски</a><a id="privacyLink" target="_blank" rel="noopener">Privacy</a><a id="termsLink" target="_blank" rel="noopener">Условия</a></div>`;
+      <div class="legal-links"><a id="riskLink" target="_blank" rel="noopener">Риски</a><a id="privacyLink" target="_blank" rel="noopener">Privacy</a><a id="termsLink" target="_blank" rel="noopener">Условия</a><a id="refundLink" target="_blank" rel="noopener">Возвраты</a></div>`;
     foot.appendChild(tools);
   }
 
   function updateLegalLinks() {
     const labels = {
-      ru: { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия' },
-      uk: { risk:'Ризики', privacy:'Конфіденційність', terms:'Умови' },
-      en: { risk:'Risks', privacy:'Privacy', terms:'Terms' }
-    }[lang] || { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия' };
+      ru: { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия', refund:'Возвраты' },
+      uk: { risk:'Ризики', privacy:'Конфіденційність', terms:'Умови', refund:'Повернення' },
+      en: { risk:'Risks', privacy:'Privacy', terms:'Terms', refund:'Refunds' }
+    }[lang] || { risk:'Риски', privacy:'Конфиденциальность', terms:'Условия', refund:'Возвраты' };
     const params = '?lang=' + encodeURIComponent(lang);
-    const map = { riskLink:['./risk-disclosure.html' + params,labels.risk], privacyLink:['./privacy.html' + params,labels.privacy], termsLink:['./terms.html' + params,labels.terms] };
+    const map = {
+      riskLink:['./risk-disclosure.html' + params,labels.risk],
+      privacyLink:['./privacy.html' + params,labels.privacy],
+      termsLink:['./terms.html' + params,labels.terms],
+      refundLink:['./refund.html' + params,labels.refund]
+    };
     Object.entries(map).forEach(([id,[href,label]]) => { const link=document.getElementById(id); if(link){link.href=href;link.textContent=label;} });
   }
   updateLegalLinks();
