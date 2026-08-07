@@ -47,6 +47,9 @@ jobs:
           assert 'const REQUIRED_LEGAL_KEYS = ["terms", "privacy", "refund", "risk"]' in register
           assert 'CRYPTO_PUBLIC_REGISTRATION_ENABLED' in register
           assert 'CRYPTO_PUBLIC_RECOVERY_ENABLED' in recover
+          assert 'service_crypto_owner_admin_bootstrap_status' in register
+          assert 'owner_bootstrap' in register
+          assert 'email !== ownerEmail' in register
           for text,action in ((register,'crypto_register'),(recover,'crypto_recover')):
               assert 'https://challenges.cloudflare.com/turnstile/v0/siteverify' in text
               assert 'CRYPTO_TURNSTILE_SITE_KEY' in text
@@ -55,7 +58,7 @@ jobs:
               assert 'RESEND_API_KEY' in text
               assert 'CRYPTO_MAIL_FROM' in text
           assert 'direct_supabase_signup_bypassed:true' in gateway
-          print('Turnstile/mail/feature-flag auth gates passed')
+          print('Turnstile/mail/owner-bootstrap/feature-flag auth gates passed')
           PY
 
       - name: Validate mail provider contract
@@ -77,15 +80,18 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          candidates=sorted(Path('supabase/migrations').glob('*owner_admin_bootstrap*.sql'))
-          assert candidates
-          text=candidates[-1].read_text().lower()
-          assert 'crypto_admin_bootstrap_config' in text
-          assert "role='admin'" in text
-          assert 'consumed_at' in text and 'authorized=false' in text
-          assert 'email_confirmed_at' in text
-          assert 'insert into auth.users' not in text
-          assert 'create user' not in text
-          assert 'service_role' not in text
+          bootstrap=Path('supabase/migrations/20260807185300_prepare_one_time_owner_admin_bootstrap.sql').read_text().lower()
+          helper=Path('supabase/migrations/20260807191300_expose_service_only_owner_admin_bootstrap_status.sql').read_text().lower()
+          assert 'crypto_admin_bootstrap_config' in bootstrap
+          assert "role='admin'" in bootstrap
+          assert 'consumed_at' in bootstrap and 'authorized=false' in bootstrap
+          assert 'email_confirmed_at' in bootstrap
+          assert 'insert into auth.users' not in bootstrap
+          assert 'create user' not in bootstrap
+          assert 'service_crypto_owner_admin_bootstrap_status' in helper
+          assert 'security definer' in helper
+          assert 'revoke all' in helper and 'anon' in helper and 'authenticated' in helper
+          assert 'grant execute' in helper and 'service_role' in helper
+          assert 'allowed_email' in helper and 'admin_exists' in helper
           print('One-time real-owner admin bootstrap contract passed')
           PY
