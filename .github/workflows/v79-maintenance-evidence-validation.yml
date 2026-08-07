@@ -7,6 +7,7 @@ on:
       - 'v79/commercial-extension.js'
       - 'v79/service-worker.js'
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - 'docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json'
       - 'supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql'
       - 'supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql'
       - 'supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql'
@@ -17,6 +18,7 @@ on:
       - 'v79/commercial-extension.js'
       - 'v79/service-worker.js'
       - 'docs/release-manifests/crypto-lab-v79-7930.json'
+      - 'docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json'
       - 'supabase/migrations/202608041635_crypto_maintenance_evidence_seal.sql'
       - 'supabase/migrations/202608041710_release_drift_observation_shape_hardening.sql'
       - 'supabase/migrations/202608041711_release_drift_observation_null_shape_fix.sql'
@@ -56,6 +58,8 @@ jobs:
           errors=[]
           manifest_path=Path('docs/release-manifests/crypto-lab-v79-7930.json')
           manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
+          overlay_path=Path('docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json')
+          overlay=json.loads(overlay_path.read_text(encoding='utf-8')) if overlay_path.is_file() else {}
           commercial=Path('v79/commercial-extension.js').read_text(encoding='utf-8')
           worker=Path('v79/service-worker.js').read_text(encoding='utf-8')
           panel=Path('v79/admin-maintenance.js').read_text(encoding='utf-8')
@@ -89,8 +93,8 @@ jobs:
           if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z',expected): errors.append('invalid maintenance expected_after')
 
           app=manifest.get('application',{})
-          cache=app.get('pwa_cache','')
-          if cache not in worker: errors.append('service worker cache does not match manifest')
+          cache=overlay.get('pwa_cache', app.get('pwa_cache',''))
+          if cache not in worker: errors.append('service worker cache does not match active manifest/overlay')
           assets={item.get('path'):item for item in app.get('assets',[])}
           item=assets.get('v79/admin-maintenance.js')
           if not item: errors.append('maintenance panel missing from manifest assets')
@@ -115,5 +119,5 @@ jobs:
           if errors:
             print('\n'.join(f'ERROR: {item}' for item in errors))
             sys.exit(1)
-          print('v79 maintenance evidence gate passed')
+          print(f"v79 maintenance evidence gate passed with cache {cache}")
           PY
