@@ -11,6 +11,7 @@
         add(doc,'registrationConsentScript','./registration-consent.js');
         add(doc,'protectedAuthGatewayScript','./auth-gateway.js');
         add(doc,'commercialCenterScript','./commercial.js');
+        add(doc,'commercialLegalLabelsScript','./commercial-legal-labels.js');
         add(doc,'subscriptionLifecycleScript','./subscription-lifecycle.js');
         add(doc,'sessionSecurityScript','./session-security.js');
       }
