@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-only runtime stabilization: remove duplicate account/auth injections, keep only session security on the owner account page, and refresh the PWA cache without changing v78, registration, payments, BASIC/PRO activation, mainnet, or refund execution",
+  "reason": "Owner-only runtime stabilization: remove duplicate account/auth injections, keep only session security on the owner account page, preserve inactive auth compatibility markers, and refresh the PWA cache without changing v78, registration, payments, BASIC/PRO activation, mainnet, or refund execution",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -19,7 +19,7 @@
       "marker": "sessionSecurityScript"
     },
     "v79/service-worker.js": {
-      "sha": "c3c37ffc456e793c0366f3779610d8f4bae30e0b",
+      "sha": "b2481a5847be75b32cd2e7f357969bb1416d68ec",
       "marker": "crypto-lab-v79-7930-pwa3"
     }
   }
