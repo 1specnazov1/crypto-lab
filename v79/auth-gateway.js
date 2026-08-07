@@ -114,6 +114,31 @@
     finally{recoveryToken='';if(window.turnstile&&recoveryWidget!==null)window.turnstile.reset(recoveryWidget);if(button){button.disabled=false;button.textContent=normal;}}
   }
 
+  function ensureAdminAccess(){
+    try{
+      if(typeof account==='undefined'||account?.profile?.role!=='admin')return;
+      const header=document.querySelector('.account-head > div:last-child');
+      if(!header||el('adminPanelBtn'))return;
+      const button=document.createElement('button');
+      button.id='adminPanelBtn';button.className='btn';button.style.marginLeft='6px';button.textContent='Admin';
+      button.onclick=()=>{location.href='./admin.html';};
+      header.appendChild(button);
+    }catch{}
+  }
+
+  function hookAdminAccess(){
+    try{
+      if(typeof loadAccount==='function'&&!loadAccount.__cryptoAdminHooked){
+        const originalLoadAccount=loadAccount;
+        const wrapped=async function(...args){const result=await originalLoadAccount.apply(this,args);ensureAdminAccess();return result;};
+        wrapped.__cryptoAdminHooked=true;
+        loadAccount=wrapped;
+      }
+    }catch{}
+    setTimeout(ensureAdminAccess,0);
+    setTimeout(ensureAdminAccess,750);
+  }
+
   function applyConfig(){
     const signupButton=el('signupBtn'),password=el('signupPassword'),label=el('newPasswordLabel');
     if(password)password.minLength=10;
@@ -123,6 +148,7 @@
     const resetButton=el('resetBtn');if(resetButton)resetButton.onclick=submitRecovery;
     window.CRYPTO_AUTH_GATEWAY_STATUS={registration_enabled:!!registerConfig.enabled,recovery_enabled:!!recoveryConfig.enabled,protected_signup:true,protected_recovery:true,direct_supabase_signup_bypassed:true};
     renderTurnstile();
+    ensureAdminAccess();
   }
 
   async function init(){
@@ -131,5 +157,6 @@
   }
   document.getElementById('lang')?.addEventListener('change',()=>setTimeout(applyConfig,0));
   window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(applyConfig,0);});
+  hookAdminAccess();
   init();
 })();
