@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-mobile-smoke.spec.js'
       - 'v79/app.html'
       - 'v79/app.js'
@@ -60,13 +61,12 @@ jobs:
 
       - name: Run required owner launch path
         run: >-
-          npx playwright test tests/v79-mobile-smoke.spec.js
+          npx playwright test tests/v79-owner-launch-smoke.spec.js
           --config=playwright.config.mjs
           --project=desktop-chromium
           --workers=1
           --timeout=20000
           --retries=0
-          --grep "v79 owner launch path|account logout and repeated login"
 
       - name: Upload owner launch evidence
         if: always()
