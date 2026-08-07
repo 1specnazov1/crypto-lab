@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930';
+  const BUILD='7930owner1';
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
@@ -8,11 +8,6 @@
     try{
       const doc=frame.contentDocument,path=frame.contentWindow.location.pathname;if(!doc)return;
       if(path.endsWith('/account.html')){
-        add(doc,'registrationConsentScript','./registration-consent.js');
-        add(doc,'protectedAuthGatewayScript','./auth-gateway.js');
-        add(doc,'commercialCenterScript','./commercial.js');
-        add(doc,'commercialLegalLabelsScript','./commercial-legal-labels.js');
-        add(doc,'subscriptionLifecycleScript','./subscription-lifecycle.js');
         add(doc,'sessionSecurityScript','./session-security.js');
       }
       if(path.endsWith('/admin.html')){
