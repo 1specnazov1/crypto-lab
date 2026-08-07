@@ -87,6 +87,24 @@ jobs:
           print(f"Protected auth lifecycle: {mode}; recovery disabled: OK")
           PY
 
+      - name: Verify outsider registration is fail-closed after owner bootstrap
+        run: |
+          status=$(curl --silent --show-error \
+            -o /tmp/outsider-register.json \
+            -w '%{http_code}' \
+            -H 'Origin: https://1specnazov1.github.io' \
+            -H 'Content-Type: application/json' \
+            --data '{"email":"outsider-v79-smoke@example.invalid","password":"NotUsed123A","display_name":"Outsider Smoke","locale":"en","timezone":"UTC","captcha_token":""}' \
+            'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register')
+          test "$status" = '503'
+          python - <<'PY'
+          import json
+          body=json.load(open('/tmp/outsider-register.json'))
+          assert body.get('ok') is False
+          assert body.get('code') == 'REGISTRATION_DISABLED'
+          print('Outsider registration fail-closed: OK')
+          PY
+
       - name: Verify release boundaries and public-secret safety
         run: |
           test "$(git hash-object index.html)" = '4a278c891d37b3760ec1ac988690ea9ad587b24e'
