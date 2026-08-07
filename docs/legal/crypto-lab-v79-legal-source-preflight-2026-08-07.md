@@ -77,18 +77,23 @@ Before publication/execution:
 
 Current draft correctly avoids guarantees of profit and states market, data, model, execution and digital-asset risks. Before commercial publication, counsel should review whether the final product positioning or marketing creates any additional regulated-services implications in the actual served markets.
 
-## Technical compliance gap closed during this preflight
+## Technical compliance evidence
 
-A versioned legal-acknowledgement evidence register has been prepared in Supabase:
-- table: `public.crypto_legal_acceptances`;
-- service-only recorder: `private.crypto_record_legal_acceptance(...)`;
-- Terms acceptance, Privacy Notice acknowledgement, Refund Policy acknowledgement and Risk Disclosure acknowledgement are versioned separately;
-- raw secret-like material is rejected from evidence;
-- anon/authenticated direct table/function access is denied;
+CRYPTO LAB already had a document-version legal evidence model. The preflight reconciled and hardened that existing contract rather than introducing a second parallel model:
+- active/inactive document versions are controlled by `public.crypto_legal_documents`;
+- acceptance evidence is stored in `public.crypto_legal_acceptances` by `document_key` + `document_version`;
+- the service-only recorder is `public.service_accept_crypto_legal(...)`;
+- it now requires an existing Supabase Auth user and an active legal document version;
+- optional IP/user-agent evidence must already be a 64-character SHA-256/HMAC-style hex digest; raw IP or raw user-agent data is not accepted by this recorder;
+- first acceptance is preserved on repeated submissions for the same user/document/version;
+- direct `anon`/`authenticated` table access and function execution remain denied;
+- the commercial `2026-08-07-draft1` Terms/Privacy/Refund/Risk documents remain inactive and are not made legally effective by this preflight;
 - registration/checkout/payment activation remains OFF;
-- current row count is zero because no real Auth users exist.
+- current acceptance row count remains zero because no real Auth users exist.
 
-Migration: `20260807072731_prepare_versioned_legal_acceptance_evidence`.
+Relevant migrations:
+- `20260807072731_prepare_versioned_legal_acceptance_evidence` — initial preflight attempt;
+- `20260807073902_reconcile_and_harden_legal_acceptance_contract` — reconciles with the pre-existing document-key/version schema and is the authoritative final contract.
 
 ## Launch boundary
 
