@@ -36,7 +36,6 @@
     return originalFetch(input,init);
   };
 
-  new MutationObserver(render).observe(document.documentElement,{childList:true,subtree:true});
   document.getElementById('lang')?.addEventListener('change',()=>setTimeout(render,0));
   window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(render,0);});
   load();
