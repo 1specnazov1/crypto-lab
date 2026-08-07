@@ -36,7 +36,7 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-pwa1'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-pwa2'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./refund.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
