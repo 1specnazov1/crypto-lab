@@ -1,14 +1,16 @@
 'use strict';
 (() => {
   const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register';
-  const LABELS={ru:{title:'Перед регистрацией подтвердите документы',required:'Необходимо принять все актуальные документы.',docs:{terms:'Условия использования',privacy:'Политика конфиденциальности',risk:'Раскрытие рисков'}},uk:{title:'Перед реєстрацією підтвердьте документи',required:'Необхідно прийняти всі актуальні документи.',docs:{terms:'Умови використання',privacy:'Політика конфіденційності',risk:'Розкриття ризиків'}},en:{title:'Accept the documents before registration',required:'Every current legal document must be accepted.',docs:{terms:'Terms of Use',privacy:'Privacy Notice',risk:'Risk Disclosure'}}};
+  const REQUIRED_KEYS=new Set(['terms','privacy','refund','risk']);
+  const LABELS={ru:{title:'Перед регистрацией подтвердите документы',required:'Необходимо принять все актуальные документы.',docs:{terms:'Условия использования',privacy:'Политика конфиденциальности',refund:'Политика возвратов',risk:'Раскрытие рисков'}},uk:{title:'Перед реєстрацією підтвердьте документи',required:'Необхідно прийняти всі актуальні документи.',docs:{terms:'Умови використання',privacy:'Політика конфіденційності',refund:'Політика повернень',risk:'Розкриття ризиків'}},en:{title:'Accept the documents before registration',required:'Every current legal document must be accepted.',docs:{terms:'Terms of Use',privacy:'Privacy Notice',refund:'Refund Policy',risk:'Risk Disclosure'}}};
   let config={documents:[],enabled:false},ready=null;
   const originalFetch=window.fetch.bind(window);
   const locale=()=>typeof lang==='string'&&LABELS[lang]?lang:'ru';
   const copy=()=>LABELS[locale()];
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  function allChecked(){const docs=config.documents||[];return docs.length===3&&docs.every(doc=>document.querySelector(`[data-registration-legal="${CSS.escape(doc.key)}"]`)?.checked);}
+  function completeSet(docs){return Array.isArray(docs)&&docs.length===REQUIRED_KEYS.size&&docs.every(doc=>REQUIRED_KEYS.has(doc.key));}
+  function allChecked(){const docs=config.documents||[];return completeSet(docs)&&docs.every(doc=>document.querySelector(`[data-registration-legal="${CSS.escape(doc.key)}"]`)?.checked);}
   function syncButton(){const button=document.getElementById('signupBtn');if(button&&config.enabled)button.disabled=!allChecked();}
   function render(){
     const form=document.getElementById('signupForm');if(!form||!Array.isArray(config.documents)||!config.documents.length)return;
