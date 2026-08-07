@@ -30,11 +30,38 @@ const SUPABASE_STUB = `
     { plan: 'BASIC', display_order: 2, daily_ai_requests: 30, daily_backtests: 20, max_portfolio_assets: 50, max_favorites: 100 },
     { plan: 'PRO', display_order: 3, daily_ai_requests: -1, daily_backtests: -1, max_portfolio_assets: -1, max_favorites: -1 }
   ];
-  const chain = (table) => ({
-    select() { return { order: async () => ({ data: table === 'crypto_plan_limits' ? plans : [], error: null }) }; },
-    update() { return { eq: async () => ({ error: null }) }; },
-    upsert: async () => ({ error: null })
+  const queryResult = (table, single = false) => ({
+    data: table === 'crypto_plan_limits' ? plans : (single ? null : []),
+    error: null
   });
+  const chain = (table) => {
+    let operation = 'select';
+    const builder = {
+      select() { operation = 'select'; return builder; },
+      update() { operation = 'update'; return builder; },
+      insert() { operation = 'insert'; return builder; },
+      upsert() { operation = 'upsert'; return builder; },
+      delete() { operation = 'delete'; return builder; },
+      eq() { return builder; },
+      neq() { return builder; },
+      gt() { return builder; },
+      gte() { return builder; },
+      lt() { return builder; },
+      lte() { return builder; },
+      in() { return builder; },
+      is() { return builder; },
+      order() { return builder; },
+      limit() { return builder; },
+      range() { return builder; },
+      maybeSingle() { return Promise.resolve(queryResult(table, true)); },
+      single() { return Promise.resolve(queryResult(table, true)); },
+      then(resolve, reject) {
+        const result = operation === 'select' ? queryResult(table, false) : { data: null, error: null };
+        return Promise.resolve(result).then(resolve, reject);
+      }
+    };
+    return builder;
+  };
   const client = {
     auth: {
       getSession: async () => ({ data: { session: signedIn ? ownerSession : null }, error: null }),
