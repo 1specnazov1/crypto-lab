@@ -45,14 +45,14 @@
     let box=document.getElementById('cryptoRegistrationCaptcha');
     if(!box){box=document.createElement('div');box.id='cryptoRegistrationCaptcha';box.style.margin='12px 0';form.querySelector('#signupBtn')?.before(box);}
     if(signupWidgetId!==null)return;
-    try{const turnstile=await loadTurnstile();signupWidgetId=turnstile.render(box,{sitekey:registrationConfig.site_key,theme:'dark',callback:token=>{signupCaptchaToken=token;},'expired-callback':()=>{signupCaptchaToken='';},'error-callback':()=>{signupCaptchaToken='';}});}catch(error){console.warn(error);notice(text().locked,true);}
+    try{const turnstile=await loadTurnstile();signupWidgetId=turnstile.render(box,{sitekey:registrationConfig.site_key,theme:'dark',action:'crypto_register',callback:token=>{signupCaptchaToken=token;},'expired-callback':()=>{signupCaptchaToken='';},'error-callback':()=>{signupCaptchaToken='';}});}catch(error){console.warn(error);notice(text().locked,true);}
   }
 
   async function renderRecoveryCaptcha(){
     if(!recoveryConfig?.enabled||!recoveryConfig.site_key)return;
     const panel=document.getElementById('protectedRecoveryRequest');if(!panel||panel.classList.contains('hide'))return;
     const box=document.getElementById('cryptoRecoveryCaptcha');if(!box||recoveryWidgetId!==null)return;
-    try{const turnstile=await loadTurnstile();recoveryWidgetId=turnstile.render(box,{sitekey:recoveryConfig.site_key,theme:'dark',callback:token=>{recoveryCaptchaToken=token;},'expired-callback':()=>{recoveryCaptchaToken='';},'error-callback':()=>{recoveryCaptchaToken='';}});}catch(error){console.warn(error);say(text().recoveryUnavailable,'bad');}
+    try{const turnstile=await loadTurnstile();recoveryWidgetId=turnstile.render(box,{sitekey:recoveryConfig.site_key,theme:'dark',action:'crypto_recover',callback:token=>{recoveryCaptchaToken=token;},'expired-callback':()=>{recoveryCaptchaToken='';},'error-callback':()=>{recoveryCaptchaToken='';}});}catch(error){console.warn(error);say(text().recoveryUnavailable,'bad');}
   }
 
   function resetSignupCaptcha(){signupCaptchaToken='';if(signupWidgetId!==null&&window.turnstile){try{window.turnstile.reset(signupWidgetId);}catch{}}}
