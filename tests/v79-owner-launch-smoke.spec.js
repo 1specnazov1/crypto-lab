@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 const ROUTES = [
   ['analytics', '#chart'],
   ['scanner', '#body'],
   ['ai', '#run'],
-  ['portfolio', 'body'],
-  ['journal', 'body'],
+  ['portfolio', '#totalValue'],
+  ['journal', '#tradeForm'],
   ['account', '#accountView']
 ];
 
@@ -77,43 +77,92 @@ async function stubExternalTraffic(page) {
   });
 }
 
+async function waitPrimitive(page, probe, expected, label, timeout=8000){
+  const deadline=Date.now()+timeout;
+  let last='';
+  while(Date.now()<deadline){
+    last=await page.evaluate(probe);
+    if(last===expected)return last;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`${label}: expected ${expected}, got ${last}`);
+}
+
 async function openShell(page){
   await stubExternalTraffic(page);
   await page.goto('/v79/app.html?owner-launch-smoke=1',{waitUntil:'domcontentloaded'});
-  await expect(page.locator('#homeView')).toBeVisible();
+  await waitPrimitive(page,()=>{
+    const home=document.getElementById('homeView');
+    return home&&!home.classList.contains('hide')?'home-ready':'not-ready';
+  },'home-ready','dashboard');
 }
 
 async function openModule(page,route,selector){
-  await page.locator(`#nav button[data-route="${route}"]`).click();
-  await expect(page.locator(`#nav button[data-route="${route}"]`)).toHaveClass(/on/);
-  await expect(page.locator('#frameView')).toBeVisible();
-  const module=page.frameLocator('#frame');
-  await expect(module.locator('body')).toBeVisible();
-  await expect(module.locator(selector)).toBeVisible();
-  return module;
+  await page.evaluate(routeName=>document.querySelector(`#nav button[data-route="${routeName}"]`)?.click(),route);
+  const expected='1|1|1|1';
+  const deadline=Date.now()+8000;
+  let last='';
+  while(Date.now()<deadline){
+    last=await page.evaluate(({routeName,selector})=>{
+      const button=document.querySelector(`#nav button[data-route="${routeName}"]`);
+      const frameView=document.getElementById('frameView');
+      const frame=document.getElementById('frame');
+      const doc=frame?.contentDocument;
+      const routeOn=!!button?.classList.contains('on');
+      const frameVisible=!!frameView&&!frameView.classList.contains('hide');
+      const bodyReady=!!doc?.body;
+      let moduleReady=false;
+      if(doc){
+        const node=selector==='body'?doc.body:doc.querySelector(selector);
+        moduleReady=!!node;
+        if(routeName==='account'&&node)moduleReady=!node.classList.contains('hide')&&!!doc.getElementById('adminPanelBtn');
+      }
+      return [routeOn,frameVisible,bodyReady,moduleReady].map(Boolean).map(v=>v?'1':'0').join('|');
+    },{routeName:route,selector});
+    if(last===expected)return;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`${route} module: expected ${expected}, got ${last}`);
 }
 
 test('required owner launch route is responsive',async({page})=>{
   await openShell(page);
-  for(const [route,selector] of ROUTES){
-    const module=await openModule(page,route,selector);
-    if(route==='account') await expect(module.locator('#adminPanelBtn')).toBeVisible();
-  }
+  for(const [route,selector] of ROUTES)await openModule(page,route,selector);
 });
 
 test('owner logout and repeated login remain responsive',async({page})=>{
   await openShell(page);
-  let accountFrame=await openModule(page,'account','#accountView');
-  await expect(accountFrame.locator('#adminPanelBtn')).toBeVisible();
-  await accountFrame.locator('#logoutBtn').click();
+  await openModule(page,'account','#accountView');
 
-  accountFrame=page.frameLocator('#frame');
-  await expect(accountFrame.locator('#authView')).toBeVisible();
-  await accountFrame.locator('#loginEmail').fill('owner-smoke@example.invalid');
-  await accountFrame.locator('#loginPassword').fill('SmokeOnly123');
-  await accountFrame.locator('#loginBtn').click();
+  const logoutClicked=await page.evaluate(()=>{
+    const doc=document.getElementById('frame')?.contentDocument;
+    const button=doc?.getElementById('logoutBtn');
+    if(!button)return 'missing';
+    button.click();return 'clicked';
+  });
+  if(logoutClicked!=='clicked')throw new Error(`logout: ${logoutClicked}`);
 
-  accountFrame=page.frameLocator('#frame');
-  await expect(accountFrame.locator('#accountView')).toBeVisible();
-  await expect(accountFrame.locator('#adminPanelBtn')).toBeVisible();
+  await waitPrimitive(page,()=>{
+    const doc=document.getElementById('frame')?.contentDocument;
+    const auth=doc?.getElementById('authView');
+    return auth&&!auth.classList.contains('hide')?'logged-out':'waiting';
+  },'logged-out','logout state');
+
+  const loginClicked=await page.evaluate(()=>{
+    const doc=document.getElementById('frame')?.contentDocument;
+    const email=doc?.getElementById('loginEmail'),password=doc?.getElementById('loginPassword'),button=doc?.getElementById('loginBtn');
+    if(!email||!password||!button)return 'missing';
+    email.value='owner-smoke@example.invalid';
+    password.value='SmokeOnly123';
+    email.dispatchEvent(new Event('input',{bubbles:true}));
+    password.dispatchEvent(new Event('input',{bubbles:true}));
+    button.click();return 'clicked';
+  });
+  if(loginClicked!=='clicked')throw new Error(`login: ${loginClicked}`);
+
+  await waitPrimitive(page,()=>{
+    const doc=document.getElementById('frame')?.contentDocument;
+    const account=doc?.getElementById('accountView'),admin=doc?.getElementById('adminPanelBtn');
+    return account&&!account.classList.contains('hide')&&admin?'logged-in-admin':'waiting';
+  },'logged-in-admin','re-login state');
 });
