@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7930pwa1';
+  const BUILD = '7930pwa3';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -193,7 +193,6 @@
         injectScript(doc, 'journalImportScript', './journal-import.js');
         injectScript(doc, 'journalAnalyticsScript', './journal-analytics.js');
       }
-      if (path.endsWith('/account.html')) injectScript(doc, 'accountActionsScript', './account-actions.js');
       if (path.endsWith('/admin.html')) {
         injectScript(doc, 'adminHealthScript', './admin-health.js');
         injectScript(doc, 'adminDeletionScript', './admin-deletions.js');
