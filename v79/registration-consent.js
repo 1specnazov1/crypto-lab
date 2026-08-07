@@ -36,7 +36,17 @@
     return originalFetch(input,init);
   };
 
+  function ensureProtectedAuthGateway(){
+    if(document.getElementById('protectedAuthGatewayScript'))return;
+    const script=document.createElement('script');
+    script.id='protectedAuthGatewayScript';
+    script.src='./auth-gateway.js?v=7930pwa3';
+    script.async=false;
+    document.head.appendChild(script);
+  }
+
   document.getElementById('lang')?.addEventListener('change',()=>setTimeout(render,0));
   window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(render,0);});
   load();
+  ensureProtectedAuthGateway();
 })();
