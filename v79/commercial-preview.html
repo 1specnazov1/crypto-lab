@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e11">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>CRYPTO LAB — Commercial Preview</title>
+  <style>
+    :root{color-scheme:dark;--bg:#080b0f;--panel:#10151c;--line:#25303d;--text:#f4f7fb;--muted:#9ba9ba;--gold:#f0b90b;--green:#0ecb81}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#172333 0,#080b0f 42%);color:var(--text);font:15px/1.5 Inter,system-ui,Arial,sans-serif}.wrap{width:min(1120px,calc(100% - 32px));margin:auto;padding:24px 0 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:900;letter-spacing:.08em}.brand span{color:var(--gold)}select{background:#10151c;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}.hero{padding:72px 0 40px;text-align:center}.badge{display:inline-block;border:1px solid #5e4b11;background:#241d08;color:#ffe38a;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800}.hero h1{font-size:clamp(36px,6vw,72px);line-height:1.02;margin:20px auto 16px;max-width:900px}.hero p{max-width:760px;margin:auto;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:36px 0}.card{background:rgba(16,21,28,.92);border:1px solid var(--line);border-radius:16px;padding:22px}.card h3{margin:0 0 8px}.card p{color:var(--muted);margin:0}.plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:34px auto;max-width:850px}.plan{position:relative}.plan.pro{border-color:#635111;box-shadow:0 0 0 1px #2c250b inset}.price{font-size:38px;font-weight:900}.price small{font-size:14px;color:var(--muted)}ul{padding-left:18px;color:#ccd5df}.cta{display:block;width:100%;padding:12px;border-radius:9px;border:1px solid #6e5b17;background:#2a2309;color:#ffe697;font-weight:900;text-align:center}.notice{max-width:850px;margin:24px auto 0;padding:16px;border:1px solid #394554;border-radius:12px;color:var(--muted);background:#0d1218}.ref{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}.legal{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:30px}.legal a{color:#aebdce}.risk{margin-top:24px;text-align:center;color:#8795a6;font-size:12px}@media(max-width:760px){.grid,.plans{grid-template-columns:1fr}.hero{padding-top:48px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">₿ CRYPTO <span>LAB</span></div><select id="lang"><option value="ru">RU</option><option value="uk">UA</option><option value="en">EN</option></select></div>
+  <section class="hero">
+    <div class="badge" id="badge"></div>
+    <h1 id="headline"></h1>
+    <p id="lead"></p>
+  </section>
+  <section class="grid" id="features"></section>
+  <section class="plans">
+    <article class="card plan"><h3>BASIC</h3><div class="price">$20 <small id="month1"></small></div><ul id="basicList"></ul><div class="cta" id="basicCta"></div></article>
+    <article class="card plan pro"><h3>PRO</h3><div class="price">$49 <small id="month2"></small></div><ul id="proList"></ul><div class="cta" id="proCta"></div></article>
+  </section>
+  <div class="notice" id="notice"></div>
+  <div class="ref" id="ref"></div>
+  <nav class="legal"><a href="./terms.html" id="terms"></a><a href="./privacy.html" id="privacy"></a><a href="./refund.html" id="refund"></a><a href="./risk-disclosure.html" id="risk"></a></nav>
+  <div class="risk" id="riskText"></div>
+</div>
+<script src="./commercial-preview.js?v=7930c1"></script>
+</body></html>
