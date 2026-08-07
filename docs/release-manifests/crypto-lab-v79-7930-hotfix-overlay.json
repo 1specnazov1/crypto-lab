@@ -2,25 +2,25 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "PWA/legal navigation, four-document registration consent cache refresh, auth asset network-first loading, and cache-alignment hardening after the immutable base release snapshot",
+  "reason": "Owner-only runtime stabilization: remove duplicate account/auth injections, keep only session security on the owner account page, and refresh the PWA cache without changing v78, registration, payments, BASIC/PRO activation, mainnet, or refund execution",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": false
   },
-  "pwa_cache": "crypto-lab-v79-7930-pwa2",
+  "pwa_cache": "crypto-lab-v79-7930-pwa3",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "5ec39f34dd2f2adb279bdd480e60581cb97e5ba3",
       "marker": "app-extension.js?v=7930pwa1"
     },
     "v79/commercial-extension.js": {
-      "sha": "c1822a6c6c698c62b44813d31a15e313b31433fd",
-      "marker": "commercialLegalLabelsScript"
+      "sha": "ee0d5afddfba285fabb412600ad22f378f811f32",
+      "marker": "sessionSecurityScript"
     },
     "v79/service-worker.js": {
-      "sha": "b4e7a1fd6875c440dd1d96764d1fc03216d8259d",
-      "marker": "crypto-lab-v79-7930-pwa2"
+      "sha": "c3c37ffc456e793c0366f3779610d8f4bae30e0b",
+      "marker": "crypto-lab-v79-7930-pwa3"
     }
   }
 }
