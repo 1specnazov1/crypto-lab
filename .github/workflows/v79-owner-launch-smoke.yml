@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tests/v79-owner-launch-smoke.spec.js'
-      - 'tests/v79-mobile-smoke.spec.js'
+      - 'playwright.owner-launch.config.mjs'
       - 'v79/app.html'
       - 'v79/app.js'
       - 'v79/app-extension.js'
@@ -60,13 +60,7 @@ jobs:
           exit 1
 
       - name: Run required owner launch path
-        run: >-
-          npx playwright test tests/v79-owner-launch-smoke.spec.js
-          --config=playwright.config.mjs
-          --project=desktop-chromium
-          --workers=1
-          --timeout=20000
-          --retries=0
+        run: npx playwright test --config=playwright.owner-launch.config.mjs
 
       - name: Upload owner launch evidence
         if: always()
