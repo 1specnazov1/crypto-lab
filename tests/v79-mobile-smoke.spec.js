@@ -1,6 +1,66 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = ['calculator', 'portfolio', 'backtest', 'journal'];
+const ROUTES = ['analytics', 'scanner', 'ai', 'portfolio', 'calculator', 'backtest', 'journal', 'account'];
+const ROUTE_FILES = {
+  analytics: 'chart.html',
+  scanner: 'scanner.html',
+  ai: 'ai.html',
+  portfolio: 'portfolio.html',
+  calculator: 'calculator.html',
+  backtest: 'backtest.html',
+  journal: 'journal.html',
+  account: 'account.html'
+};
+
+const SUPABASE_STUB = `
+(() => {
+  const ownerSession = { user: { id: 'owner-smoke', email: 'owner-smoke@example.invalid' } };
+  let signedIn = true;
+  let authCallback = null;
+  const account = {
+    effective_plan: 'FREE',
+    profile: { display_name: 'Owner Smoke', language: 'ru', timezone: 'Europe/Kyiv', role: 'admin' },
+    subscription: { status: 'active', current_period_end: null },
+    limits: { daily_ai_requests: 3, daily_backtests: 3, daily_scanner_views: 10, max_portfolio_assets: 5, max_favorites: 10 },
+    usage_today: { ai_requests: 0, backtests: 0, scanner_views: 0 },
+    counts: { portfolio_assets: 0, favorites: 0 }
+  };
+  const plans = [
+    { plan: 'FREE', display_order: 1, daily_ai_requests: 3, daily_backtests: 3, max_portfolio_assets: 5, max_favorites: 10 },
+    { plan: 'BASIC', display_order: 2, daily_ai_requests: 30, daily_backtests: 20, max_portfolio_assets: 50, max_favorites: 100 },
+    { plan: 'PRO', display_order: 3, daily_ai_requests: -1, daily_backtests: -1, max_portfolio_assets: -1, max_favorites: -1 }
+  ];
+  const chain = (table) => ({
+    select() { return { order: async () => ({ data: table === 'crypto_plan_limits' ? plans : [], error: null }) }; },
+    update() { return { eq: async () => ({ error: null }) }; },
+    upsert: async () => ({ error: null })
+  });
+  const client = {
+    auth: {
+      getSession: async () => ({ data: { session: signedIn ? ownerSession : null }, error: null }),
+      onAuthStateChange: (callback) => { authCallback = callback; return { data: { subscription: { unsubscribe() {} } } }; },
+      signOut: async () => { signedIn = false; authCallback?.('SIGNED_OUT', null); return { error: null }; },
+      signInWithPassword: async () => { signedIn = true; authCallback?.('SIGNED_IN', ownerSession); return { data: { session: ownerSession }, error: null }; },
+      signUp: async () => ({ data: { session: null }, error: null }),
+      resetPasswordForEmail: async () => ({ error: null }),
+      updateUser: async () => ({ error: null })
+    },
+    rpc: async (name) => {
+      if (name === 'get_my_crypto_account') return { data: account, error: null };
+      if (name === 'get_crypto_feature_status') return { data: { allowed: true, remaining: 3, limit: 3 }, error: null };
+      if (name === 'get_my_crypto_support_tickets') return { data: [], error: null };
+      return { data: {}, error: null };
+    },
+    functions: {
+      invoke: async (name) => {
+        if (name === 'crypto-lab-v79-scanner') return { data: { signals: [], latest_run: {}, access: { quota: { remaining: 10, limit: 10 } } }, error: null };
+        return { data: {}, error: null };
+      }
+    },
+    from: chain
+  };
+  window.supabase = { createClient: () => client };
+})();`;
 
 async function stubExternalTraffic(page) {
   await page.route('https://**/*', async route => {
@@ -22,7 +82,7 @@ async function stubExternalTraffic(page) {
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
     }
     if (url.includes('cdn.jsdelivr.net')) {
-      return route.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.supabase=window.supabase||{};' });
+      return route.fulfill({ status: 200, contentType: 'application/javascript', body: SUPABASE_STUB });
     }
     return route.abort();
   });
@@ -45,7 +105,7 @@ async function expectNoBodyOverflow(page) {
   expect(Math.max(dimensions.body, dimensions.document)).toBeLessThanOrEqual(dimensions.viewport + 2);
 }
 
-test('v79 shell, modules and mobile navigation remain usable', async ({ page, isMobile }) => {
+test('v79 owner launch path and mobile navigation remain usable', async ({ page, isMobile }) => {
   await openShell(page);
   await expectNoBodyOverflow(page);
 
@@ -64,15 +124,40 @@ test('v79 shell, modules and mobile navigation remain usable', async ({ page, is
     await expect(button).toBeVisible();
     await button.click();
     await expect(page.locator('#frameView')).toBeVisible();
-    await expect(page.locator('#frame')).toHaveAttribute('src', new RegExp(`${route}\\.html`));
+    await expect(page.locator('#frame')).toHaveAttribute('src', new RegExp(ROUTE_FILES[route].replace('.', '\\.')));
     const frame = page.frameLocator('#frame');
     await expect(frame.locator('body')).toBeVisible();
+    if (route === 'scanner') await expect(frame.locator('#body')).toBeVisible();
+    if (route === 'ai') await expect(frame.locator('#run')).toBeVisible();
+    if (route === 'account') await expect(frame.locator('#accountView')).toBeVisible();
     await expectNoBodyOverflow(page);
     if (isMobile && route !== ROUTES.at(-1)) {
       await page.locator('#menu').click();
       await expect(page.locator('#side')).toHaveClass(/open/);
     }
   }
+});
+
+test('account logout and repeated login UI lifecycle remains responsive', async ({ page }) => {
+  await openShell(page);
+  await page.locator('#nav button[data-route="account"]').click();
+  const frame = page.frameLocator('#frame');
+  await expect(frame.locator('#accountView')).toBeVisible();
+  await expect(frame.locator('#logoutBtn')).toBeVisible();
+  await frame.locator('#logoutBtn').click();
+  await expect(frame.locator('#authView')).toBeVisible();
+  await frame.locator('#loginEmail').fill('owner-smoke@example.invalid');
+  await frame.locator('#loginPassword').fill('SmokeOnly123');
+  await frame.locator('#loginBtn').click();
+  await expect(frame.locator('#accountView')).toBeVisible();
+});
+
+test('support module opens with an authenticated session', async ({ page }) => {
+  await stubExternalTraffic(page);
+  await page.goto('/v79/support.html?browser-smoke=1', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#content')).toBeVisible();
+  await expect(page.locator('#ticketForm')).toBeVisible();
+  await expect(page.locator('#tickets')).toBeVisible();
 });
 
 test('shell and module accessibility semantics are applied', async ({ page, isMobile }) => {
