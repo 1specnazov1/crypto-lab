@@ -83,33 +83,25 @@ async function openShell(page){
   await expect(page.locator('#homeView')).toBeVisible();
 }
 
-async function waitFrameRoute(page,file){
-  await page.waitForFunction(expected=>{
-    const frame=document.getElementById('frame');
-    try{return Boolean(frame?.contentWindow?.location?.pathname?.endsWith('/'+expected)&&frame.contentDocument?.body);}catch{return false;}
-  },file,{timeout:8000});
-}
-
-async function waitFrameElement(page,id,visible=true){
-  await page.waitForFunction(({id,visible})=>{
-    const frame=document.getElementById('frame'),el=frame?.contentDocument?.getElementById(id);
-    if(!el)return false;
-    if(!visible)return true;
-    const style=frame.contentWindow.getComputedStyle(el);
-    return style.display!=='none'&&style.visibility!=='hidden'&&!el.classList.contains('hide');
-  },{id,visible},{timeout:8000});
+async function targetFrame(page,file){
+  await expect.poll(() => page.frames().map(frame=>frame.url()).find(url=>url.endsWith('/v79/'+file)) || '', {timeout:8000})
+    .toContain('/v79/'+file);
+  const frame=page.frames().find(item=>item.url().endsWith('/v79/'+file));
+  expect(frame,`frame ${file} should exist`).toBeTruthy();
+  return frame;
 }
 
 test('required owner launch route is responsive',async({page})=>{
   await openShell(page);
   for(const [route,file] of ROUTES){
     await page.locator(`#nav button[data-route="${route}"]`).click();
-    await waitFrameRoute(page,file);
-    if(route==='scanner') await waitFrameElement(page,'body');
-    if(route==='ai') await waitFrameElement(page,'run');
+    const frame=await targetFrame(page,file);
+    await expect(frame.locator('body')).toBeVisible();
+    if(route==='scanner') await expect(frame.locator('#body')).toBeVisible();
+    if(route==='ai') await expect(frame.locator('#run')).toBeVisible();
     if(route==='account'){
-      await waitFrameElement(page,'accountView');
-      await waitFrameElement(page,'adminPanelBtn');
+      await expect(frame.locator('#accountView')).toBeVisible();
+      await expect(frame.locator('#adminPanelBtn')).toBeVisible();
     }
   }
 });
@@ -117,19 +109,16 @@ test('required owner launch route is responsive',async({page})=>{
 test('owner logout and repeated login remain responsive',async({page})=>{
   await openShell(page);
   await page.locator('#nav button[data-route="account"]').click();
-  await waitFrameRoute(page,'account.html');
-  await waitFrameElement(page,'accountView');
-  await waitFrameElement(page,'adminPanelBtn');
+  const frame=await targetFrame(page,'account.html');
+  await expect(frame.locator('#accountView')).toBeVisible();
+  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
 
-  await page.evaluate(()=>document.getElementById('frame').contentDocument.getElementById('logoutBtn').click());
-  await waitFrameElement(page,'authView');
+  await frame.locator('#logoutBtn').click();
+  await expect(frame.locator('#authView')).toBeVisible();
 
-  await page.evaluate(()=>{
-    const doc=document.getElementById('frame').contentDocument;
-    doc.getElementById('loginEmail').value='owner-smoke@example.invalid';
-    doc.getElementById('loginPassword').value='SmokeOnly123';
-    doc.getElementById('loginBtn').click();
-  });
-  await waitFrameElement(page,'accountView');
-  await waitFrameElement(page,'adminPanelBtn');
+  await frame.locator('#loginEmail').fill('owner-smoke@example.invalid');
+  await frame.locator('#loginPassword').fill('SmokeOnly123');
+  await frame.locator('#loginBtn').click();
+  await expect(frame.locator('#accountView')).toBeVisible();
+  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
 });
