@@ -50,6 +50,8 @@ jobs:
           --config=playwright.config.mjs
           --project=desktop-chromium
           --workers=1
+          --timeout=20000
+          --retries=0
           --grep "v79 owner launch path|account logout and repeated login"
 
       - name: Upload owner launch evidence
