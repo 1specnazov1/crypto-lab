@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "template_set": "crypto-lab-auth-v1",
+  "allowed_templates": ["signup_confirmation", "password_recovery"],
+  "placeholders": ["{{action_url}}"],
+  "templates": {
+    "signup_confirmation": {
+      "ru": {
+        "subject": "Подтвердите email для CRYPTO LAB",
+        "text": "Вы начали создание аккаунта CRYPTO LAB. Подтвердите email по ссылке: {{action_url}}\n\nЕсли вы не создавали аккаунт, просто проигнорируйте это письмо. CRYPTO LAB не запрашивает seed-фразы, приватные ключи или пароли кошельков по email.",
+        "button_label": "Подтвердить email"
+      },
+      "uk": {
+        "subject": "Підтвердьте email для CRYPTO LAB",
+        "text": "Ви розпочали створення акаунта CRYPTO LAB. Підтвердьте email за посиланням: {{action_url}}\n\nЯкщо ви не створювали акаунт, просто проігноруйте цей лист. CRYPTO LAB не запитує seed-фрази, приватні ключі або паролі гаманців через email.",
+        "button_label": "Підтвердити email"
+      },
+      "en": {
+        "subject": "Confirm your email for CRYPTO LAB",
+        "text": "You started creating a CRYPTO LAB account. Confirm your email using this link: {{action_url}}\n\nIf you did not create an account, ignore this message. CRYPTO LAB never asks for seed phrases, private keys, or wallet passwords by email.",
+        "button_label": "Confirm email"
+      }
+    },
+    "password_recovery": {
+      "ru": {
+        "subject": "Восстановление доступа к CRYPTO LAB",
+        "text": "Получен запрос на восстановление доступа к CRYPTO LAB. Продолжить восстановление: {{action_url}}\n\nЕсли вы не запрашивали восстановление, проигнорируйте письмо. Никому не передавайте пароли, seed-фразы или приватные ключи.",
+        "button_label": "Восстановить доступ"
+      },
+      "uk": {
+        "subject": "Відновлення доступу до CRYPTO LAB",
+        "text": "Отримано запит на відновлення доступу до CRYPTO LAB. Продовжити відновлення: {{action_url}}\n\nЯкщо ви не запитували відновлення, проігноруйте лист. Нікому не передавайте паролі, seed-фрази або приватні ключі.",
+        "button_label": "Відновити доступ"
+      },
+      "en": {
+        "subject": "Recover access to CRYPTO LAB",
+        "text": "A request was made to recover access to CRYPTO LAB. Continue recovery here: {{action_url}}\n\nIf you did not request recovery, ignore this message. Never share passwords, seed phrases, or private keys.",
+        "button_label": "Recover access"
+      }
+    }
+  },
+  "security_contract": {
+    "action_url_occurrences_per_template": 1,
+    "raw_token_placeholder_forbidden": true,
+    "profit_promises_forbidden": true,
+    "arbitrary_html_from_request_forbidden": true,
+    "arbitrary_subject_from_request_forbidden": true
+  }
+}
