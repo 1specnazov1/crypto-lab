@@ -1,0 +1,27 @@
+name: Validate v79 Backup Restore Guards
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/backup/crypto-lab-restore-rehearsal.sh'
+      - 'scripts/backup/test-restore-rehearsal-guards.sh'
+      - '.github/workflows/v79-backup-restore-guard-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run fail-closed restore guard contract
+        run: bash scripts/backup/test-restore-rehearsal-guards.sh
+      - name: Verify production ref remains explicitly denied
+        run: grep -F 'PRODUCTION_PROJECT_REF="txhzxbizjpinowepfjkm"' scripts/backup/crypto-lab-restore-rehearsal.sh
+      - name: Verify destructive restore confirmations remain required
+        run: |
+          grep -F 'CRYPTO_LAB_NONPROD_ONLY' scripts/backup/crypto-lab-restore-rehearsal.sh
+          grep -F 'YES_DESTROY_NONPROD_DATA' scripts/backup/crypto-lab-restore-rehearsal.sh
