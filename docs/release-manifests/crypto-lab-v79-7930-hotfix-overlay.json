@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
+  "build": "7930",
+  "reason": "PWA/legal navigation and cache-alignment hardening after the immutable base release snapshot",
+  "boundaries": {
+    "v79_published_over_v78": false,
+    "payment_activation_changed": false,
+    "registration_activation_changed": false
+  },
+  "pwa_cache": "crypto-lab-v79-7930-pwa1",
+  "asset_overrides": {
+    "v79/app.html": {
+      "sha": "5ec39f34dd2f2adb279bdd480e60581cb97e5ba3",
+      "marker": "app-extension.js?v=7930pwa1"
+    },
+    "v79/commercial-extension.js": {
+      "sha": "c1822a6c6c698c62b44813d31a15e313b31433fd",
+      "marker": "commercialLegalLabelsScript"
+    },
+    "v79/service-worker.js": {
+      "sha": "1bade1db6df4afd26f4b9916f4d888b2fba22854",
+      "marker": "crypto-lab-v79-7930-pwa1"
+    }
+  }
+}
