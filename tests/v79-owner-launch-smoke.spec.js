@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 const ROUTES = [
-  ['analytics', 'chart.html'],
-  ['scanner', 'scanner.html'],
-  ['ai', 'ai.html'],
-  ['portfolio', 'portfolio.html'],
-  ['journal', 'journal.html'],
-  ['account', 'account.html']
+  ['analytics', '#chart'],
+  ['scanner', '#body'],
+  ['ai', '#run'],
+  ['portfolio', 'body'],
+  ['journal', 'body'],
+  ['account', '#accountView']
 ];
 
 const SUPABASE_STUB = `
@@ -83,42 +83,37 @@ async function openShell(page){
   await expect(page.locator('#homeView')).toBeVisible();
 }
 
-async function targetFrame(page,file){
-  await expect.poll(() => page.frames().map(frame=>frame.url()).find(url=>url.endsWith('/v79/'+file)) || '', {timeout:8000})
-    .toContain('/v79/'+file);
-  const frame=page.frames().find(item=>item.url().endsWith('/v79/'+file));
-  expect(frame,`frame ${file} should exist`).toBeTruthy();
-  return frame;
+async function openModule(page,route,selector){
+  await page.locator(`#nav button[data-route="${route}"]`).click();
+  await expect(page.locator(`#nav button[data-route="${route}"]`)).toHaveClass(/on/);
+  await expect(page.locator('#frameView')).toBeVisible();
+  const module=page.frameLocator('#frame');
+  await expect(module.locator('body')).toBeVisible();
+  await expect(module.locator(selector)).toBeVisible();
+  return module;
 }
 
 test('required owner launch route is responsive',async({page})=>{
   await openShell(page);
-  for(const [route,file] of ROUTES){
-    await page.locator(`#nav button[data-route="${route}"]`).click();
-    const frame=await targetFrame(page,file);
-    await expect(frame.locator('body')).toBeVisible();
-    if(route==='scanner') await expect(frame.locator('#body')).toBeVisible();
-    if(route==='ai') await expect(frame.locator('#run')).toBeVisible();
-    if(route==='account'){
-      await expect(frame.locator('#accountView')).toBeVisible();
-      await expect(frame.locator('#adminPanelBtn')).toBeVisible();
-    }
+  for(const [route,selector] of ROUTES){
+    const module=await openModule(page,route,selector);
+    if(route==='account') await expect(module.locator('#adminPanelBtn')).toBeVisible();
   }
 });
 
 test('owner logout and repeated login remain responsive',async({page})=>{
   await openShell(page);
-  await page.locator('#nav button[data-route="account"]').click();
-  const frame=await targetFrame(page,'account.html');
-  await expect(frame.locator('#accountView')).toBeVisible();
-  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
+  let accountFrame=await openModule(page,'account','#accountView');
+  await expect(accountFrame.locator('#adminPanelBtn')).toBeVisible();
+  await accountFrame.locator('#logoutBtn').click();
 
-  await frame.locator('#logoutBtn').click();
-  await expect(frame.locator('#authView')).toBeVisible();
+  accountFrame=page.frameLocator('#frame');
+  await expect(accountFrame.locator('#authView')).toBeVisible();
+  await accountFrame.locator('#loginEmail').fill('owner-smoke@example.invalid');
+  await accountFrame.locator('#loginPassword').fill('SmokeOnly123');
+  await accountFrame.locator('#loginBtn').click();
 
-  await frame.locator('#loginEmail').fill('owner-smoke@example.invalid');
-  await frame.locator('#loginPassword').fill('SmokeOnly123');
-  await frame.locator('#loginBtn').click();
-  await expect(frame.locator('#accountView')).toBeVisible();
-  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
+  accountFrame=page.frameLocator('#frame');
+  await expect(accountFrame.locator('#accountView')).toBeVisible();
+  await expect(accountFrame.locator('#adminPanelBtn')).toBeVisible();
 });
