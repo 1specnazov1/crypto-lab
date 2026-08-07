@@ -23,8 +23,7 @@ async function validateTurnstile(secret: string, token: string, remoteIp: string
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), SITEVERIFY_TIMEOUT_MS);
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form, signal: controller.signal });
-    const body = await response.json().catch(() => ({ success: false }));
-    const hostname = String(body?.hostname || ""); const action = String(body?.action || "");
+    const body = await response.json().catch(() => ({ success: false })); const hostname = String(body?.hostname || ""); const action = String(body?.action || "");
     return { valid: response.ok && body?.success === true && ALLOWED_HOSTNAMES.has(hostname) && action === "crypto_register", reason: clean((body?.["error-codes"] || []).join(",") || (!response.ok ? `siteverify_http_${response.status}` : "verification_failed"), 240) };
   } catch (error) { return { valid: false, reason: error instanceof DOMException && error.name === "AbortError" ? "siteverify_timeout" : "siteverify_unavailable" }; }
   finally { clearTimeout(timeout); }
@@ -33,11 +32,9 @@ async function validateTurnstile(secret: string, token: string, remoteIp: string
 async function mailReadiness(admin: ReturnType<typeof createClient>) {
   const resendReady = !!Deno.env.get("RESEND_API_KEY")?.trim() && !!Deno.env.get("CRYPTO_MAIL_FROM")?.trim();
   if (resendReady) return { ready: true, provider: "resend" };
-  const relayUrl = Deno.env.get("CRYPTO_MAIL_RELAY_URL")?.trim() || "";
-  const relayPublishableKey = Deno.env.get("CRYPTO_MAIL_RELAY_PUBLISHABLE_KEY")?.trim() || "";
+  const relayUrl = Deno.env.get("CRYPTO_MAIL_RELAY_URL")?.trim() || ""; const relayPublishableKey = Deno.env.get("CRYPTO_MAIL_RELAY_PUBLISHABLE_KEY")?.trim() || "";
   if (!relayUrl || !relayPublishableKey) return { ready: false, provider: "none" };
-  const { data: relaySecret } = await admin.rpc("get_service_secret", { p_name: "crypto_lab_mail_relay" });
-  const ready = typeof relaySecret === "string" && relaySecret.length >= 24;
+  const { data: relaySecret } = await admin.rpc("get_service_secret", { p_name: "crypto_lab_mail_relay" }); const ready = typeof relaySecret === "string" && relaySecret.length >= 24;
   return { ready, provider: ready ? "relay" : "none" };
 }
 
@@ -45,9 +42,7 @@ Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin") || "";
   if (request.method === "OPTIONS") { if (!ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 }); return new Response(null, { status: 204, headers: cors(origin) }); }
   if (!ALLOWED_ORIGINS.has(origin)) return Response.json({ ok: false, error: "Origin not allowed" }, { status: 403 });
-
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || ""; const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
   if (!supabaseUrl || !serviceRoleKey) return reply({ ok: false, error: "Server configuration unavailable" }, 503, origin);
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -56,13 +51,17 @@ Deno.serve(async (request: Request) => {
   const documents = (legalDocs || []).map((document) => ({ key: document.document_key, version: document.version, effective_at: document.effective_at, url: document.url_path }));
   const completeLegalSet = legalReady(documents);
 
-  const siteKey = Deno.env.get("CRYPTO_TURNSTILE_SITE_KEY")?.trim() || "";
-  const turnstileSecret = Deno.env.get("CRYPTO_TURNSTILE_SECRET_KEY")?.trim() || "";
-  const mail = await mailReadiness(admin);
+  const siteKey = Deno.env.get("CRYPTO_TURNSTILE_SITE_KEY")?.trim() || ""; const turnstileSecret = Deno.env.get("CRYPTO_TURNSTILE_SECRET_KEY")?.trim() || ""; const mail = await mailReadiness(admin);
+  const { data: bootstrapData } = await admin.rpc("service_crypto_owner_admin_bootstrap_status");
+  const ownerBootstrap = bootstrapData && typeof bootstrapData === "object" ? bootstrapData as Record<string, unknown> : {};
+  const ownerEmail = typeof ownerBootstrap.allowed_email === "string" ? ownerBootstrap.allowed_email.toLowerCase() : "";
+  const ownerBootstrapReady = ownerBootstrap.authorized === true && ownerBootstrap.consumed !== true && ownerBootstrap.admin_exists !== true && validEmail(ownerEmail);
   const featureFlag = Deno.env.get("CRYPTO_PUBLIC_REGISTRATION_ENABLED") === "true";
-  const enabled = featureFlag && !!siteKey && !!turnstileSecret && mail.ready && completeLegalSet;
+  const dependenciesReady = !!siteKey && !!turnstileSecret && mail.ready && completeLegalSet;
+  const enabled = dependenciesReady && (featureFlag || ownerBootstrapReady);
+  const registrationMode = featureFlag ? "public" : ownerBootstrapReady ? "owner_bootstrap" : "disabled";
 
-  if (request.method === "GET") return reply({ ok: true, enabled, captcha_provider: "turnstile", site_key: enabled ? siteKey : null, captcha_action: "crypto_register", password_min_length: 10, required_legal_keys: REQUIRED_LEGAL_KEYS, documents, readiness: { feature_flag: featureFlag, turnstile: !!siteKey && !!turnstileSecret, mail_provider: mail.ready, mail_provider_code: mail.provider, legal_documents: completeLegalSet } }, 200, origin);
+  if (request.method === "GET") return reply({ ok: true, enabled, registration_mode: registrationMode, captcha_provider: "turnstile", site_key: enabled ? siteKey : null, captcha_action: "crypto_register", password_min_length: 10, required_legal_keys: REQUIRED_LEGAL_KEYS, documents, readiness: { feature_flag: featureFlag, owner_bootstrap: ownerBootstrapReady, turnstile: !!siteKey && !!turnstileSecret, mail_provider: mail.ready, mail_provider_code: mail.provider, legal_documents: completeLegalSet } }, 200, origin);
   if (request.method !== "POST") return reply({ ok: false, error: "Method not allowed" }, 405, origin);
   if (!enabled) return reply({ ok: false, error: "Registration is temporarily unavailable", code: "REGISTRATION_DISABLED" }, 503, origin);
   const declaredLength = Number(request.headers.get("content-length") || 0); if (declaredLength > MAX_BODY_BYTES) return reply({ ok: false, error: "Request is too large" }, 413, origin);
@@ -72,18 +71,17 @@ Deno.serve(async (request: Request) => {
 
   try {
     const raw = await request.text(); if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return reply({ ok: false, error: "Request is too large" }, 413, origin);
-    const body = JSON.parse(raw || "{}");
-    const email = clean(body.email, 254).toLowerCase(); const password = String(body.password ?? ""); const displayName = clean(body.display_name, 80);
+    const body = JSON.parse(raw || "{}"); const email = clean(body.email, 254).toLowerCase(); const password = String(body.password ?? ""); const displayName = clean(body.display_name, 80);
     const requestedLocale = clean(body.locale, 2); const locale = ["ru", "uk", "en"].includes(requestedLocale) ? requestedLocale : "ru"; const timezone = clean(body.timezone, 80) || "Europe/Kyiv";
     const captcha = clean(body.captcha_token, MAX_CAPTCHA_TOKEN); const honeypot = clean(body.website, 200);
+    if (!featureFlag && (!ownerBootstrapReady || email !== ownerEmail)) return reply({ ok: false, error: "Registration is temporarily unavailable", code: "REGISTRATION_DISABLED" }, 503, origin);
+
     const submitted = Array.isArray(body.legal_acceptances) ? body.legal_acceptances : [];
     const submittedMap = new Map(submitted.map((item: Record<string, unknown>) => [clean(item?.key, 20), clean(item?.version, 40)]));
     const legalCurrent = completeLegalSet && documents.every((document) => submittedMap.get(document.key) === document.version);
-
     const ip = clientIp(request); const ipHash = await hmac(`ip:${ip}`, serviceRoleKey); const emailHash = await hmac(`email:${email}`, serviceRoleKey); const userAgentHash = await hmac(`ua:${clean(request.headers.get("user-agent"), 500)}`, serviceRoleKey);
     const { data: reservation, error: reservationError } = await admin.rpc("reserve_crypto_registration_attempt", { p_ip_hash: ipHash, p_email_hash: emailHash }); if (reservationError) throw reservationError;
-    requestId = reservation?.request_id;
-    if (!reservation?.allowed) return reply({ ok: false, error: "Too many registration attempts", code: "RATE_LIMITED", retry_after: 3600 }, 429, origin);
+    requestId = reservation?.request_id; if (!reservation?.allowed) return reply({ ok: false, error: "Too many registration attempts", code: "RATE_LIMITED", retry_after: 3600 }, 429, origin);
     if (honeypot) { await finish("honeypot", "honeypot"); return reply({ ok: true, status: "confirmation_pending" }, 202, origin); }
     if (!validEmail(email) || !strongPassword(password)) { await finish("invalid_input", "validation"); return reply({ ok: false, error: "Check email and password requirements", code: "INVALID_INPUT" }, 400, origin); }
     if (!legalCurrent) { await finish("invalid_input", "legal_consent"); return reply({ ok: false, error: "Current legal documents must be accepted", code: "LEGAL_CONSENT_REQUIRED", documents }, 409, origin); }
@@ -93,7 +91,6 @@ Deno.serve(async (request: Request) => {
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({ type: "signup", email, password, options: { data: { display_name: displayName || null, language: locale, timezone }, redirectTo: REDIRECT_TO } });
     if (linkError) { const message = String(linkError.message || "").toLowerCase(); if (message.includes("already") || message.includes("registered") || message.includes("exists")) { await finish("duplicate", "existing_email"); return reply({ ok: true, status: "confirmation_pending" }, 202, origin); } throw linkError; }
     const actionUrl = linkData?.properties?.action_link; const userId = linkData?.user?.id; if (!actionUrl || !userId) throw new Error("Confirmation link unavailable");
-
     try { for (const document of documents) { const { error } = await admin.rpc("service_accept_crypto_legal", { p_user_id: userId, p_document_key: document.key, p_document_version: document.version, p_locale: locale, p_source: "registration", p_ip_hash: ipHash, p_user_agent_hash: userAgentHash }); if (error) throw error; } }
     catch (error) { await admin.auth.admin.deleteUser(userId).catch(() => {}); await finish("internal_error", "legal_acceptance_failed"); throw error; }
 
