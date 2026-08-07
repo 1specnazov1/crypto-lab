@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "PWA/legal navigation, four-document registration consent cache refresh, and cache-alignment hardening after the immutable base release snapshot",
+  "reason": "PWA/legal navigation, four-document registration consent cache refresh, auth asset network-first loading, and cache-alignment hardening after the immutable base release snapshot",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -19,7 +19,7 @@
       "marker": "commercialLegalLabelsScript"
     },
     "v79/service-worker.js": {
-      "sha": "34d2bbd9b837efef912efae7f37c8fe702908cb6",
+      "sha": "b4e7a1fd6875c440dd1d96764d1fc03216d8259d",
       "marker": "crypto-lab-v79-7930-pwa2"
     }
   }
