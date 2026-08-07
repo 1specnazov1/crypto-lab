@@ -70,4 +70,6 @@ $('uploadPortfolioBtn').onclick=async()=>{let local=[];try{local=JSON.parse(safe
 $('downloadPortfolioBtn').onclick=async()=>{const {data,error}=await client.from('crypto_user_portfolio').select('symbol,quantity,average_price').order('created_at');if(error)return show(error.message,'bad');safeSet('cryptoLabV79Portfolio',JSON.stringify((data||[]).map(x=>({symbol:x.symbol,amount:Number(x.quantity),avg:Number(x.average_price)}))));show(tr().loaded,'ok')};
 $('lang').onchange=e=>{lang=e.target.value;safeSet('cryptoLabLanguage',lang);translate()};window.addEventListener('message',e=>{if(e.data?.type==='crypto-lab-language'&&T[e.data.lang]){lang=e.data.lang;translate()}});client.auth.onAuthStateChange(async(event,newSession)=>{session=newSession;if(event==='PASSWORD_RECOVERY'){recovery=true;$('authView').classList.remove('hide');$('accountView').classList.add('hide');$('loginForm').classList.add('hide');$('signupForm').classList.add('hide');$('recoveryForm').classList.remove('hide')}else await updateView()});translate();updateView();
 </script>
+<script src="./registration-consent.js"></script>
+<script src="./account-actions.js"></script>
 </body></html>
