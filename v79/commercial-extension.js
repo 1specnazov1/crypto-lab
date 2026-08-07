@@ -1,6 +1,8 @@
 'use strict';
 (() => {
   const BUILD='7930';
+  // protectedAuthGatewayScript is retained as an inactive release-contract marker only.
+  // Owner runtime intentionally does not inject auth-gateway.js, commercial.js or subscription-lifecycle.js.
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
