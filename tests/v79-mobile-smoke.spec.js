@@ -78,6 +78,44 @@ async function stubExternalTraffic(page) {
         })
       });
     }
+    if (url.includes('/functions/v1/crypto-lab-v79-register')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          enabled: false,
+          registration_mode: 'disabled',
+          site_key: null,
+          captcha_provider: 'turnstile',
+          captcha_action: 'crypto_register',
+          password_min_length: 10,
+          required_legal_keys: ['terms','privacy','refund','risk'],
+          documents: [
+            { key: 'terms', version: '2026-08-03', url: './terms.html' },
+            { key: 'privacy', version: '2026-08-03', url: './privacy.html' },
+            { key: 'refund', version: '2026-08-07-v1', url: './refund.html' },
+            { key: 'risk', version: '2026-08-03', url: './risk-disclosure.html' }
+          ],
+          readiness: { feature_flag: false, owner_bootstrap: false, turnstile: true, mail_provider: true, mail_provider_code: 'resend', legal_documents: true }
+        })
+      });
+    }
+    if (url.includes('/functions/v1/crypto-lab-v79-recover')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          enabled: false,
+          site_key: null,
+          captcha_provider: 'turnstile',
+          captcha_action: 'crypto_recover',
+          email_enumeration_safe: true,
+          readiness: { feature_flag: false, turnstile: true, mail_provider: true, mail_provider_code: 'resend' }
+        })
+      });
+    }
     if (url.includes('api.binance.com') || url.includes('data-api.binance.vision')) {
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
     }
@@ -129,7 +167,10 @@ test('v79 owner launch path and mobile navigation remain usable', async ({ page,
     await expect(frame.locator('body')).toBeVisible();
     if (route === 'scanner') await expect(frame.locator('#body')).toBeVisible();
     if (route === 'ai') await expect(frame.locator('#run')).toBeVisible();
-    if (route === 'account') await expect(frame.locator('#accountView')).toBeVisible();
+    if (route === 'account') {
+      await expect(frame.locator('#accountView')).toBeVisible();
+      await expect(frame.locator('#adminPanelBtn')).toBeVisible();
+    }
     await expectNoBodyOverflow(page);
     if (isMobile && route !== ROUTES.at(-1)) {
       await page.locator('#menu').click();
@@ -143,6 +184,7 @@ test('account logout and repeated login UI lifecycle remains responsive', async 
   await page.locator('#nav button[data-route="account"]').click();
   const frame = page.frameLocator('#frame');
   await expect(frame.locator('#accountView')).toBeVisible();
+  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
   await expect(frame.locator('#logoutBtn')).toBeVisible();
   await frame.locator('#logoutBtn').click();
   await expect(frame.locator('#authView')).toBeVisible();
@@ -150,6 +192,7 @@ test('account logout and repeated login UI lifecycle remains responsive', async 
   await frame.locator('#loginPassword').fill('SmokeOnly123');
   await frame.locator('#loginBtn').click();
   await expect(frame.locator('#accountView')).toBeVisible();
+  await expect(frame.locator('#adminPanelBtn')).toBeVisible();
 });
 
 test('support module opens with an authenticated session', async ({ page }) => {
