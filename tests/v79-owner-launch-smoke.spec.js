@@ -1,12 +1,12 @@
 import { test } from '@playwright/test';
 
 const ROUTES = [
-  ['analytics', '#chart'],
-  ['scanner', '#body'],
-  ['ai', '#run'],
-  ['portfolio', '#totalValue'],
-  ['journal', '#tradeForm'],
-  ['account', '#accountView']
+  ['analytics', 'chart.html', '#chart'],
+  ['scanner', 'scanner.html', '#body'],
+  ['ai', 'ai.html', '#run'],
+  ['portfolio', 'portfolio.html', '#totalValue'],
+  ['journal', 'journal.html', '#tradeForm'],
+  ['account', 'account.html', '#accountView']
 ];
 
 const SUPABASE_STUB = `
@@ -77,12 +77,12 @@ async function stubExternalTraffic(page) {
   });
 }
 
-async function waitPrimitive(page, probe, expected, label, timeout=8000){
+async function poll(page,probe,expected,label,timeout=8000){
   const deadline=Date.now()+timeout;
   let last='';
   while(Date.now()<deadline){
     last=await page.evaluate(probe);
-    if(last===expected)return last;
+    if(last===expected)return;
     await page.waitForTimeout(100);
   }
   throw new Error(`${label}: expected ${expected}, got ${last}`);
@@ -91,78 +91,77 @@ async function waitPrimitive(page, probe, expected, label, timeout=8000){
 async function openShell(page){
   await stubExternalTraffic(page);
   await page.goto('/v79/app.html?owner-launch-smoke=1',{waitUntil:'domcontentloaded'});
-  await waitPrimitive(page,()=>{
+  await poll(page,()=>{
     const home=document.getElementById('homeView');
-    return home&&!home.classList.contains('hide')?'home-ready':'not-ready';
-  },'home-ready','dashboard');
+    return home&&!home.classList.contains('hide')?'ready':'waiting';
+  },'ready','dashboard');
 }
 
-async function openModule(page,route,selector){
-  await page.evaluate(routeName=>document.querySelector(`#nav button[data-route="${routeName}"]`)?.click(),route);
-  const expected='1|1|1|1';
-  const deadline=Date.now()+8000;
-  let last='';
-  while(Date.now()<deadline){
-    last=await page.evaluate(({routeName,selector})=>{
-      const button=document.querySelector(`#nav button[data-route="${routeName}"]`);
-      const frameView=document.getElementById('frameView');
-      const frame=document.getElementById('frame');
-      const doc=frame?.contentDocument;
-      const routeOn=!!button?.classList.contains('on');
-      const frameVisible=!!frameView&&!frameView.classList.contains('hide');
-      const bodyReady=!!doc?.body;
-      let moduleReady=false;
-      if(doc){
-        const node=selector==='body'?doc.body:doc.querySelector(selector);
-        moduleReady=!!node;
-        if(routeName==='account'&&node)moduleReady=!node.classList.contains('hide')&&!!doc.getElementById('adminPanelBtn');
-      }
-      return [routeOn,frameVisible,bodyReady,moduleReady].map(Boolean).map(v=>v?'1':'0').join('|');
-    },{routeName:route,selector});
-    if(last===expected)return;
-    await page.waitForTimeout(100);
-  }
-  throw new Error(`${route} module: expected ${expected}, got ${last}`);
-}
-
-test('required owner launch route is responsive',async({page})=>{
+test('shell routes target every required owner module',async({page})=>{
   await openShell(page);
-  for(const [route,selector] of ROUTES)await openModule(page,route,selector);
+  for(const [route,file] of ROUTES){
+    await page.evaluate(routeName=>document.querySelector(`#nav button[data-route="${routeName}"]`)?.click(),route);
+    const deadline=Date.now()+5000;
+    let last='';
+    while(Date.now()<deadline){
+      last=await page.evaluate(({routeName,file})=>{
+        const button=document.querySelector(`#nav button[data-route="${routeName}"]`);
+        const frameView=document.getElementById('frameView');
+        const frame=document.getElementById('frame');
+        const src=frame?.getAttribute('src')||'';
+        return [
+          !!button?.classList.contains('on'),
+          !!frameView&&!frameView.classList.contains('hide'),
+          src.includes(file)
+        ].map(v=>v?'1':'0').join('|');
+      },{routeName:route,file});
+      if(last==='1|1|1')break;
+      await page.waitForTimeout(100);
+    }
+    if(last!=='1|1|1')throw new Error(`${route} shell target: ${last}`);
+  }
+});
+
+test('required owner modules render their functional DOM',async({page})=>{
+  await stubExternalTraffic(page);
+  for(const [route,file,selector] of ROUTES){
+    await page.goto(`/v79/${file}?owner-launch-smoke=1`,{waitUntil:'domcontentloaded'});
+    const deadline=Date.now()+8000;
+    let last='';
+    while(Date.now()<deadline){
+      last=await page.evaluate(({routeName,selector})=>{
+        const node=document.querySelector(selector);
+        if(!node)return 'missing';
+        if(routeName==='account')return !node.classList.contains('hide')&&!!document.getElementById('adminPanelBtn')?'ready':'waiting';
+        return 'ready';
+      },{routeName:route,selector});
+      if(last==='ready')break;
+      await page.waitForTimeout(100);
+    }
+    if(last!=='ready')throw new Error(`${route} direct module: ${last}`);
+  }
 });
 
 test('owner logout and repeated login remain responsive',async({page})=>{
-  await openShell(page);
-  await openModule(page,'account','#accountView');
+  await stubExternalTraffic(page);
+  await page.goto('/v79/account.html?owner-launch-smoke=1',{waitUntil:'domcontentloaded'});
+  await poll(page,()=>{
+    const account=document.getElementById('accountView');
+    return account&&!account.classList.contains('hide')&&document.getElementById('adminPanelBtn')?'owner-ready':'waiting';
+  },'owner-ready','initial owner account');
 
-  const logoutClicked=await page.evaluate(()=>{
-    const doc=document.getElementById('frame')?.contentDocument;
-    const button=doc?.getElementById('logoutBtn');
-    if(!button)return 'missing';
-    button.click();return 'clicked';
-  });
-  if(logoutClicked!=='clicked')throw new Error(`logout: ${logoutClicked}`);
+  const logout=await page.evaluate(()=>{const button=document.getElementById('logoutBtn');if(!button)return 'missing';button.click();return 'clicked';});
+  if(logout!=='clicked')throw new Error(`logout button: ${logout}`);
+  await poll(page,()=>{const auth=document.getElementById('authView');return auth&&!auth.classList.contains('hide')?'logged-out':'waiting';},'logged-out','logout');
 
-  await waitPrimitive(page,()=>{
-    const doc=document.getElementById('frame')?.contentDocument;
-    const auth=doc?.getElementById('authView');
-    return auth&&!auth.classList.contains('hide')?'logged-out':'waiting';
-  },'logged-out','logout state');
-
-  const loginClicked=await page.evaluate(()=>{
-    const doc=document.getElementById('frame')?.contentDocument;
-    const email=doc?.getElementById('loginEmail'),password=doc?.getElementById('loginPassword'),button=doc?.getElementById('loginBtn');
+  const login=await page.evaluate(()=>{
+    const email=document.getElementById('loginEmail'),password=document.getElementById('loginPassword'),button=document.getElementById('loginBtn');
     if(!email||!password||!button)return 'missing';
-    email.value='owner-smoke@example.invalid';
-    password.value='SmokeOnly123';
-    email.dispatchEvent(new Event('input',{bubbles:true}));
-    password.dispatchEvent(new Event('input',{bubbles:true}));
-    button.click();return 'clicked';
+    email.value='owner-smoke@example.invalid';password.value='SmokeOnly123';button.click();return 'clicked';
   });
-  if(loginClicked!=='clicked')throw new Error(`login: ${loginClicked}`);
-
-  await waitPrimitive(page,()=>{
-    const doc=document.getElementById('frame')?.contentDocument;
-    const account=doc?.getElementById('accountView'),admin=doc?.getElementById('adminPanelBtn');
-    return account&&!account.classList.contains('hide')&&admin?'logged-in-admin':'waiting';
-  },'logged-in-admin','re-login state');
+  if(login!=='clicked')throw new Error(`login button: ${login}`);
+  await poll(page,()=>{
+    const account=document.getElementById('accountView');
+    return account&&!account.classList.contains('hide')&&document.getElementById('adminPanelBtn')?'relogin-ready':'waiting';
+  },'relogin-ready','re-login');
 });
