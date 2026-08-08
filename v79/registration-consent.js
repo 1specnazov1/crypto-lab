@@ -1,52 +1,19 @@
 'use strict';
 (() => {
   const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register';
-  const REQUIRED_KEYS=new Set(['terms','privacy','refund','risk']);
-  const LABELS={ru:{title:'Перед регистрацией подтвердите документы',required:'Необходимо принять все актуальные документы.',docs:{terms:'Условия использования',privacy:'Политика конфиденциальности',refund:'Политика возвратов',risk:'Раскрытие рисков'}},uk:{title:'Перед реєстрацією підтвердьте документи',required:'Необхідно прийняти всі актуальні документи.',docs:{terms:'Умови використання',privacy:'Політика конфіденційності',refund:'Політика повернень',risk:'Розкриття ризиків'}},en:{title:'Accept the documents before registration',required:'Every current legal document must be accepted.',docs:{terms:'Terms of Use',privacy:'Privacy Notice',refund:'Refund Policy',risk:'Risk Disclosure'}}};
+  const REQUIRED_KEYS=new Set(['terms','privacy','risk']);
+  const LABELS={ru:{title:'Перед регистрацией подтвердите документы',required:'Необходимо принять все актуальные документы.',docs:{terms:'Условия использования',privacy:'Политика конфиденциальности',risk:'Раскрытие рисков'}},uk:{title:'Перед реєстрацією підтвердьте документи',required:'Необхідно прийняти всі актуальні документи.',docs:{terms:'Умови використання',privacy:'Політика конфіденційності',risk:'Розкриття ризиків'}},en:{title:'Accept the documents before registration',required:'Every current document must be accepted.',docs:{terms:'Terms of Use',privacy:'Privacy Notice',risk:'Risk Disclosure'}}};
   let config={documents:[],enabled:false},ready=null;
   const originalFetch=window.fetch.bind(window);
   const locale=()=>typeof lang==='string'&&LABELS[lang]?lang:'ru';
   const copy=()=>LABELS[locale()];
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
   function completeSet(docs){return Array.isArray(docs)&&docs.length===REQUIRED_KEYS.size&&docs.every(doc=>REQUIRED_KEYS.has(doc.key));}
   function allChecked(){const docs=config.documents||[];return completeSet(docs)&&docs.every(doc=>document.querySelector(`[data-registration-legal="${CSS.escape(doc.key)}"]`)?.checked);}
   function syncButton(){const button=document.getElementById('signupBtn');if(button&&config.enabled)button.disabled=!allChecked();}
-  function render(){
-    const form=document.getElementById('signupForm');if(!form||!Array.isArray(config.documents)||!config.documents.length)return;
-    let panel=document.getElementById('registrationLegalConsent');if(!panel){panel=document.createElement('div');panel.id='registrationLegalConsent';panel.style.cssText='margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--p2)';form.querySelector('#signupBtn')?.before(panel);}
-    const checked=new Set([...panel.querySelectorAll('[data-registration-legal]:checked')].map(el=>el.dataset.registrationLegal));
-    const t=copy();panel.innerHTML=`<b>${safe(t.title)}</b><div class="muted" style="margin:5px 0 8px">${safe(t.required)}</div>${config.documents.map(doc=>`<label style="display:flex;gap:8px;align-items:flex-start;margin:7px 0"><input type="checkbox" data-registration-legal="${safe(doc.key)}" ${checked.has(doc.key)?'checked':''} style="width:auto;margin-top:2px"><span><a href="${safe(doc.url)}?lang=${encodeURIComponent(locale())}" target="_blank" rel="noopener">${safe(t.docs[doc.key]||doc.key)}</a><small class="muted" style="display:block">v${safe(doc.version)}</small></span></label>`).join('')}`;
-    panel.querySelectorAll('input').forEach(input=>input.addEventListener('change',syncButton));syncButton();
-  }
+  function render(){const form=document.getElementById('signupForm');if(!form||!Array.isArray(config.documents)||!config.documents.length)return;let panel=document.getElementById('registrationLegalConsent');if(!panel){panel=document.createElement('div');panel.id='registrationLegalConsent';panel.style.cssText='margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--p2)';form.querySelector('#signupBtn')?.before(panel);}const checked=new Set([...panel.querySelectorAll('[data-registration-legal]:checked')].map(el=>el.dataset.registrationLegal));const t=copy();panel.innerHTML=`<b>${safe(t.title)}</b><div class="muted" style="margin:5px 0 8px">${safe(t.required)}</div>${config.documents.map(doc=>`<label style="display:flex;gap:8px;align-items:flex-start;margin:7px 0"><input type="checkbox" data-registration-legal="${safe(doc.key)}" ${checked.has(doc.key)?'checked':''} style="width:auto;margin-top:2px"><span><a href="${safe(doc.url)}?lang=${encodeURIComponent(locale())}" target="_blank" rel="noopener">${safe(t.docs[doc.key]||doc.key)}</a><small class="muted" style="display:block">v${safe(doc.version)}</small></span></label>`).join('')}`;panel.querySelectorAll('input').forEach(input=>input.addEventListener('change',syncButton));syncButton();}
   function load(){if(ready)return ready;ready=originalFetch(ENDPOINT,{method:'GET',cache:'no-store'}).then(async response=>{const data=await response.json().catch(()=>({}));config=response.ok?data:{documents:[],enabled:false};render();return config;}).catch(()=>config);return ready;}
-
-  window.fetch=async function(input,init={}){
-    const url=typeof input==='string'?input:input?.url||'';
-    const method=String(init?.method||(typeof input!=='string'&&input?.method)||'GET').toUpperCase();
-    if(url===ENDPOINT&&method==='POST'){
-      await load();
-      if(!allChecked())return new Response(JSON.stringify({ok:false,error:copy().required,code:'LEGAL_CONSENT_REQUIRED'}),{status:409,headers:{'Content-Type':'application/json'}});
-      try{
-        const raw=typeof init.body==='string'?JSON.parse(init.body):{};
-        raw.legal_acceptances=(config.documents||[]).map(doc=>({key:doc.key,version:doc.version}));
-        init={...init,body:JSON.stringify(raw)};
-      }catch{return new Response(JSON.stringify({ok:false,error:'Invalid registration request'}),{status:400,headers:{'Content-Type':'application/json'}});}
-    }
-    return originalFetch(input,init);
-  };
-
-  function ensureProtectedAuthGateway(){
-    if(document.getElementById('protectedAuthGatewayScript'))return;
-    const script=document.createElement('script');
-    script.id='protectedAuthGatewayScript';
-    script.src='./auth-gateway.js?v=7930pwa3';
-    script.async=false;
-    document.head.appendChild(script);
-  }
-
-  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(render,0));
-  window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(render,0);});
-  load();
-  ensureProtectedAuthGateway();
+  window.fetch=async function(input,init={}){const url=typeof input==='string'?input:input?.url||'';const method=String(init?.method||(typeof input!=='string'&&input?.method)||'GET').toUpperCase();if(url===ENDPOINT&&method==='POST'){await load();if(!allChecked())return new Response(JSON.stringify({ok:false,error:copy().required,code:'LEGAL_CONSENT_REQUIRED'}),{status:409,headers:{'Content-Type':'application/json'}});try{const raw=typeof init.body==='string'?JSON.parse(init.body):{};raw.legal_acceptances=(config.documents||[]).map(doc=>({key:doc.key,version:doc.version}));init={...init,body:JSON.stringify(raw)};}catch{return new Response(JSON.stringify({ok:false,error:'Invalid registration request'}),{status:400,headers:{'Content-Type':'application/json'}});}}return originalFetch(input,init);};
+  function ensureProtectedAuthGateway(){if(document.getElementById('protectedAuthGatewayScript'))return;const script=document.createElement('script');script.id='protectedAuthGatewayScript';script.src='./auth-gateway.js?v=7930free1';script.async=false;document.head.appendChild(script);}
+  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(render,0));window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(render,0);});load();ensureProtectedAuthGateway();
 })();
