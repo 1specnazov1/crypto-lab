@@ -2,7 +2,7 @@
 (() => {
   const BUILD='7930';
   // protectedAuthGatewayScript is retained as an inactive release-contract marker only.
-  // Owner runtime intentionally does not inject auth-gateway.js, commercial.js or subscription-lifecycle.js.
+  // Heavy legacy commercial.js/subscription-lifecycle.js stay disabled; pilot UI is isolated and lightweight.
   const frame=document.getElementById('frame');
   if(!frame)return;
   function add(doc,id,source){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`${source}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
@@ -11,6 +11,7 @@
       const doc=frame.contentDocument,path=frame.contentWindow.location.pathname;if(!doc)return;
       if(path.endsWith('/account.html')){
         add(doc,'sessionSecurityScript','./session-security.js');
+        add(doc,'friendsFamilyAccountScript','./friends-family-account.js');
       }
       if(path.endsWith('/admin.html')){
         add(doc,'adminCommercialScript','./admin-commercial.js');
