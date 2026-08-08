@@ -2,29 +2,29 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-only stabilization plus Friends & Family sandbox pilot UI: preserve protected auth, add allowlist-only test payment controls and fresh pilot modules, without changing v78, public registration, global paid entitlement/checkout, mainnet, or real-money refund execution",
+  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
-    "registration_activation_changed": false
+    "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-pwa3",
+  "pwa_cache": "crypto-lab-v79-7930-free1",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "5ec39f34dd2f2adb279bdd480e60581cb97e5ba3",
       "marker": "app-extension.js?v=7930pwa1"
     },
     "v79/commercial-extension.js": {
-      "sha": "d0341527e66b79bfa559b1e755527b18d7bddef1",
-      "marker": "friendsFamilyAccountScript"
+      "sha": "150330d9b3e90a6b841d46d7b2dcbe6f89deada5",
+      "marker": "publicFreeAccessScript"
     },
     "v79/auth-gateway.js": {
       "sha": "c767d2104444f0384f787393a232f6e5ddb94e14",
       "marker": "adminPanelBtn"
     },
     "v79/service-worker.js": {
-      "sha": "22b03a44ca703c294ae61f9a358051d38be99644",
-      "marker": "crypto-lab-v79-7930-pwa3"
+      "sha": "c3c0c7311592ee24be3d557278dcb75994d76334",
+      "marker": "crypto-lab-v79-7930-free1"
     }
   }
 }
