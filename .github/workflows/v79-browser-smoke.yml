@@ -64,6 +64,26 @@ jobs:
           cat /tmp/crypto-lab-http.log
           exit 1
 
+      - name: Validate D W M analysis timeframes
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const chart = fs.readFileSync('v79/chart.html', 'utf8');
+          const ai = fs.readFileSync('v79/ai.html', 'utf8');
+          const required = [
+            ['Chart 1D', chart, 'value="1d">1D'],
+            ['Chart 1W', chart, 'value="1w">1W'],
+            ['Chart 1M', chart, 'value="1M">1M'],
+            ['AI 1D', ai, '<option>1d</option>'],
+            ['AI 1W', ai, '<option>1w</option>'],
+            ['AI 1M', ai, '<option>1M</option>']
+          ];
+          for (const [label, source, marker] of required) {
+            if (!source.includes(marker)) throw new Error(`${label} missing`);
+          }
+          console.log('D/W/M analytical timeframe contract OK');
+          NODE
+
       - name: Run stable v79 browser regression
         run: npm run test:v79:browser -- --grep-invert "v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive"
         env:
