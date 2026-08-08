@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7924';
+  const BUILD='7930free4';
   if (!ROUTES.some(route => route[0] === 'support')) ROUTES.push(['support', '❓']);
   if (!T.ru.nav.includes('Поддержка')) T.ru.nav.push('Поддержка');
   if (!T.uk.nav.includes('Підтримка')) T.uk.nav.push('Підтримка');
@@ -8,14 +8,17 @@
 
   const previousFrameUrl = frameUrl;
   const previousOpen = open;
+  const handled = new Set(['support','education']);
 
   frameUrl = function(route, signal) {
-    if (route === 'support') return './support.html?' + new URLSearchParams({ lang });
+    const params = new URLSearchParams({ lang });
+    if (route === 'support') return './support.html?' + params;
+    if (route === 'education') return './education.html?' + params;
     return previousFrameUrl(route, signal);
   };
 
   open = function(route, signal) {
-    if (route !== 'support') return previousOpen(route, signal);
+    if (!handled.has(route)) return previousOpen(route, signal);
     current = route;
     $('nav').querySelectorAll('button').forEach(button => button.classList.toggle('on', button.dataset.route === route));
     $('side').classList.remove('open');
@@ -42,5 +45,5 @@
 
   translate();
   const requested = new URLSearchParams(location.search).get('route');
-  if (requested === 'support') setTimeout(() => open('support'), 0);
+  if (handled.has(requested)) setTimeout(() => open(requested), 0);
 })();
