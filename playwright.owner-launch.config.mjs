@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   testMatch: /v79-owner-launch-smoke\.spec\.js/,
-  timeout: 90_000,
+  timeout: 45_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
   workers: 1,
@@ -14,7 +14,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    serviceWorkers: 'allow'
+    serviceWorkers: 'block'
   },
   projects: [
     { name: 'owner-desktop-chromium', use: { ...devices['Desktop Chrome'], browserName: 'chromium', viewport: { width: 1440, height: 900 } } }
