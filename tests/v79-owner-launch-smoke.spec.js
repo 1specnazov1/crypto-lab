@@ -110,6 +110,9 @@ async function openShell(page){
 
 test('shell routes target every required owner module',async({page})=>{
   await openShell(page);
+  for(const [,file] of ROUTES){
+    await page.route(`**/v79/${file}*`,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body></body></html>'}));
+  }
   for(const [route,file] of ROUTES){
     await page.evaluate(routeName=>document.querySelector(`#nav button[data-route="${routeName}"]`)?.click(),route);
     const deadline=Date.now()+5000;
@@ -127,6 +130,7 @@ test('shell routes target every required owner module',async({page})=>{
     }
     if(last!=='1|1|1')throw new Error(`${route} shell target: ${last}`);
   }
+  await page.evaluate(()=>{const frame=document.getElementById('frame');if(frame)frame.src='about:blank';});
 });
 
 test('required owner modules render their functional DOM',async({page})=>{
