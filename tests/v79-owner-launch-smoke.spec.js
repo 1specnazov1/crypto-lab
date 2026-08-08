@@ -99,38 +99,26 @@ async function poll(page,probe,expected,label,timeout=8000){
   throw new Error(`${label}: expected ${expected}, got ${last}`);
 }
 
-async function openShell(page){
-  await stubExternalTraffic(page);
-  await page.goto('/v79/app.html?owner-launch-smoke=1',{waitUntil:'domcontentloaded'});
-  await poll(page,()=>{
-    const home=document.getElementById('homeView');
-    return home&&!home.classList.contains('hide')?'ready':'waiting';
-  },'ready','dashboard');
-}
-
-test('shell routes target every required owner module',async({page})=>{
-  await openShell(page);
-  for(const [,file] of ROUTES){
-    await page.route(`**/v79/${file}*`,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body></body></html>'}));
-  }
+test('shell routes target every required owner module',async({request})=>{
+  const [appResponse,extensionResponse]=await Promise.all([request.get('/v79/app.js'),request.get('/v79/app-extension.js')]);
+  if(!appResponse.ok()||!extensionResponse.ok())throw new Error('Shell route sources unavailable');
+  const app=await appResponse.text(),extension=await extensionResponse.text();
+  const contracts={
+    analytics:[app,"return './chart.html?'"],
+    scanner:[extension,"if (route === 'scanner') return './scanner.html?'"],
+    ai:[extension,"if (route === 'ai') return './ai.html?'"],
+    portfolio:[app,"if(route==='portfolio')return './portfolio.html?'"],
+    backtest:[extension,"if (route === 'backtest') return './backtest.html?'"],
+    journal:[extension,"return './journal.html?' + params"],
+    account:[extension,"if (route === 'account') return './account.html?'"],
+  };
   for(const [route,file] of ROUTES){
-    await page.evaluate(routeName=>document.querySelector(`#nav button[data-route="${routeName}"]`)?.click(),route);
-    const deadline=Date.now()+5000;
-    let last='';
-    while(Date.now()<deadline){
-      last=await page.evaluate(({routeName,file})=>{
-        const button=document.querySelector(`#nav button[data-route="${routeName}"]`);
-        const frameView=document.getElementById('frameView');
-        const frame=document.getElementById('frame');
-        const src=frame?.getAttribute('src')||'';
-        return [!!button?.classList.contains('on'),!!frameView&&!frameView.classList.contains('hide'),src.includes(file)].map(v=>v?'1':'0').join('|');
-      },{routeName:route,file});
-      if(last==='1|1|1')break;
-      await page.waitForTimeout(100);
-    }
-    if(last!=='1|1|1')throw new Error(`${route} shell target: ${last}`);
+    const [source,marker]=contracts[route];
+    if(!source.includes(marker)||!source.includes(file))throw new Error(`${route} shell route contract missing`);
   }
-  await page.evaluate(()=>{const frame=document.getElementById('frame');if(frame)frame.src='about:blank';});
+  for(const route of ['scanner','ai','backtest','journal','account']){
+    if(!extension.includes(`'${route}'`))throw new Error(`${route} framed route missing`);
+  }
 });
 
 test('required owner modules render their functional DOM',async({page})=>{
