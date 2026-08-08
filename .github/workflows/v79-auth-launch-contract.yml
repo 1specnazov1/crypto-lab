@@ -6,10 +6,12 @@ on:
     paths:
       - 'v79/registration-consent.js'
       - 'v79/auth-gateway.js'
+      - 'v79/recovery.html'
       - 'supabase/functions/crypto-lab-v79-register/index.ts'
+      - 'supabase/functions/crypto-lab-v79-confirm/index.ts'
       - 'supabase/functions/crypto-lab-v79-recover/index.ts'
+      - 'supabase/functions/crypto-lab-v79-recovery-complete/index.ts'
       - 'supabase/functions/crypto-lab-mail-dispatch/index.ts'
-      - 'supabase/migrations/*owner_admin_bootstrap*.sql'
       - '.github/workflows/v79-auth-launch-contract.yml'
   workflow_dispatch:
 
@@ -19,49 +21,65 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Validate four-document registration consent
+      - name: Validate public free registration consent
         run: |
           python3 - <<'PY'
           from pathlib import Path
           text=Path('v79/registration-consent.js').read_text()
-          for key in ('terms','privacy','refund','risk'):
+          assert "REQUIRED_KEYS=new Set(['terms','privacy','risk'])" in text
+          for key in ('terms','privacy','risk'):
               assert f"'{key}'" in text
-          assert "REQUIRED_KEYS=new Set(['terms','privacy','refund','risk'])" in text
-          assert 'Политика возвратов' in text
-          assert 'Політика повернень' in text
-          assert 'Refund Policy' in text
-          assert 'docs.length===3' not in text
-          print('Four-document frontend consent contract passed')
+          assert "'refund'" not in text
+          assert 'free-access-ui.js' in text
+          assert './auth-gateway.js' in text
+          print('Three-document FREE frontend consent contract passed')
           PY
 
-      - name: Validate protected auth backend gates
+      - name: Validate protected public free auth backend
         run: |
           python3 - <<'PY'
           from pathlib import Path
           register=Path('supabase/functions/crypto-lab-v79-register/index.ts').read_text()
+          confirm=Path('supabase/functions/crypto-lab-v79-confirm/index.ts').read_text()
           recover=Path('supabase/functions/crypto-lab-v79-recover/index.ts').read_text()
+          complete=Path('supabase/functions/crypto-lab-v79-recovery-complete/index.ts').read_text()
           gateway=Path('v79/auth-gateway.js').read_text()
-          assert 'const REQUIRED_LEGAL_KEYS = ["terms", "privacy", "refund", "risk"]' in register
-          assert 'CRYPTO_PUBLIC_REGISTRATION_ENABLED' in register
-          assert 'CRYPTO_PUBLIC_RECOVERY_ENABLED' in recover
-          assert 'service_crypto_owner_admin_bootstrap_status' in register
-          assert 'owner_bootstrap' in register
-          assert 'email !== ownerEmail' in register
+          recovery_page=Path('v79/recovery.html').read_text()
+
+          assert 'LEGAL=["terms","privacy","risk"]' in register
+          assert 'crypto_commercial_runtime_flags' in register
+          assert 'public_registration_enabled' in register and 'production_launch_authorized' in register
+          assert 'crypto_account_portal_config' in register and 'registration_enabled' in register
+          assert 'registration_mode:enabled?"public_free"' in register
+          assert 'hashed_token' in register and 'crypto-lab-v79-confirm' in register
+          assert 'CRYPTO_PUBLIC_REGISTRATION_ENABLED' not in register
+          assert 'owner_bootstrap' not in register
+
+          assert 'crypto_account_portal_config' in recover and 'recovery_enabled' in recover
+          assert 'hashed_token' in recover and 'recovery.html#token_hash=' in recover
+          assert 'CRYPTO_PUBLIC_RECOVERY_ENABLED' not in recover
+
           for text,action in ((register,'crypto_register'),(recover,'crypto_recover')):
               assert 'https://challenges.cloudflare.com/turnstile/v0/siteverify' in text
               assert 'CRYPTO_TURNSTILE_SITE_KEY' in text
               assert 'CRYPTO_TURNSTILE_SECRET_KEY' in text
               assert action in text
-              assert 'RESEND_API_KEY' in text
-              assert 'CRYPTO_MAIL_FROM' in text
+              assert 'RESEND_API_KEY' in text and 'CRYPTO_MAIL_FROM' in text
+
+          assert 'verifyOtp({token_hash,type:"signup"})' in confirm
+          assert 'verifyOtp({token_hash,type:"recovery"})' in complete
+          assert 'updateUserById' in complete
+          assert 'history.replaceState' in recovery_page
+          assert 'no-referrer' in recovery_page.lower()
           assert 'direct_supabase_signup_bypassed:true' in gateway
-          print('Turnstile/mail/owner-bootstrap/feature-flag auth gates passed')
+          print('Public FREE Turnstile/mail/token-safe auth gates passed')
           PY
 
-      - name: Validate mail provider contract
+      - name: Validate mail provider action URL allowlist
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -70,28 +88,31 @@ jobs:
           assert 'Idempotency-Key' in text
           assert 'signup_confirmation' in text and 'password_recovery' in text
           assert 'ALLOWED_TEMPLATES' in text and 'ALLOWED_LOCALES' in text
-          assert 'safeActionUrl' in text and 'txhzxbizjpinowepfjkm.supabase.co' in text
+          assert 'safeActionUrl' in text
+          assert 'crypto-lab-v79-confirm' in text
+          assert '/crypto-lab/v79/recovery.html' in text
+          assert '1specnazov1.github.io' in text and 'txhzxbizjpinowepfjkm.supabase.co' in text
           assert 'body.subject' not in text and 'body.html' not in text
           assert 'SUPABASE_SERVICE_ROLE_KEY' in text
-          print('Direct Resend provider contract passed')
+          print('Public FREE Resend action URL contract passed')
           PY
 
-      - name: Validate one-time owner admin bootstrap
+      - name: Validate secret and stable v78 boundaries
         run: |
+          test "$(git hash-object index.html)" = '4a278c891d37b3760ec1ac988690ea9ad587b24e'
           python3 - <<'PY'
           from pathlib import Path
-          bootstrap=Path('supabase/migrations/20260807185300_prepare_one_time_owner_admin_bootstrap.sql').read_text().lower()
-          helper=Path('supabase/migrations/20260807191300_expose_service_only_owner_admin_bootstrap_status.sql').read_text().lower()
-          assert 'crypto_admin_bootstrap_config' in bootstrap
-          assert "role='admin'" in bootstrap
-          assert 'consumed_at' in bootstrap and 'authorized=false' in bootstrap
-          assert 'email_confirmed_at' in bootstrap
-          assert 'insert into auth.users' not in bootstrap
-          assert 'create user' not in bootstrap
-          assert 'service_crypto_owner_admin_bootstrap_status' in helper
-          assert 'security definer' in helper
-          assert 'revoke all' in helper and 'anon' in helper and 'authenticated' in helper
-          assert 'grant execute' in helper and 'service_role' in helper
-          assert 'allowed_email' in helper and 'admin_exists' in helper
-          print('One-time real-owner admin bootstrap contract passed')
+          import re
+          paths=[
+            'v79/auth-gateway.js','v79/registration-consent.js','v79/recovery.html',
+            'supabase/functions/crypto-lab-v79-register/index.ts',
+            'supabase/functions/crypto-lab-v79-confirm/index.ts',
+            'supabase/functions/crypto-lab-v79-recover/index.ts',
+            'supabase/functions/crypto-lab-v79-recovery-complete/index.ts',
+            'supabase/functions/crypto-lab-mail-dispatch/index.ts'
+          ]
+          text='\n'.join(Path(p).read_text() for p in paths)
+          for pattern in [r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',r'Bearer\s+eyJ']:
+              assert not re.search(pattern,text,re.I),pattern
+          print('Auth secret/v78 boundaries passed')
           PY
