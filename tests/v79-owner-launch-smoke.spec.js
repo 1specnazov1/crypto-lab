@@ -5,6 +5,7 @@ const ROUTES = [
   ['scanner', 'scanner.html', '#body'],
   ['ai', 'ai.html', '#run'],
   ['portfolio', 'portfolio.html', '#totalValue'],
+  ['backtest', 'backtest.html', '#run'],
   ['journal', 'journal.html', '#tradeForm'],
   ['account', 'account.html', '#accountView']
 ];
@@ -21,6 +22,12 @@ const SUPABASE_STUB = `
     limits: { daily_ai_requests: 3, daily_backtests: 3, daily_scanner_views: 10, max_portfolio_assets: 5, max_favorites: 10 },
     usage_today: { ai_requests: 0, backtests: 0, scanner_views: 0 },
     counts: { portfolio_assets: 0, favorites: 0 }
+  };
+  const adminSummary = {
+    users_total: 1,
+    plans: { FREE: 1, BASIC: 0, PRO: 0 },
+    pending_requests: [],
+    recent_users: [{ user_id: 'owner-smoke', email: 'owner-smoke@example.invalid', display_name: 'Owner Smoke', role: 'admin', plan: 'FREE', status: 'active' }]
   };
   const plans = [
     { plan: 'FREE', display_order: 1, daily_ai_requests: 3, daily_backtests: 3, max_portfolio_assets: 5, max_favorites: 10 },
@@ -55,6 +62,8 @@ const SUPABASE_STUB = `
       if(name==='get_my_crypto_account') return {data:account,error:null};
       if(name==='get_crypto_feature_status') return {data:{allowed:true,remaining:3,limit:3},error:null};
       if(name==='get_my_crypto_support_tickets') return {data:[],error:null};
+      if(name==='get_crypto_admin_summary') return {data:adminSummary,error:null};
+      if(name==='admin_set_crypto_subscription') return {data:{plan:'FREE'},error:null};
       return {data:{},error:null};
     },
     functions: { invoke: async name => name==='crypto-lab-v79-scanner'
@@ -140,6 +149,17 @@ test('required owner modules render their functional DOM',async({page})=>{
     }
     if(last!=='ready')throw new Error(`${route} direct module: ${last}`);
   }
+});
+
+test('admin dashboard renders for owner admin session',async({page})=>{
+  await stubExternalTraffic(page);
+  await page.goto('/v79/admin.html?owner-launch-smoke=1',{waitUntil:'domcontentloaded'});
+  await poll(page,()=>{
+    const dashboard=document.getElementById('dashboard');
+    const login=document.getElementById('login');
+    const users=document.getElementById('users');
+    return dashboard&&!dashboard.classList.contains('hide')&&login?.classList.contains('hide')&&users?.textContent==='1'?'admin-ready':'waiting';
+  },'admin-ready','admin dashboard');
 });
 
 test('owner logout and repeated login remain responsive',async({page})=>{
