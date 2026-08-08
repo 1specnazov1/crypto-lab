@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled.",
+  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled; present Scanner as shadow-only on the public home screen.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -11,8 +11,8 @@
   "pwa_cache": "crypto-lab-v79-7930-free1",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "5ec39f34dd2f2adb279bdd480e60581cb97e5ba3",
-      "marker": "app-extension.js?v=7930pwa1"
+      "sha": "c70d71e3c9f8ff5abde094a23ec8b513537233eb",
+      "marker": "public-free-home.js?v=7930free1"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,7 +23,7 @@
       "marker": "adminPanelBtn"
     },
     "v79/service-worker.js": {
-      "sha": "c3c0c7311592ee24be3d557278dcb75994d76334",
+      "sha": "14deb90a2fae07d2ee81cb960e097a43ba98c00a",
       "marker": "crypto-lab-v79-7930-free1"
     }
   }
