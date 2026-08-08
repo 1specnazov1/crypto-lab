@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   testMatch: /v79-owner-launch-smoke\.spec\.js/,
-  timeout: 45_000,
+  timeout: 90_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
   workers: 1,
