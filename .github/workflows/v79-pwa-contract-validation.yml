@@ -8,6 +8,8 @@ on:
       - 'v79/service-worker.js'
       - 'v79/app-extension.js'
       - 'v79/app.html'
+      - 'v79/public-free-home.js'
+      - 'v79/home-chart.js'
       - 'v79/offline.html'
       - 'v79/free-access-ui.js'
       - 'v79/recovery.html'
@@ -38,9 +40,11 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free1'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free2'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
+          grep -F "./public-free-home.js" v79/service-worker.js
+          grep -F "./home-chart.js" v79/service-worker.js
           grep -F "./recovery.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -48,6 +52,18 @@ jobs:
             echo 'Service worker must not perform write requests' >&2
             exit 1
           fi
+      - name: Validate public free home chart contract
+        run: |
+          node --check v79/home-chart.js
+          grep -F "home-chart.js?v=7930free2" v79/public-free-home.js
+          grep -F "BTCUSDT" v79/home-chart.js
+          grep -F "data-home-tf" v79/home-chart.js
+          grep -F "1m" v79/home-chart.js
+          grep -F "1D" v79/home-chart.js
+          grep -F "1W" v79/home-chart.js
+          grep -F "1M" v79/home-chart.js
+          grep -F "quoteVolume" v79/home-chart.js
+          grep -F "pointermove" v79/home-chart.js
       - name: Validate install and public free navigation
         run: |
           grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
