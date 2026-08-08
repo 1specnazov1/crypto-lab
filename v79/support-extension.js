@@ -43,6 +43,9 @@
     }
   });
 
+  // PUBLIC FREE: refunds are not a user-facing flow while all payments are disabled.
+  document.getElementById('refundLink')?.remove();
+
   translate();
   const requested = new URLSearchParams(location.search).get('route');
   if (handled.has(requested)) setTimeout(() => open(requested), 0);
