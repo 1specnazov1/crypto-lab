@@ -2,13 +2,13 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled; present Scanner as shadow-only and add the informative BTC/USDT candlestick mini-terminal on the public home screen.",
+  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled; present Scanner as shadow-only, add the informative BTC/USDT candlestick mini-terminal, and polish the mobile shell with compact Binance-style bottom navigation and responsive chart metrics.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free2",
+  "pwa_cache": "crypto-lab-v79-7930-free3",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "c70d71e3c9f8ff5abde094a23ec8b513537233eb",
@@ -23,8 +23,8 @@
       "marker": "adminPanelBtn"
     },
     "v79/service-worker.js": {
-      "sha": "56122926d7e9db3cc0427660e68c7dc3f41b8d09",
-      "marker": "crypto-lab-v79-7930-free2"
+      "sha": "0d26ad9f24e32ef0c48d7b96f473e9a72ff9abf4",
+      "marker": "crypto-lab-v79-7930-free3"
     }
   }
 }
