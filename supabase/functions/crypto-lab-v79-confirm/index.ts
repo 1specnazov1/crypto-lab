@@ -1,0 +1,6 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+const SUCCESS="https://1specnazov1.github.io/crypto-lab/v79/app.html?route=account&auth=confirmed";
+const FAILURE="https://1specnazov1.github.io/crypto-lab/v79/app.html?route=account&auth=confirmation_failed";
+function redirect(url:string){return new Response(null,{status:302,headers:{Location:url,"Cache-Control":"no-store","Referrer-Policy":"no-referrer"}})}
+Deno.serve(async req=>{if(req.method!=="GET")return Response.json({ok:false,error:"GET only"},{status:405,headers:{"Cache-Control":"no-store"}});try{const url=new URL(req.url),token_hash=String(url.searchParams.get("token_hash")||"").trim();if(token_hash.length<20||token_hash.length>256)return redirect(FAILURE);const supabaseUrl=Deno.env.get("SUPABASE_URL")||"",anon=Deno.env.get("SUPABASE_ANON_KEY")||"";if(!supabaseUrl||!anon)return redirect(FAILURE);const client=createClient(supabaseUrl,anon,{auth:{persistSession:false,autoRefreshToken:false}});const {error}=await client.auth.verifyOtp({token_hash,type:"signup"});if(error){console.error("crypto-lab-v79-confirm",error.message);return redirect(FAILURE)}return redirect(SUCCESS)}catch(error){console.error("crypto-lab-v79-confirm",error);return redirect(FAILURE)}});
