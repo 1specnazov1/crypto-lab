@@ -15,6 +15,7 @@
       if(path.endsWith('/admin.html')){
         add(doc,'adminCommercialScript','./admin-commercial.js');
         add(doc,'adminBillingEventsScript','./admin-billing-events.js');
+        add(doc,'adminFriendsFamilyScript','./admin-friends-family.js');
         add(doc,'adminProviderReadinessScript','./admin-provider-readiness.js');
         add(doc,'adminAuditScript','./admin-audit.js');
         add(doc,'adminSessionSecurityScript','./admin-session-security.js');
