@@ -5,14 +5,22 @@ on:
     paths:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
+      - 'tests/v79-owner-launch-smoke.spec.js'
+      - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'playwright.config.mjs'
+      - 'playwright.owner-launch.config.mjs'
+      - 'playwright.owner-mobile.config.mjs'
       - 'package.json'
       - '.github/workflows/v79-browser-smoke.yml'
   pull_request:
     paths:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
+      - 'tests/v79-owner-launch-smoke.spec.js'
+      - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'playwright.config.mjs'
+      - 'playwright.owner-launch.config.mjs'
+      - 'playwright.owner-mobile.config.mjs'
       - 'package.json'
       - '.github/workflows/v79-browser-smoke.yml'
   workflow_dispatch:
@@ -56,8 +64,18 @@ jobs:
           cat /tmp/crypto-lab-http.log
           exit 1
 
-      - name: Run v79 browser smoke
-        run: npm run test:v79:browser
+      - name: Run stable v79 browser regression
+        run: npm run test:v79:browser -- --grep-invert "v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive"
+        env:
+          CI: 'true'
+
+      - name: Run owner desktop launch path
+        run: npx playwright test --config=playwright.owner-launch.config.mjs
+        env:
+          CI: 'true'
+
+      - name: Run owner mobile navigation
+        run: npx playwright test --config=playwright.owner-mobile.config.mjs
         env:
           CI: 'true'
 
