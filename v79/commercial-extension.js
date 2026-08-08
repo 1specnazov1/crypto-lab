@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930free1';
+  const BUILD='7930';
   // protectedAuthGatewayScript remains a release-contract marker; auth is loaded by registration-consent.js.
   // Public free mode intentionally does not load commercial, billing, provider or friends/family payment UI.
   const frame=document.getElementById('frame');
