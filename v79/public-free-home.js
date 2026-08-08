@@ -46,7 +46,18 @@
       if(name==='Telegram AUTO')value.textContent='OFF';
     });
   };
+
+  function loadHomeChart(){
+    if(document.getElementById('homeBtcChartScript'))return;
+    const script=document.createElement('script');
+    script.id='homeBtcChartScript';
+    script.src='./home-chart.js?v=7930free2';
+    script.async=false;
+    document.head.appendChild(script);
+  }
+
   applyStatic();
   try{translate();applyStatic();renderStatus();renderScanner();}catch{}
+  loadHomeChart();
   document.getElementById('lang')?.addEventListener('change',()=>setTimeout(()=>{applyStatic();try{renderStatus();renderScanner();}catch{}},0));
 })();
