@@ -6,6 +6,8 @@ on:
     paths:
       - 'v79/auth-gateway.js'
       - 'v79/registration-consent.js'
+      - 'v79/free-access-ui.js'
+      - 'v79/recovery.html'
       - 'v79/commercial-extension.js'
       - 'v79/service-worker.js'
       - 'docs/AUTH_GATEWAY_HARDENING_7930.md'
@@ -26,17 +28,22 @@ jobs:
         run: |
           node --check v79/auth-gateway.js
           node --check v79/registration-consent.js
+          node --check v79/free-access-ui.js
           node --check v79/commercial-extension.js
           node --check v79/service-worker.js
           grep -F "protectedAuthGatewayScript" v79/commercial-extension.js
+          grep -F "publicFreeAccessScript" v79/commercial-extension.js
           grep -F "./auth-gateway.js" v79/service-worker.js
-          grep -F "crypto-lab-v79-7930-pwa2" v79/service-worker.js
+          grep -F "crypto-lab-v79-7930-free1" v79/service-worker.js
           grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
           grep -F "crypto_register" v79/auth-gateway.js
           grep -F "crypto_recover" v79/auth-gateway.js
+          grep -F "free-access-ui.js" v79/registration-consent.js
           ! grep -F "new MutationObserver(render)" v79/registration-consent.js
+          ! grep -F "friendsFamilyAccountScript" v79/commercial-extension.js
+          ! grep -F "adminBillingEventsScript" v79/commercial-extension.js
 
-      - name: Verify live protected registration lifecycle and disabled recovery
+      - name: Verify live protected public free auth lifecycle
         run: |
           curl --fail --silent --show-error \
             -H 'Origin: https://1specnazov1.github.io' \
@@ -50,72 +57,58 @@ jobs:
           import json
           register=json.load(open('/tmp/register.json'))
           recover=json.load(open('/tmp/recover.json'))
+
           assert register['ok'] is True
+          assert register['enabled'] is True
+          assert register['registration_mode']=='public_free'
+          assert register['free_access'] is True
           assert register['captcha_provider']=='turnstile'
           assert register['captcha_action']=='crypto_register'
           assert register['password_min_length']==10
-          assert set(register['required_legal_keys'])=={'terms','privacy','refund','risk'}
-          assert len(register['documents'])==4
-          assert register['readiness']['feature_flag'] is False
+          assert set(register['required_legal_keys'])=={'terms','privacy','risk'}
+          assert len(register['documents'])==3
+          assert register['readiness']['feature_flag'] is True
+          assert register['readiness']['portal'] is True
           assert register['readiness']['turnstile'] is True
           assert register['readiness']['mail_provider'] is True
           assert register['readiness']['mail_provider_code']=='resend'
           assert register['readiness']['legal_documents'] is True
-
-          mode=register['registration_mode']
-          assert mode in {'owner_bootstrap','disabled'}
-          if mode=='owner_bootstrap':
-              assert register['enabled'] is True
-              assert register['readiness']['owner_bootstrap'] is True
-              assert isinstance(register['site_key'],str) and register['site_key']
-          else:
-              # Expected after the one-time real owner bootstrap has been consumed.
-              assert register['enabled'] is False
-              assert register['readiness']['owner_bootstrap'] is False
-              assert register['site_key'] is None
+          assert isinstance(register['site_key'],str) and register['site_key']
 
           assert recover['ok'] is True
-          assert recover['enabled'] is False
-          assert recover['site_key'] is None
+          assert recover['enabled'] is True
+          assert recover['free_access'] is True
           assert recover['captcha_provider']=='turnstile'
           assert recover['captcha_action']=='crypto_recover'
           assert recover['email_enumeration_safe'] is True
-          assert recover['readiness']['feature_flag'] is False
+          assert recover['readiness']['feature_flag'] is True
           assert recover['readiness']['turnstile'] is True
           assert recover['readiness']['mail_provider'] is True
           assert recover['readiness']['mail_provider_code']=='resend'
-          print(f"Protected auth lifecycle: {mode}; recovery disabled: OK")
+          assert isinstance(recover['site_key'],str) and recover['site_key']
+          print('Protected public FREE registration and recovery: OK')
           PY
 
-      - name: Verify outsider registration is fail-closed after owner bootstrap
-        run: |
-          status=$(curl --silent --show-error \
-            -o /tmp/outsider-register.json \
-            -w '%{http_code}' \
-            -H 'Origin: https://1specnazov1.github.io' \
-            -H 'Content-Type: application/json' \
-            --data '{"email":"outsider-v79-smoke@example.invalid","password":"NotUsed123A","display_name":"Outsider Smoke","locale":"en","timezone":"UTC","captcha_token":""}' \
-            'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register')
-          test "$status" = '503'
-          python - <<'PY'
-          import json
-          body=json.load(open('/tmp/outsider-register.json'))
-          assert body.get('ok') is False
-          assert body.get('code') == 'REGISTRATION_DISABLED'
-          print('Outsider registration fail-closed: OK')
-          PY
-
-      - name: Verify release boundaries and public-secret safety
+      - name: Verify free auth and payment boundaries
         run: |
           test "$(git hash-object index.html)" = '4a278c891d37b3760ec1ac988690ea9ad587b24e'
           python - <<'PY'
           import pathlib,re
-          files=[pathlib.Path('v79/auth-gateway.js'),pathlib.Path('v79/commercial-extension.js'),pathlib.Path('v79/service-worker.js'),pathlib.Path('docs/AUTH_GATEWAY_HARDENING_7930.md')]
-          text='\n'.join(p.read_text(encoding='utf-8') for p in files)
+          gateway=pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
+          consent=pathlib.Path('v79/registration-consent.js').read_text(encoding='utf-8')
+          extension=pathlib.Path('v79/commercial-extension.js').read_text(encoding='utf-8')
+          sw=pathlib.Path('v79/service-worker.js').read_text(encoding='utf-8')
+          recovery=pathlib.Path('v79/recovery.html').read_text(encoding='utf-8')
+          text='\n'.join([gateway,consent,extension,sw,recovery])
           forbidden=[r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'Bearer\s+eyJ']
           for pattern in forbidden:
-            assert not re.search(pattern,text,re.I),pattern
-          assert 'CRYPTO_PUBLIC_REGISTRATION_ENABLED' not in pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
-          assert 'CRYPTO_TURNSTILE_SECRET_KEY' not in pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
-          print('Auth release boundaries: OK')
+              assert not re.search(pattern,text,re.I),pattern
+          assert 'CRYPTO_TURNSTILE_SECRET_KEY' not in gateway
+          assert "new Set(['terms','privacy','risk'])" in consent
+          assert 'friendsFamilyAccountScript' not in extension
+          assert 'adminBillingEventsScript' not in extension
+          assert "publicFreeAccessScript" in extension
+          assert "crypto-lab-v79-7930-free1" in sw
+          assert "referrer" in recovery.lower() and "no-referrer" in recovery.lower()
+          print('Public FREE auth/payment boundaries: OK')
           PY
