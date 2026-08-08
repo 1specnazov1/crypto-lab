@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-only runtime stabilization and analytical-module refresh: preserve protected auth and lightweight owner-admin access, keep Chart/Scanner/AI/Backtest network-first, without changing v78, registration, payments, BASIC/PRO activation, mainnet, or refund execution",
+  "reason": "Owner-only stabilization plus Friends & Family sandbox pilot UI: preserve protected auth, add allowlist-only test payment controls and fresh pilot modules, without changing v78, public registration, global paid entitlement/checkout, mainnet, or real-money refund execution",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -15,15 +15,15 @@
       "marker": "app-extension.js?v=7930pwa1"
     },
     "v79/commercial-extension.js": {
-      "sha": "7a146edad78392b736ac7183ab6d8ac49529c4ad",
-      "marker": "sessionSecurityScript"
+      "sha": "d0341527e66b79bfa559b1e755527b18d7bddef1",
+      "marker": "friendsFamilyAccountScript"
     },
     "v79/auth-gateway.js": {
       "sha": "c767d2104444f0384f787393a232f6e5ddb94e14",
       "marker": "adminPanelBtn"
     },
     "v79/service-worker.js": {
-      "sha": "40f212ff7112a2f5ebf2caaabb61c70d43fc5c33",
+      "sha": "22b03a44ca703c294ae61f9a358051d38be99644",
       "marker": "crypto-lab-v79-7930-pwa3"
     }
   }
