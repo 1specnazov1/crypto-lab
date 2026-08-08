@@ -88,7 +88,9 @@ jobs:
           boundaries=overlay.get('boundaries',{})
           assert boundaries.get('v79_published_over_v78') is False
           assert boundaries.get('payment_activation_changed') is False
-          assert boundaries.get('registration_activation_changed') is False
+          assert boundaries.get('registration_activation_changed') is True
+          reason=overlay.get('reason','').lower()
+          assert 'public free' in reason
           application=base.setdefault('application',{})
           application['pwa_cache']=overlay['pwa_cache']
           overrides=overlay.get('asset_overrides',{})
@@ -101,7 +103,7 @@ jobs:
           if missing:
               raise SystemExit(f'overlay references assets absent from base manifest: {sorted(missing)}')
           base_path.write_text(json.dumps(base,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-          print('Applied audited v79 hotfix overlay for CI validation only')
+          print('Applied owner-authorized PUBLIC FREE v79 overlay for CI validation only')
           PY
 
       - name: Validate release gate and drift manifest
@@ -111,11 +113,11 @@ jobs:
           import json,re,subprocess,sys
           root=Path('v79');errors=[]
           required_files=[
-            'index.html','app.html','app.css','app.js','app-extension.js','support-extension.js','commercial-extension.js',
+            'index.html','app.html','app.css','app.js','public-free-home.js','app-extension.js','support-extension.js','commercial-extension.js',
             'accessibility.js','module-accessibility.js','platform.css','module-mobile.css','manifest.webmanifest','icon.svg','offline.html',
             'chart.html','portfolio.html','calculator.html','backtest.html','backtest-history.js','scanner.html','scanner-actions.js','ai.html',
-            'journal.html','journal.js','journal-import.js','journal-analytics.js','account.html','account-actions.js','session-security.js',
-            'registration-consent.js','commercial.js','subscription-lifecycle.js','support.html','admin.html','admin-health.js','admin-incidents.js',
+            'journal.html','journal.js','journal-import.js','journal-analytics.js','account.html','account-actions.js','session-security.js','free-access-ui.js',
+            'registration-consent.js','auth-gateway.js','recovery.html','commercial.js','subscription-lifecycle.js','support.html','admin.html','admin-health.js','admin-incidents.js',
             'admin-slo.js','admin-ops-summary.js','admin-integrity.js','admin-drift.js','admin-deletions.js','admin-support.js','admin-commercial.js',
             'admin-billing-events.js','admin-provider-readiness.js','admin-audit.js','admin-session-security.js','admin-readiness.js',
             'admin-telemetry.js','admin-ai-telemetry.js','legal.js','privacy.html','terms.html','risk-disclosure.html','service-worker.js'
@@ -137,12 +139,12 @@ jobs:
               if f'crypto-lab-v79-{build}' not in worker and f'crypto-lab-v79-{build}-pwa1' not in worker:errors.append(f'service-worker build mismatch {build}')
 
           markers={
-            'commercial-extension.js':['adminOperationalSummaryScript','adminDataIntegrityScript','adminReleaseDriftScript','admin-drift.js'],
+            'commercial-extension.js':['adminOperationalSummaryScript','adminDataIntegrityScript','adminReleaseDriftScript','admin-drift.js','publicFreeAccessScript'],
             'admin-drift.js':['get_crypto_admin_release_drift','get_crypto_admin_rollback_readiness','releaseDriftPanel'],
             'admin-integrity.js':['get_crypto_admin_data_integrity','dataIntegrityPanel'],
             'admin-ops-summary.js':['get_crypto_admin_operational_summary','operationalSummary'],
-            'service-worker.js':['admin-drift.js','admin-integrity.js','admin-ops-summary.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
-            'app.html':['Content-Security-Policy','commercial-extension.js?v=7930','accessibility.js?v=7930'],
+            'service-worker.js':['public-free-home.js','free-access-ui.js','recovery.html','admin-drift.js','admin-integrity.js','admin-ops-summary.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
+            'app.html':['Content-Security-Policy','public-free-home.js?v=7930free1','commercial-extension.js?v=7930','accessibility.js?v=7930','PUBLIC FREE'],
             'manifest.webmanifest':['"display": "standalone"','icon.svg']
           }
           for name,items in markers.items():
@@ -162,8 +164,8 @@ jobs:
               for ref in shell_refs:
                   clean=ref.split('?',1)[0].split('#',1)[0]
                   if clean!='./' and not (root/clean[2:]).exists():errors.append(f'service-worker missing cached file {ref}')
-              for required in ['./admin-drift.js','./admin-integrity.js','./admin-ops-summary.js','./session-security.js']:
-                  if required not in shell_refs:errors.append(f'service-worker security asset not cached {required}')
+              for required in ['./admin-drift.js','./admin-integrity.js','./admin-ops-summary.js','./session-security.js','./public-free-home.js','./free-access-ui.js','./recovery.html']:
+                  if required not in shell_refs:errors.append(f'service-worker security/free asset not cached {required}')
 
           forbidden=['SUPABASE_SERVICE_ROLE_KEY','MONITOR_SECRET','TELEGRAM_BOT_TOKEN','OPENAI_API_KEY','RESEND_API_KEY','CRYPTO_BILLING_WEBHOOK_SECRET','CRYPTO_TURNSTILE_SECRET_KEY','LIQPAY_PRIVATE_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','CRYPTO_MAIL_RELAY_PUBLISHABLE_KEY','sb_secret_']
           for path in root.iterdir():
@@ -207,5 +209,5 @@ jobs:
           if schema.get('title')!='CRYPTO LAB Normalized Billing Event v1':errors.append('normalized billing schema title mismatch')
           if errors:
               print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
-          print(f'v79 release and drift gate passed for build {build}')
+          print(f'v79 PUBLIC FREE release and drift gate passed for build {build}')
           PY
