@@ -10,6 +10,7 @@ on:
       - 'v79/app.html'
       - 'v79/public-free-home.js'
       - 'v79/home-chart.js'
+      - 'v79/platform.css'
       - 'v79/offline.html'
       - 'v79/free-access-ui.js'
       - 'v79/recovery.html'
@@ -40,11 +41,13 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free2'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free3'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
           grep -F "./home-chart.js" v79/service-worker.js
+          grep -F "./platform.css" v79/service-worker.js
+          grep -F "'platform.css'" v79/service-worker.js
           grep -F "./recovery.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -64,6 +67,14 @@ jobs:
           grep -F "1M" v79/home-chart.js
           grep -F "quoteVolume" v79/home-chart.js
           grep -F "pointermove" v79/home-chart.js
+      - name: Validate mobile Binance-style shell
+        run: |
+          grep -F ".side:not(.open)" v79/platform.css
+          grep -F "grid-template-columns:repeat(5" v79/platform.css
+          grep -F ".side.open" v79/platform.css
+          grep -F "box-shadow:100vw" v79/platform.css
+          grep -F "#homeChartCard.home-terminal-chart .home-chart-metrics" v79/platform.css
+          grep -F "padding-bottom:calc(62px + var(--safe-bottom))" v79/platform.css
       - name: Validate install and public free navigation
         run: |
           grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
