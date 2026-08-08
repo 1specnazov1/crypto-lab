@@ -79,8 +79,8 @@
 
   function updateMetrics(){
     const list=visibleCandles();if(!list.length)return;
-    const first=list[0],last=list[list.length-1],hi=Math.max(...list.map(c=>c.high)),lo=Math.min(...list.map(c=>c.low)),chg=(last.close-first.open)/first.open*100;
-    $h('homeChartPrice').textContent=price(last.close);$h('homeChartChange').textContent=` ${chg>=0?'+':''}${chg.toFixed(2)}%`;$h('homeChartChange').style.color=chg>=0?'#0ecb81':'#f6465d';
+    const first=list[0],last=list[list.length-1],current=Number.isFinite(ticker?.lastPrice)?ticker.lastPrice:last.close,hi=Math.max(...list.map(c=>c.high),current),lo=Math.min(...list.map(c=>c.low),current),chg=(current-first.open)/first.open*100;
+    $h('homeChartPrice').textContent=price(current);$h('homeChartChange').textContent=` ${chg>=0?'+':''}${chg.toFixed(2)}%`;$h('homeChartChange').style.color=chg>=0?'#0ecb81':'#f6465d';
     $h('homeChartHigh').textContent=price(hi);$h('homeChartLow').textContent=price(lo);$h('homeChartVolume').textContent=compact(ticker?.quoteVolume);$h('homeChartUpdated').textContent=dt(last.closeTime||Date.now());
   }
 
@@ -93,7 +93,8 @@
   function draw(){
     const {w,h}=fitCanvas(),list=visibleCandles();ctx.clearRect(0,0,w,h);if(!list.length)return;
     const left=6,right=69,top=14,bottom=26,volH=Math.max(45,Math.min(62,h*.2)),plotW=w-left-right,priceH=h-top-bottom-volH-7,priceBottom=top+priceH,volTop=priceBottom+8,volBottom=h-bottom;
-    let lo=Math.min(...list.map(c=>c.low)),hi=Math.max(...list.map(c=>c.high));const pad=(hi-lo||hi*.002||1)*.07;lo-=pad;hi+=pad;
+    const current=Number.isFinite(ticker?.lastPrice)?ticker.lastPrice:list[list.length-1].close;
+    let lo=Math.min(...list.map(c=>c.low),current),hi=Math.max(...list.map(c=>c.high),current);const pad=(hi-lo||hi*.002||1)*.07;lo-=pad;hi+=pad;
     const y=p=>top+(hi-p)/(hi-lo)*priceH,x=i=>left+(i+.5)/list.length*plotW,step=plotW/list.length,body=Math.max(2,Math.min(8,step*.62)),maxVol=Math.max(...list.map(c=>c.volume),1);
 
     ctx.lineWidth=1;ctx.font='9px system-ui';ctx.textBaseline='middle';
@@ -103,7 +104,7 @@
 
     list.forEach((c,i)=>{const xx=x(i),up=c.close>=c.open,col=up?'#0ecb81':'#f6465d';ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(xx,y(c.high));ctx.lineTo(xx,y(c.low));ctx.stroke();const y1=y(Math.max(c.open,c.close)),y2=y(Math.min(c.open,c.close)),bh=Math.max(1.5,y2-y1);ctx.fillRect(xx-body/2,y1,body,bh);const vh=(c.volume/maxVol)*(volBottom-volTop);ctx.globalAlpha=.38;ctx.fillRect(xx-body/2,volBottom-vh,body,vh);ctx.globalAlpha=1});
 
-    const last=list[list.length-1],ly=y(last.close);ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle=last.close>=last.open?'#0ecb81':'#f6465d';ctx.beginPath();ctx.moveTo(left,ly);ctx.lineTo(w-right+5,ly);ctx.stroke();ctx.restore();ctx.fillStyle=last.close>=last.open?'#0ecb81':'#f6465d';ctx.fillRect(w-right+5,ly-9,right-8,18);ctx.fillStyle='#0b0e11';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.fillText(nf.format(last.close),w-right/2+1,ly);
+    const last=list[list.length-1],ly=y(current),priceUp=current>=last.open;ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle=priceUp?'#0ecb81':'#f6465d';ctx.beginPath();ctx.moveTo(left,ly);ctx.lineTo(w-right+5,ly);ctx.stroke();ctx.restore();ctx.fillStyle=priceUp?'#0ecb81':'#f6465d';ctx.fillRect(w-right+5,ly-9,right-8,18);ctx.fillStyle='#0b0e11';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.fillText(nf.format(current),w-right/2+1,ly);
 
     if(hover>=0&&hover<list.length){const c=list[hover],xx=x(hover),yy=y(c.close);ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle='#9aa4b2aa';ctx.beginPath();ctx.moveTo(xx,top);ctx.lineTo(xx,volBottom);ctx.moveTo(left,yy);ctx.lineTo(w-right+4,yy);ctx.stroke();ctx.restore()}
   }

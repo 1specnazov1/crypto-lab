@@ -11,8 +11,8 @@
   "pwa_cache": "crypto-lab-v79-7930-free3",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "c70d71e3c9f8ff5abde094a23ec8b513537233eb",
-      "marker": "public-free-home.js?v=7930free1"
+      "sha": "da135ebbbcd82c16108329d598aadb226d750046",
+      "marker": "public-free-home.js?v=7930free2"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,7 +23,7 @@
       "marker": "adminPanelBtn"
     },
     "v79/service-worker.js": {
-      "sha": "0d26ad9f24e32ef0c48d7b96f473e9a72ff9abf4",
+      "sha": "f0e737b936073ad2654cc033a7cab3017a96808c",
       "marker": "crypto-lab-v79-7930-free3"
     }
   }

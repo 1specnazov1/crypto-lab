@@ -51,7 +51,7 @@
     if(document.getElementById('homeBtcChartScript'))return;
     const script=document.createElement('script');
     script.id='homeBtcChartScript';
-    script.src='./home-chart.js?v=7930free2';
+    script.src='./home-chart.js?v=7930free3';
     script.async=false;
     document.head.appendChild(script);
   }

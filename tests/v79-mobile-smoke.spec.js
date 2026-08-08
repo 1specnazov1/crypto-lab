@@ -12,6 +12,14 @@ const ROUTE_FILES = {
   account: 'account.html'
 };
 
+const BINANCE_KLINES = Array.from({ length: 120 }, (_, index) => {
+  const openTime = Date.UTC(2026, 7, 8, 0, index);
+  const open = 64_000 + index * 8;
+  const close = open + (index % 2 ? -3 : 5);
+  return [openTime, String(open), String(Math.max(open, close) + 12), String(Math.min(open, close) - 10), String(close), String(10 + index / 10), openTime + 59_999];
+});
+const BINANCE_TICKER = { symbol: 'BTCUSDT', lastPrice: '65123.45', priceChangePercent: '2.35', quoteVolume: '1450000000' };
+
 const SUPABASE_STUB = `
 (() => {
   const ownerSession = { user: { id: 'owner-smoke', email: 'owner-smoke@example.invalid' } };
@@ -143,8 +151,13 @@ async function stubExternalTraffic(page) {
         })
       });
     }
-    if (url.includes('api.binance.com') || url.includes('data-api.binance.vision')) {
+    if (url.includes('api.binance.com')) {
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
+    }
+    if (url.includes('data-api.binance.vision')) {
+      if (url.includes('/api/v3/klines')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(BINANCE_KLINES) });
+      if (url.includes('/api/v3/ticker/24hr')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(BINANCE_TICKER) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
     }
     if (url.includes('cdn.jsdelivr.net')) {
       return route.fulfill({ status: 200, contentType: 'application/javascript', body: SUPABASE_STUB });
@@ -169,6 +182,36 @@ async function expectNoBodyOverflow(page) {
   }));
   expect(Math.max(dimensions.body, dimensions.document)).toBeLessThanOrEqual(dimensions.viewport + 2);
 }
+
+test('BTC home terminal renders candles, fallback data and persistent touch timeframe controls', async ({ page }) => {
+  await openShell(page);
+  const canvas = page.locator('#homeBtcCanvas');
+  await expect(canvas).toBeVisible();
+  await expect(page.locator('[data-home-tf]')).toHaveCount(8);
+  await expect(page.locator('#homeChartState')).toHaveText('');
+  await expect(page.locator('#homeChartPrice')).toHaveText('$65,123.45');
+  await expect(page.locator('#homeChartVolume')).not.toHaveText('—');
+
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  await page.evaluate(({ x, y }) => {
+    document.querySelector('#homeBtcCanvas').dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      clientX: x,
+      clientY: y,
+      pointerType: 'touch'
+    }));
+  }, { x: box.x + box.width * 0.62, y: box.y + box.height * 0.42 });
+  await expect(page.locator('#homeChartTip')).toBeVisible();
+  await expect(page.locator('#homeChartTip')).toContainText('BTC');
+
+  await page.locator('[data-home-tf="1h"]').click();
+  await expect(page.locator('[data-home-tf="1h"]')).toHaveClass(/on/);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('cryptoLabHomeTf'))).toBe('1h');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-home-tf="1h"]')).toHaveClass(/on/);
+  await expectNoBodyOverflow(page);
+});
 
 test('v79 owner launch path and mobile navigation remain usable', async ({ page, isMobile }) => {
   await openShell(page);

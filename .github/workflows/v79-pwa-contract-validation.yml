@@ -58,7 +58,11 @@ jobs:
       - name: Validate public free home chart contract
         run: |
           node --check v79/home-chart.js
-          grep -F "home-chart.js?v=7930free2" v79/public-free-home.js
+          grep -F "home-chart.js?v=7930free3" v79/public-free-home.js
+          if grep -F 'id="line"' v79/app.html || grep -F 'id="area"' v79/app.html || grep -F 'function mini()' v79/app.js; then
+            echo 'Legacy decorative line chart must be removed' >&2
+            exit 1
+          fi
           grep -F "BTCUSDT" v79/home-chart.js
           grep -F "data-home-tf" v79/home-chart.js
           grep -F "1m" v79/home-chart.js

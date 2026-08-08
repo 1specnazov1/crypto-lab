@@ -144,7 +144,7 @@ jobs:
             'admin-integrity.js':['get_crypto_admin_data_integrity','dataIntegrityPanel'],
             'admin-ops-summary.js':['get_crypto_admin_operational_summary','operationalSummary'],
             'service-worker.js':['public-free-home.js','free-access-ui.js','recovery.html','admin-drift.js','admin-integrity.js','admin-ops-summary.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
-            'app.html':['Content-Security-Policy','public-free-home.js?v=7930free1','commercial-extension.js?v=7930','accessibility.js?v=7930','PUBLIC FREE'],
+            'app.html':['Content-Security-Policy','public-free-home.js?v=7930free2','commercial-extension.js?v=7930','accessibility.js?v=7930','PUBLIC FREE'],
             'manifest.webmanifest':['"display": "standalone"','icon.svg']
           }
           for name,items in markers.items():
