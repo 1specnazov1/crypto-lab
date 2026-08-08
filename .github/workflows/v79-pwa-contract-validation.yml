@@ -9,6 +9,8 @@ on:
       - 'v79/app-extension.js'
       - 'v79/app.html'
       - 'v79/offline.html'
+      - 'v79/free-access-ui.js'
+      - 'v79/recovery.html'
       - 'v79/refund.html'
       - '.github/workflows/v79-pwa-contract-validation.yml'
   workflow_dispatch:
@@ -20,7 +22,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Validate manifest contract
         run: |
           python3 - <<'PY'
@@ -36,20 +38,23 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-pwa3'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free1'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
-          grep -F "./refund.html" v79/service-worker.js
+          grep -F "./free-access-ui.js" v79/service-worker.js
+          grep -F "./recovery.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
           if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
             echo 'Service worker must not perform write requests' >&2
             exit 1
           fi
-      - name: Validate install and legal navigation
+      - name: Validate install and public free navigation
         run: |
           grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
           grep -F "addHeadLink('manifest'" v79/app-extension.js
           grep -F "refundLink" v79/app-extension.js
           grep -F 'app-extension.js?v=7930pwa1' v79/app.html
           test -s v79/offline.html
+          test -s v79/free-access-ui.js
+          test -s v79/recovery.html
           test -s v79/refund.html
