@@ -2,13 +2,13 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, compact Binance-style mobile shell, Education module, protected support email notifications and the final accessibility audit fixes.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, detailed interactive Market chart with date/time axis, OHLC tooltip, wheel zoom, historical pan and enhanced RSI, compact Binance-style mobile shell, Education module, protected support email notifications and the final accessibility audit fixes.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free7",
+  "pwa_cache": "crypto-lab-v79-7930-free8",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "fc117604ee2a07e71af0870bb8cf983969be7684",
@@ -22,9 +22,13 @@
       "sha": "87f63bb948dccfbe529b2a9d97eae9acecea3a64",
       "marker": "invite_only_free"
     },
+    "v79/chart.html": {
+      "sha": "68cfcd58a2ff5396ffbc1eae234e9ca81a596667",
+      "marker": "chart-interactions.js?v=7930free8"
+    },
     "v79/service-worker.js": {
-      "sha": "d538a48f8af545b70fe5bf80c239e37759328fc1",
-      "marker": "crypto-lab-v79-7930-free7"
+      "sha": "b04274da159465edee3ccb5be62c81e52920993e",
+      "marker": "crypto-lab-v79-7930-free8"
     }
   }
 }
