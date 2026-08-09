@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const ROUTES = ['home','analytics','news','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
-const NEWS={ok:true,items:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters'}}],breaking:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters'}}],state:{status:'ok',accepted_count:1,last_finished_at:new Date().toISOString()},refresh_seconds:300};
+const NEWS={ok:true,items:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters',watch_entities:['Donald Trump / White House']}}],breaking:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters',watch_entities:['Donald Trump / White House']}}],state:{status:'ok',accepted_count:1,last_finished_at:new Date().toISOString()},refresh_seconds:300};
 const SUPABASE_STUB=`
 (() => {
   const session={access_token:'audit-token',user:{id:'audit-owner',email:'audit-owner@example.invalid'}};let signedIn=true,callback=null;
@@ -47,11 +47,12 @@ test('news route renders impact feed and five-minute refresh contract',async({pa
   await stub(page);await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});await page.locator('#nav button[data-route="news"]').click();const frame=page.frameLocator('#frame');await expect(frame.locator('#title')).toContainText(/Новости|Новини|News/);await expect(frame.locator('.item')).toHaveCount(1);await expect(frame.locator('.item')).toContainText('Impact');await expect(frame.locator('.item')).toContainText('Reuters');
 });
 
-test('unified chart analytics loads timeframe-aware technical tool toggles',async({page})=>{
+test('unified chart analytics renders real candles and timeframe-aware technical tools',async({page})=>{
   await stub(page);await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});
   await page.locator('#nav button[data-route="analytics"]').click();
   const frame=page.frameLocator('#frame');
   await expect(frame.locator('#analysisTools')).toBeVisible({timeout:5000});
+  await expect.poll(async()=>frame.locator('#chart').evaluate(canvas=>{const ctx=canvas.getContext('2d'),data=ctx.getImageData(0,0,canvas.width,canvas.height).data;let candlePixels=0;for(let i=0;i<data.length;i+=4){const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];if(a>80&&((g>150&&r<80&&b<170)||(r>190&&g<120&&b<140)))candlePixels++;}return candlePixels;}),{timeout:8000,message:'main chart must contain visible green/red candlestick pixels'}).toBeGreaterThan(100);
   await expect(frame.locator('[data-tool="ema"]')).toHaveAttribute('aria-pressed','true');
   await frame.locator('[data-tool="macd"]').click();
   await expect(frame.locator('[data-tool="macd"]')).toHaveAttribute('aria-pressed','true');
