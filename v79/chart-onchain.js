@@ -1,8 +1,14 @@
 'use strict';
 (() => {
-  const button=[...document.querySelectorAll('.analysis-tool')].find(b=>String(b.textContent||'').includes('ON-CHAIN'));
+  const original=[...document.querySelectorAll('.analysis-tool')].find(b=>String(b.textContent||'').includes('ON-CHAIN'));
   const technical=document.getElementById('technicalAnalysisPanel');
-  if(!button||!technical)return;
+  if(!original||!technical)return;
+
+  // Replace the original placeholder button so its legacy anonymous click handler
+  // cannot reveal the obsolete "feed not connected" notice alongside real data.
+  const button=original.cloneNode(true);
+  original.replaceWith(button);
+  document.getElementById('onchainNote')?.remove();
 
   const URL='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-onchain';
   const APIKEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
@@ -16,7 +22,6 @@
   panel.innerHTML='<h3 id="onchainTitle">ON-CHAIN</h3><div class="analysis-result" id="onchainBody"><div class="muted">Включите ON-CHAIN для загрузки реальных сетевых метрик.</div></div><div class="analysis-note" id="onchainSource">Источник: Coin Metrics Community API; для BTC дополнительно mempool.space.</div>';
   technical.insertAdjacentElement('afterend',panel);
 
-  const oldNote=document.getElementById('onchainNote');if(oldNote)oldNote.hidden=true;
   button.classList.remove('unavailable');
   button.title='Реальные on-chain метрики: Coin Metrics Community API; для BTC live-сеть дополнительно mempool.space.';
 
@@ -75,7 +80,7 @@
     finally{loading=false;render()}
   }
   button.addEventListener('click',()=>{enabled=!enabled;try{localStorage.setItem(STORE,enabled?'1':'0')}catch{}setButton();if(enabled)load(true)});
-  window.addEventListener('message',e=>{if(e.data?.type==='crypto-lab-language'){setTimeout(render,0)}});
+  window.addEventListener('message',e=>{if(e.data?.type==='crypto-lab-language')setTimeout(render,0)});
   setButton();if(enabled)setTimeout(()=>load(true),100);
   setInterval(()=>{if(enabled)load(true)},120000);
 })();
