@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = ['home','market','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
+const ROUTES = ['home','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
 const SUPABASE_STUB=`
@@ -33,9 +33,21 @@ test('shell is fast, complete, responsive and contains every navigation target',
   await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
   const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
   await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await noOverflow(page);
-  const actual=await page.locator('#nav button[data-route]').evaluateAll(nodes=>nodes.map(n=>n.dataset.route));expect(actual).toEqual(ROUTES);
+  const actual=await page.locator('#nav button[data-route]').evaluateAll(nodes=>nodes.map(n=>n.dataset.route));expect(actual).toEqual(ROUTES);expect(actual).not.toContain('market');
   for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
   expect(errors).toEqual([]);
+});
+
+test('unified chart analytics loads timeframe-aware technical tool toggles',async({page})=>{
+  await stub(page);await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#nav button[data-route="analytics"]').click();
+  const frame=page.frameLocator('#frame');
+  await expect(frame.locator('#analysisTools')).toBeVisible({timeout:5000});
+  await expect(frame.locator('[data-tool="ema"]')).toHaveAttribute('aria-pressed','true');
+  await frame.locator('[data-tool="macd"]').click();
+  await expect(frame.locator('[data-tool="macd"]')).toHaveAttribute('aria-pressed','true');
+  await expect(frame.locator('#technicalAnalysisBody')).toContainText('MACD');
+  await expect(frame.locator('.analysis-tool.unavailable')).toContainText('ON-CHAIN');
 });
 
 test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
