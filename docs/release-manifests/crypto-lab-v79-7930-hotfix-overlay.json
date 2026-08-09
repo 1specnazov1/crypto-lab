@@ -2,29 +2,29 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized public FREE launch: enable protected registration/login/recovery for everyone, expose all core modules through FREE fair-use limits, remove payment and Friends & Family UI, keep BASIC/PRO, checkout, recurring billing, mainnet and refund execution disabled; present Scanner as shadow-only, add the informative BTC/USDT candlestick mini-terminal, polish the mobile shell with compact Binance-style navigation, replace the Education placeholder with a real free learning module, and add protected support email notifications for new tickets and admin replies.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, compact Binance-style mobile shell, Education module and protected support email notifications.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free5",
+  "pwa_cache": "crypto-lab-v79-7930-free6",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "da135ebbbcd82c16108329d598aadb226d750046",
-      "marker": "public-free-home.js?v=7930free2"
+      "sha": "fc117604ee2a07e71af0870bb8cf983969be7684",
+      "marker": "access-gate.js?v=7930free6"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
       "marker": "publicFreeAccessScript"
     },
     "v79/auth-gateway.js": {
-      "sha": "c767d2104444f0384f787393a232f6e5ddb94e14",
-      "marker": "adminPanelBtn"
+      "sha": "87f63bb948dccfbe529b2a9d97eae9acecea3a64",
+      "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "0a2b463717016613ff5be121048bdbf83718aec6",
-      "marker": "crypto-lab-v79-7930-free5"
+      "sha": "3a99a26cb49f9b581f8d1f12f31ce9b6e6294882",
+      "marker": "crypto-lab-v79-7930-free6"
     }
   }
 }
