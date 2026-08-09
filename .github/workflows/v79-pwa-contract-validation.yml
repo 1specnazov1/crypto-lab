@@ -16,6 +16,8 @@ on:
       - 'v79/registration-consent.js'
       - 'v79/app.html'
       - 'v79/route-merge.js'
+      - 'v79/news-extension.js'
+      - 'v79/news.html'
       - 'v79/public-free-home.js'
       - 'v79/home-chart.js'
       - 'v79/chart.html'
@@ -55,11 +57,15 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free11'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free12'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
           grep -F "./home-chart.js" v79/service-worker.js
+          grep -F "./news-extension.js" v79/service-worker.js
+          grep -F "./news.html" v79/service-worker.js
+          grep -F "'news-extension.js'" v79/service-worker.js
+          grep -F "'news.html'" v79/service-worker.js
           grep -F "./chart-interactions.js" v79/service-worker.js
           grep -F "./chart-analysis-tools.js" v79/service-worker.js
           grep -F "./chart-analysis-hook.js" v79/service-worker.js
@@ -127,6 +133,22 @@ jobs:
           grep -F "1M" v79/home-chart.js
           grep -F "quoteVolume" v79/home-chart.js
           grep -F "pointermove" v79/home-chart.js
+      - name: Validate five-minute market news center
+        run: |
+          node --check v79/news-extension.js
+          test -s v79/news.html
+          grep -F "news-extension.js?v=7930free12" v79/route-merge.js
+          grep -F "ROUTES.splice(insertAt,0,['news','⚡'])" v79/news-extension.js
+          grep -F "crypto-lab-v79-news" v79/news-extension.js
+          grep -F "crypto-lab-v79-news" v79/news.html
+          grep -F "setInterval(refreshTicker,300000)" v79/news-extension.js
+          grep -F "setInterval(load,300000)" v79/news.html
+          grep -F "BREAKING" v79/news-extension.js
+          grep -F "Impact 55+" v79/news.html
+          grep -F "data-region=\"US\"" v79/news.html
+          grep -F "data-region=\"EUROPE\"" v79/news.html
+          grep -F "data-region=\"CHINA\"" v79/news.html
+          grep -F "data-region=\"JAPAN\"" v79/news.html
       - name: Validate unified chart analytics and technical tools
         run: |
           node --check v79/route-merge.js
