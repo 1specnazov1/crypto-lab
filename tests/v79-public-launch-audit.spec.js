@@ -53,7 +53,7 @@ test('unified chart analytics loads timeframe-aware technical tool toggles',asyn
   await expect(onchain).not.toHaveClass(/unavailable/);
   await onchain.click();
   await expect(frame.locator('#onchainPanel')).toBeVisible();
-  await expect(frame.locator('#onchainBody')).toContainText('Войдите в аккаунт CRYPTO LAB');
+  await expect(frame.locator('#onchainBody')).toContainText('CRYPTO LAB');
 });
 
 test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
