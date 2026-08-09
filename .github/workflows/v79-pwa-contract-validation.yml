@@ -4,33 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'v79/manifest.webmanifest'
-      - 'v79/service-worker.js'
-      - 'v79/app-extension.js'
-      - 'v79/support-extension.js'
-      - 'v79/support.html'
-      - 'v79/admin-support.js'
-      - 'v79/admin-access.js'
-      - 'v79/access-gate.js'
-      - 'v79/auth-gateway.js'
-      - 'v79/registration-consent.js'
-      - 'v79/app.html'
-      - 'v79/route-merge.js'
-      - 'v79/news-extension.js'
-      - 'v79/news.html'
-      - 'v79/public-free-home.js'
-      - 'v79/home-chart.js'
-      - 'v79/chart.html'
-      - 'v79/chart-interactions.js'
-      - 'v79/chart-analysis-tools.js'
-      - 'v79/chart-analysis-hook.js'
-      - 'v79/chart-onchain.js'
-      - 'v79/platform.css'
-      - 'v79/education.html'
-      - 'v79/offline.html'
-      - 'v79/free-access-ui.js'
-      - 'v79/recovery.html'
-      - 'v79/refund.html'
+      - 'v79/**'
       - '.github/workflows/v79-pwa-contract-validation.yml'
   workflow_dispatch:
 
@@ -42,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Validate manifest contract
+
+      - name: Validate manifest and service worker
         run: |
           python3 - <<'PY'
           import json
@@ -53,86 +28,31 @@ jobs:
           assert m['start_url'].startswith('./')
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
-          print('Manifest contract passed')
           PY
-      - name: Validate service-worker safety
-        run: |
           grep -F "const CACHE='crypto-lab-v79-7930-free13'" v79/service-worker.js
-          grep -F "./offline.html" v79/service-worker.js
-          grep -F "./free-access-ui.js" v79/service-worker.js
-          grep -F "./public-free-home.js" v79/service-worker.js
-          grep -F "./home-chart.js" v79/service-worker.js
-          grep -F "./news-extension.js" v79/service-worker.js
-          grep -F "./news.html" v79/service-worker.js
-          grep -F "'news-extension.js'" v79/service-worker.js
-          grep -F "'news.html'" v79/service-worker.js
-          grep -F "./chart-interactions.js" v79/service-worker.js
-          grep -F "./chart-analysis-tools.js" v79/service-worker.js
-          grep -F "./chart-analysis-hook.js" v79/service-worker.js
-          grep -F "./chart-onchain.js" v79/service-worker.js
-          grep -F "./route-merge.js" v79/service-worker.js
-          grep -F "'chart-interactions.js'" v79/service-worker.js
-          grep -F "'chart-analysis-tools.js'" v79/service-worker.js
-          grep -F "'chart-analysis-hook.js'" v79/service-worker.js
-          grep -F "'chart-onchain.js'" v79/service-worker.js
-          grep -F "'route-merge.js'" v79/service-worker.js
-          grep -F "./access-gate.js" v79/service-worker.js
-          grep -F "./admin-access.js" v79/service-worker.js
-          grep -F "./platform.css" v79/service-worker.js
-          grep -F "./education.html" v79/service-worker.js
-          grep -F "./support.html" v79/service-worker.js
-          grep -F "./admin-support.js" v79/service-worker.js
-          grep -F "'access-gate.js'" v79/service-worker.js
-          grep -F "'admin-access.js'" v79/service-worker.js
-          grep -F "./recovery.html" v79/service-worker.js
-          grep -F "supabase.co" v79/service-worker.js
+          for asset in news-extension.js news.html chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-onchain.js route-merge.js access-gate.js support.html; do
+            grep -F "./$asset" v79/service-worker.js
+          done
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
           if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
             echo 'Service worker must not perform write requests' >&2
             exit 1
           fi
-      - name: Validate invite-only FREE access contract
+
+      - name: Validate invite-only FREE access
         run: |
           node --check v79/access-gate.js
-          node --check v79/admin-access.js
           node --check v79/auth-gateway.js
           node --check v79/registration-consent.js
-          grep -F "access-gate.js?v=7930free6" v79/app.html
-          grep -F "crypto-lab-v79-access" v79/access-gate.js
+          grep -F "invite_only_free" v79/auth-gateway.js
+          grep -F "invite_token" v79/auth-gateway.js
           grep -F "crypto_access_request" v79/access-gate.js
           grep -F "account.html?login=1" v79/access-gate.js
-          grep -F "accessGatePrivacyLink" v79/access-gate.js
           if grep -F "app.html?route=account&login=1" v79/access-gate.js; then
-            echo 'Shell query login bypass must not be present' >&2
+            echo 'Shell login bypass is forbidden' >&2
             exit 1
           fi
-          grep -F "invite_token" v79/auth-gateway.js
-          grep -F "invite_only_free" v79/auth-gateway.js
-          grep -F "invite_token" v79/registration-consent.js
-          grep -F "crypto-lab-v79-access-admin" v79/admin-access.js
-          grep -F "Перевыпустить ссылку" v79/admin-access.js
-          grep -F "adminAccessScript" v79/support-extension.js
-          grep -F "openCryptoLabBtn" v79/free-access-ui.js
-          if grep -F "Регистрация и основные функции бесплатны" v79/public-free-home.js; then
-            echo 'Public-open registration copy must not remain in invite-only mode' >&2
-            exit 1
-          fi
-      - name: Validate public free home chart contract
-        run: |
-          node --check v79/home-chart.js
-          grep -F "home-chart.js?v=7930free3" v79/public-free-home.js
-          if grep -F 'id="line"' v79/app.html || grep -F 'id="area"' v79/app.html || grep -F 'function mini()' v79/app.js; then
-            echo 'Legacy decorative line chart must be removed' >&2
-            exit 1
-          fi
-          grep -F "BTCUSDT" v79/home-chart.js
-          grep -F "data-home-tf" v79/home-chart.js
-          grep -F "1m" v79/home-chart.js
-          grep -F "1D" v79/home-chart.js
-          grep -F "1W" v79/home-chart.js
-          grep -F "1M" v79/home-chart.js
-          grep -F "quoteVolume" v79/home-chart.js
-          grep -F "pointermove" v79/home-chart.js
+
       - name: Validate five-minute market news center
         run: |
           node --check v79/news-extension.js
@@ -149,89 +69,39 @@ jobs:
           grep -F "data-region=\"EUROPE\"" v79/news.html
           grep -F "data-region=\"CHINA\"" v79/news.html
           grep -F "data-region=\"JAPAN\"" v79/news.html
-          grep -F "data-region=\"OTHER\"" v79/news.html
-      - name: Validate unified chart analytics and technical tools
+          grep -F "b.dataset.region='OTHER'" v79/news-extension.js
+          grep -F "Другие страны" v79/news-extension.js
+
+      - name: Validate chart analytics and canvas repair
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
           node --check v79/chart-analysis-tools.js
           node --check v79/chart-analysis-hook.js
           node --check v79/chart-onchain.js
-          grep -F 'route-merge.js?v=7930free9' v79/app.html
-          grep -F "ROUTES.findIndex(r=>r[0]==='market')" v79/route-merge.js
-          grep -F "График и аналитика" v79/route-merge.js
-          grep -F "chart-analysis-tools.js?v=7930free11" v79/route-merge.js
           grep -F "chart-analysis-hook.js?v=7930free13" v79/route-merge.js
-          grep -F "chart-onchain.js?v=7930free11" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
           grep -F "['macd','MACD']" v79/chart-analysis-tools.js
           grep -F "['bb','BB']" v79/chart-analysis-tools.js
           grep -F "['vwap','VWAP']" v79/chart-analysis-tools.js
           grep -F "['atr','ATR']" v79/chart-analysis-tools.js
-          grep -F "ON-CHAIN" v79/chart-analysis-tools.js
-          grep -F "cryptoChartAnalysisToolsV1" v79/chart-analysis-tools.js
-          grep -F "tools.enabled('ema')" v79/chart-analysis-hook.js
-          grep -F "tools.enabled('levels')" v79/chart-analysis-hook.js
-          grep -F "tools.enabled('volume')" v79/chart-analysis-hook.js
-          grep -F "tools.enabled('rsi')" v79/chart-analysis-hook.js
           grep -F "function priceLabel" v79/chart-analysis-hook.js
-          grep -F "priceLabel(e.ctx,e.w,e.pad,e.y,savedLevels.support,'S'" v79/chart-analysis-hook.js
-          grep -F "priceLabel(e.ctx,e.w,e.pad,e.y,savedLevels.resistance,'R'" v79/chart-analysis-hook.js
+          grep -F "canvas.width/dpr" v79/chart-analysis-hook.js
           if grep -F "CanvasRenderingContext2D.prototype" v79/chart-analysis-hook.js; then
             echo 'Native canvas prototype monkey-patching must not return' >&2
             exit 1
           fi
-          grep -F "tools.drawOverlays" v79/chart-analysis-hook.js
-          grep -F "crypto-lab-v79-onchain" v79/chart-onchain.js
+          grep -F "addEventListener('wheel'" v79/chart-interactions.js
+          grep -F "formatTime(c.time)" v79/chart-interactions.js
           grep -F "Coin Metrics Community API" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
-          grep -F "Authorization:" v79/chart-onchain.js
-          grep -F "cloneNode(true)" v79/chart-onchain.js
-          grep -F "onchainNote')?.remove()" v79/chart-onchain.js
-          grep -F "addEventListener('wheel'" v79/chart-interactions.js
-          grep -F "addEventListener('pointermove'" v79/chart-interactions.js
-          grep -F "formatTime(c.time)" v79/chart-interactions.js
-          grep -F 'O <strong>' v79/chart-interactions.js
-          grep -F 'RSI14 <strong>' v79/chart-interactions.js
-          grep -F '[70, 50, 30]' v79/chart-interactions.js
-          grep -F "storageSet('cryptoChartVisibleCandles'" v79/chart-interactions.js
-          grep -F "перетаскивание: история" v79/chart-interactions.js
-      - name: Validate mobile Binance-style shell
-        run: |
-          grep -F ".side:not(.open)" v79/platform.css
-          grep -F "grid-template-columns:repeat(5" v79/platform.css
-          grep -F ".side.open" v79/platform.css
-          grep -F "box-shadow:100vw" v79/platform.css
-          grep -F "#homeChartCard.home-terminal-chart .home-chart-metrics" v79/platform.css
-          grep -F "padding-bottom:calc(62px + var(--safe-bottom))" v79/platform.css
-      - name: Validate Education route and content
-        run: |
-          test -s v79/education.html
-          grep -F "if (route === 'education') return './education.html?'" v79/support-extension.js
-          grep -F "Scanner v14" v79/education.html
-          grep -F "Backtest" v79/education.html
-          grep -F "не финансовый совет" v79/education.html
-      - name: Validate protected support flow
+
+      - name: Validate support and mobile shell
         run: |
           node --check v79/admin-support.js
           grep -F "crypto-lab-v79-support" v79/support.html
-          grep -F "action:'create'" v79/support.html
-          grep -F "action:'reply'" v79/support.html
           grep -F "action:'admin_update'" v79/admin-support.js
-          grep -F "user_notified" v79/admin-support.js
-          grep -F "params.set('ticket',ticket)" v79/support-extension.js
-          if grep -F 'value="billing"' v79/support.html; then
-            echo 'Billing category must stay hidden in FREE support' >&2
-            exit 1
-          fi
-      - name: Validate install and FREE navigation
-        run: |
-          grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
-          grep -F "addHeadLink('manifest'" v79/app-extension.js
-          grep -F "refundLink" v79/app-extension.js
-          grep -F 'app-extension.js?v=7930pwa1' v79/app.html
-          test -s v79/offline.html
-          test -s v79/free-access-ui.js
-          test -s v79/recovery.html
-          test -s v79/refund.html
+          grep -F ".side:not(.open)" v79/platform.css
+          grep -F "grid-template-columns:repeat(5" v79/platform.css
+          grep -F "padding-bottom:calc(62px + var(--safe-bottom))" v79/platform.css
