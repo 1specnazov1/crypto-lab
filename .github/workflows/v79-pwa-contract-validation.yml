@@ -57,7 +57,7 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free12'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free13'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
@@ -149,6 +149,7 @@ jobs:
           grep -F "data-region=\"EUROPE\"" v79/news.html
           grep -F "data-region=\"CHINA\"" v79/news.html
           grep -F "data-region=\"JAPAN\"" v79/news.html
+          grep -F "data-region=\"OTHER\"" v79/news.html
       - name: Validate unified chart analytics and technical tools
         run: |
           node --check v79/route-merge.js
@@ -160,7 +161,7 @@ jobs:
           grep -F "ROUTES.findIndex(r=>r[0]==='market')" v79/route-merge.js
           grep -F "График и аналитика" v79/route-merge.js
           grep -F "chart-analysis-tools.js?v=7930free11" v79/route-merge.js
-          grep -F "chart-analysis-hook.js?v=7930free11" v79/route-merge.js
+          grep -F "chart-analysis-hook.js?v=7930free13" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free11" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
@@ -174,8 +175,13 @@ jobs:
           grep -F "tools.enabled('levels')" v79/chart-analysis-hook.js
           grep -F "tools.enabled('volume')" v79/chart-analysis-hook.js
           grep -F "tools.enabled('rsi')" v79/chart-analysis-hook.js
-          grep -F 'supportText=Number.isFinite' v79/chart-analysis-hook.js
-          grep -F 'resistanceText=Number.isFinite' v79/chart-analysis-hook.js
+          grep -F "function priceLabel" v79/chart-analysis-hook.js
+          grep -F "priceLabel(e.ctx,e.w,e.pad,e.y,savedLevels.support,'S'" v79/chart-analysis-hook.js
+          grep -F "priceLabel(e.ctx,e.w,e.pad,e.y,savedLevels.resistance,'R'" v79/chart-analysis-hook.js
+          if grep -F "CanvasRenderingContext2D.prototype" v79/chart-analysis-hook.js; then
+            echo 'Native canvas prototype monkey-patching must not return' >&2
+            exit 1
+          fi
           grep -F "tools.drawOverlays" v79/chart-analysis-hook.js
           grep -F "crypto-lab-v79-onchain" v79/chart-onchain.js
           grep -F "Coin Metrics Community API" v79/chart-onchain.js
