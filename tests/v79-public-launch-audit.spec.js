@@ -20,6 +20,7 @@ async function stub(page){
     if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'invite_only_free',request_access_enabled:true,free_access:true,invite_valid:false,site_key:null,captcha_action:'crypto_register',documents:[{key:'terms',version:'2026-08-03',url:'./terms.html'},{key:'privacy',version:'2026-08-03',url:'./privacy.html'},{key:'risk',version:'2026-08-03',url:'./risk-disclosure.html'}]})});
     if(url.includes('/functions/v1/crypto-lab-v79-recover'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,site_key:'audit-site-key',captcha_action:'crypto_recover',email_enumeration_safe:true})});
     if(url.includes('/functions/v1/crypto-lab-v79-commercial'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,mode:'invite_free',paid_features_enabled:false,code:'PAID_FEATURES_DISABLED'})});
+    if(url.includes('/functions/v1/crypto-lab-v79-onchain'))return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'Authentication required'})});
     if(url.includes('api.binance.com'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
     if(url.includes('data-api.binance.vision')){if(url.includes('/klines'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_KLINES)});if(url.includes('/ticker/24hr'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_TICKER)});return route.fulfill({status:404,body:'{}'});}
     if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:SUPABASE_STUB});
@@ -47,7 +48,12 @@ test('unified chart analytics loads timeframe-aware technical tool toggles',asyn
   await frame.locator('[data-tool="macd"]').click();
   await expect(frame.locator('[data-tool="macd"]')).toHaveAttribute('aria-pressed','true');
   await expect(frame.locator('#technicalAnalysisBody')).toContainText('MACD');
-  await expect(frame.locator('.analysis-tool.unavailable')).toContainText('ON-CHAIN');
+  const onchain=frame.locator('.analysis-tool').filter({hasText:'ON-CHAIN'});
+  await expect(onchain).toBeVisible();
+  await expect(onchain).not.toHaveClass(/unavailable/);
+  await onchain.click();
+  await expect(frame.locator('#onchainPanel')).toBeVisible();
+  await expect(frame.locator('#onchainBody')).toContainText('Войдите в аккаунт CRYPTO LAB');
 });
 
 test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
