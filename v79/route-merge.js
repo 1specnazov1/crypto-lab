@@ -8,12 +8,19 @@
     if(!doc||!doc.getElementById('chart')||doc.getElementById('cryptoAnalysisToolsScript'))return;
     const tools=doc.createElement('script');
     tools.id='cryptoAnalysisToolsScript';
-    tools.src='./chart-analysis-tools.js?v=7930free9';
+    tools.src='./chart-analysis-tools.js?v=7930free10';
     tools.onload=()=>{
       if(doc.getElementById('cryptoAnalysisHookScript'))return;
       const hook=doc.createElement('script');
       hook.id='cryptoAnalysisHookScript';
-      hook.src='./chart-analysis-hook.js?v=7930free9';
+      hook.src='./chart-analysis-hook.js?v=7930free10';
+      hook.onload=()=>{
+        if(doc.getElementById('cryptoOnchainScript'))return;
+        const onchain=doc.createElement('script');
+        onchain.id='cryptoOnchainScript';
+        onchain.src='./chart-onchain.js?v=7930free10';
+        doc.body.appendChild(onchain);
+      };
       doc.body.appendChild(hook);
     };
     doc.body.appendChild(tools);
