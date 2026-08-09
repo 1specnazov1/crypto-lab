@@ -17,6 +17,8 @@ on:
       - 'v79/app.html'
       - 'v79/public-free-home.js'
       - 'v79/home-chart.js'
+      - 'v79/chart.html'
+      - 'v79/chart-interactions.js'
       - 'v79/platform.css'
       - 'v79/education.html'
       - 'v79/offline.html'
@@ -49,11 +51,13 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free7'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free8'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
           grep -F "./home-chart.js" v79/service-worker.js
+          grep -F "./chart-interactions.js" v79/service-worker.js
+          grep -F "'chart-interactions.js'" v79/service-worker.js
           grep -F "./access-gate.js" v79/service-worker.js
           grep -F "./admin-access.js" v79/service-worker.js
           grep -F "./platform.css" v79/service-worker.js
@@ -111,6 +115,18 @@ jobs:
           grep -F "1M" v79/home-chart.js
           grep -F "quoteVolume" v79/home-chart.js
           grep -F "pointermove" v79/home-chart.js
+      - name: Validate detailed market chart interactions
+        run: |
+          node --check v79/chart-interactions.js
+          grep -F 'chart-interactions.js?v=7930free8' v79/chart.html
+          grep -F "addEventListener('wheel'" v79/chart-interactions.js
+          grep -F "addEventListener('pointermove'" v79/chart-interactions.js
+          grep -F "formatTime(c.time)" v79/chart-interactions.js
+          grep -F 'O <strong>' v79/chart-interactions.js
+          grep -F 'RSI14 <strong>' v79/chart-interactions.js
+          grep -F '[70, 50, 30]' v79/chart-interactions.js
+          grep -F "storageSet('cryptoChartVisibleCandles'" v79/chart-interactions.js
+          grep -F "перетаскивание: история" v79/chart-interactions.js
       - name: Validate mobile Binance-style shell
         run: |
           grep -F ".side:not(.open)" v79/platform.css
