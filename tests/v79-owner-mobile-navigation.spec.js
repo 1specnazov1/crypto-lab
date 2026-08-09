@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const ROUTES = [
   ['analytics', 'chart.html'],
+  ['news', 'news.html'],
   ['scanner', 'scanner.html'],
   ['ai', 'ai.html'],
   ['portfolio', 'portfolio.html'],
@@ -21,6 +22,7 @@ async function stubExternalTraffic(page) {
         body: JSON.stringify({ success: true, latest_run: null, latest_monitor: null, active_signals: [], runs: [] })
       });
     }
+    if (url.includes('/functions/v1/crypto-lab-v79-news')) return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,items:[],breaking:[],state:{status:'ok'},refresh_seconds:300})});
     if (url.includes('api.binance.com') || url.includes('data-api.binance.vision')) {
       return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
     }
