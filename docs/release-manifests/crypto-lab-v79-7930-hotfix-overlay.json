@@ -22,10 +22,6 @@
       "sha": "87f63bb948dccfbe529b2a9d97eae9acecea3a64",
       "marker": "invite_only_free"
     },
-    "v79/chart.html": {
-      "sha": "68cfcd58a2ff5396ffbc1eae234e9ca81a596667",
-      "marker": "chart-interactions.js?v=7930free8"
-    },
     "v79/service-worker.js": {
       "sha": "b04274da159465edee3ccb5be62c81e52920993e",
       "marker": "crypto-lab-v79-7930-free8"
