@@ -78,13 +78,19 @@ jobs:
           grep -F "access-gate.js?v=7930free6" v79/app.html
           grep -F "crypto-lab-v79-access" v79/access-gate.js
           grep -F "crypto_access_request" v79/access-gate.js
-          grep -F "route=account&login=1" v79/access-gate.js
+          grep -F "account.html?login=1" v79/access-gate.js
+          grep -F "accessGatePrivacyLink" v79/access-gate.js
+          if grep -F "app.html?route=account&login=1" v79/access-gate.js; then
+            echo 'Shell query login bypass must not be present' >&2
+            exit 1
+          fi
           grep -F "invite_token" v79/auth-gateway.js
           grep -F "invite_only_free" v79/auth-gateway.js
           grep -F "invite_token" v79/registration-consent.js
           grep -F "crypto-lab-v79-access-admin" v79/admin-access.js
           grep -F "Перевыпустить ссылку" v79/admin-access.js
           grep -F "adminAccessScript" v79/support-extension.js
+          grep -F "openCryptoLabBtn" v79/free-access-ui.js
           if grep -F "Регистрация и основные функции бесплатны" v79/public-free-home.js; then
             echo 'Public-open registration copy must not remain in invite-only mode' >&2
             exit 1
