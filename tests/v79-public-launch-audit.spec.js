@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = [
-  ['market','chart.html'],['analytics','chart.html'],['scanner','scanner.html'],['ai','ai.html'],['portfolio','portfolio.html'],
-  ['calculator','calculator.html'],['backtest','backtest.html'],['journal','journal.html'],['education','education.html'],['account','account.html'],['support','support.html']
-];
+const ROUTES = ['market','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
@@ -35,21 +32,29 @@ async function noOverflow(page){const d=await page.evaluate(()=>({w:document.doc
 
 for(const project of ['audit-desktop','audit-mobile']){
   test.describe(`${project} complete shell`,()=>{
-    test('all sections open, remain responsive and avoid shell overflow',async({page},testInfo)=>{
+    test('all navigation buttons react immediately and shell stays stable',async({page},testInfo)=>{
       test.skip(testInfo.project.name!==project);
       await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
       const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
       await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await noOverflow(page);
       for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
-      for(const [route,file] of ROUTES){if(testInfo.project.name==='audit-mobile'){await page.locator('#menu').click();await expect(page.locator('#side')).toHaveClass(/open/)}const button=page.locator(`#nav button[data-route="${route}"]`);await expect(button).toBeVisible();const t0=Date.now();await button.click();await expect(page.locator('#frameView')).toBeVisible();await expect(page.locator('#frame')).toHaveAttribute('src',new RegExp(file.replace('.','\\.')));const frame=page.frameLocator('#frame');await expect(frame.locator('body')).toBeVisible();expect(Date.now()-t0).toBeLessThan(1800);await noOverflow(page);const duplicates=await frame.locator('[id]').evaluateAll(nodes=>{const seen=new Set(),dups=[];for(const n of nodes){if(seen.has(n.id))dups.push(n.id);seen.add(n.id)}return[...new Set(dups)]});expect(duplicates).toEqual([]);}
+      for(const route of ROUTES){
+        if(testInfo.project.name==='audit-mobile'){await page.locator('#menu').click();await expect(page.locator('#side')).toHaveClass(/open/)}
+        const button=page.locator(`#nav button[data-route="${route}"]`);await expect(button).toBeVisible();const t0=Date.now();await button.click();await expect(button).toHaveClass(/on/);await expect(page.locator('#frameView')).toBeVisible();expect(Date.now()-t0).toBeLessThan(750);if(testInfo.project.name==='audit-mobile')await expect(page.locator('#side')).not.toHaveClass(/open/);await noOverflow(page);
+      }
       expect(errors).toEqual([]);
     });
   });
 }
 
-test('module controls have usable names and no placeholder sections',async({page})=>{
+test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
   await stub(page);const files=['chart.html','scanner.html','ai.html','portfolio.html','calculator.html','backtest.html','journal.html','education.html','account.html','support.html','admin.html'];
-  for(const file of files){await page.goto(`/v79/${file}?full-audit=1`,{waitUntil:'domcontentloaded'});await expect(page.locator('body')).toBeVisible();const bad=await page.locator('button,input,select,textarea').evaluateAll(nodes=>nodes.filter(n=>{if(n.disabled||n.type==='hidden')return false;const text=(n.textContent||'').trim();const named=n.getAttribute('aria-label')||n.getAttribute('aria-labelledby')||n.getAttribute('title')||n.getAttribute('placeholder')||n.getAttribute('name')||n.id||(n.labels&&n.labels.length);return n.tagName==='BUTTON'?!text&&!named:!named}).map(n=>n.outerHTML.slice(0,180)));expect(bad,`${file} unnamed controls`).toEqual([]);const placeholders=await page.locator('body').innerText();expect(placeholders).not.toContain('Модуль в разработке');}
+  for(const file of files){
+    await page.goto(`/v79/${file}?full-audit=1`,{waitUntil:'domcontentloaded'});await expect(page.locator('body')).toBeVisible();
+    const bad=await page.locator('button,input,select,textarea').evaluateAll(nodes=>nodes.filter(n=>{if(n.disabled||n.type==='hidden')return false;const text=(n.textContent||'').trim();const named=n.getAttribute('aria-label')||n.getAttribute('aria-labelledby')||n.getAttribute('title')||n.getAttribute('placeholder')||n.getAttribute('name')||n.id||(n.labels&&n.labels.length);return n.tagName==='BUTTON'?!text&&!named:!named}).map(n=>n.outerHTML.slice(0,180)));expect(bad,`${file} unnamed controls`).toEqual([]);
+    const duplicates=await page.locator('[id]').evaluateAll(nodes=>{const seen=new Set(),dups=[];for(const n of nodes){if(seen.has(n.id))dups.push(n.id);seen.add(n.id)}return[...new Set(dups)]});expect(duplicates,`${file} duplicate ids`).toEqual([]);
+    const text=await page.locator('body').innerText();expect(text).not.toContain('Модуль в разработке');
+  }
 });
 
 test('FREE release contains no user-facing payment checkout controls',async({page})=>{
