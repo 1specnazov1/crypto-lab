@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930free4';
+  const BUILD='7930free5';
   if (!ROUTES.some(route => route[0] === 'support')) ROUTES.push(['support', '❓']);
   if (!T.ru.nav.includes('Поддержка')) T.ru.nav.push('Поддержка');
   if (!T.uk.nav.includes('Підтримка')) T.uk.nav.push('Підтримка');
@@ -9,10 +9,15 @@
   const previousFrameUrl = frameUrl;
   const previousOpen = open;
   const handled = new Set(['support','education']);
+  const outerParams = new URLSearchParams(location.search);
 
   frameUrl = function(route, signal) {
     const params = new URLSearchParams({ lang });
-    if (route === 'support') return './support.html?' + params;
+    if (route === 'support') {
+      const ticket=outerParams.get('ticket');
+      if(ticket)params.set('ticket',ticket);
+      return './support.html?' + params;
+    }
     if (route === 'education') return './education.html?' + params;
     return previousFrameUrl(route, signal);
   };
@@ -43,10 +48,9 @@
     }
   });
 
-  // PUBLIC FREE: refunds are not a user-facing flow while all payments are disabled.
   document.getElementById('refundLink')?.remove();
 
   translate();
-  const requested = new URLSearchParams(location.search).get('route');
+  const requested = outerParams.get('route');
   if (handled.has(requested)) setTimeout(() => open(requested), 0);
 })();
