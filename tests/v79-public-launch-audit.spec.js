@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = ['home','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
+const ROUTES = ['home','analytics','news','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
+const NEWS={ok:true,items:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters'}}],breaking:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters'}}],state:{status:'ok',accepted_count:1,last_finished_at:new Date().toISOString()},refresh_seconds:300};
 const SUPABASE_STUB=`
 (() => {
   const session={access_token:'audit-token',user:{id:'audit-owner',email:'audit-owner@example.invalid'}};let signedIn=true,callback=null;
@@ -15,8 +16,10 @@ const SUPABASE_STUB=`
 const TURNSTILE_STUB=`window.turnstile={render:(target,opts)=>{setTimeout(()=>opts?.callback?.('audit-turnstile-token'),0);return 1},reset(){},remove(){}};`;
 
 async function stub(page){
+  await page.addInitScript(()=>localStorage.setItem('sb-txhzxbizjpinowepfjkm-auth-token',JSON.stringify({access_token:'audit-token'})));
   await page.route('https://**/*',async route=>{const url=route.request().url();
     if(url.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,latest_run:{finished_at:new Date().toISOString(),class_a_found:0,dry_run:true,telegram_sent:0},scanner_job:{active:true},signal_counts:{waiting:0,active:0,closed:0},signals:[],runs:[],server_time:new Date().toISOString()})});
+    if(url.includes('/functions/v1/crypto-lab-v79-news'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(NEWS)});
     if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'invite_only_free',request_access_enabled:true,free_access:true,invite_valid:false,site_key:null,captcha_action:'crypto_register',documents:[{key:'terms',version:'2026-08-03',url:'./terms.html'},{key:'privacy',version:'2026-08-03',url:'./privacy.html'},{key:'risk',version:'2026-08-03',url:'./risk-disclosure.html'}]})});
     if(url.includes('/functions/v1/crypto-lab-v79-recover'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,site_key:'audit-site-key',captcha_action:'crypto_recover',email_enumeration_safe:true})});
     if(url.includes('/functions/v1/crypto-lab-v79-commercial'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,mode:'invite_free',paid_features_enabled:false,code:'PAID_FEATURES_DISABLED'})});
@@ -33,10 +36,15 @@ async function noOverflow(page){const d=await page.evaluate(()=>({w:document.doc
 test('shell is fast, complete, responsive and contains every navigation target',async({page})=>{
   await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
   const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
-  await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await noOverflow(page);
+  await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await expect(page.locator('#nav button[data-route="news"]')).toBeVisible();await noOverflow(page);
   const actual=await page.locator('#nav button[data-route]').evaluateAll(nodes=>nodes.map(n=>n.dataset.route));expect(actual).toEqual(ROUTES);expect(actual).not.toContain('market');
+  await expect(page.locator('#marketNewsTicker')).toHaveClass(/show/);
   for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
   expect(errors).toEqual([]);
+});
+
+test('news route renders impact feed and five-minute refresh contract',async({page})=>{
+  await stub(page);await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});await page.locator('#nav button[data-route="news"]').click();const frame=page.frameLocator('#frame');await expect(frame.locator('#title')).toContainText('Новости');await expect(frame.locator('.item')).toHaveCount(1);await expect(frame.locator('.item')).toContainText('Impact');await expect(frame.locator('.item')).toContainText('Reuters');
 });
 
 test('unified chart analytics loads timeframe-aware technical tool toggles',async({page})=>{
@@ -57,7 +65,7 @@ test('unified chart analytics loads timeframe-aware technical tool toggles',asyn
 });
 
 test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
-  await stub(page);const files=['chart.html','scanner.html','ai.html','portfolio.html','calculator.html','backtest.html','journal.html','education.html','account.html','support.html','admin.html'];
+  await stub(page);const files=['chart.html','news.html','scanner.html','ai.html','portfolio.html','calculator.html','backtest.html','journal.html','education.html','account.html','support.html','admin.html'];
   for(const file of files){
     await page.goto(`/v79/${file}?full-audit=1`,{waitUntil:'domcontentloaded'});await expect(page.locator('body')).toBeVisible();
     const bad=await page.locator('button,input,select,textarea').evaluateAll(nodes=>nodes.filter(n=>{if(n.disabled||n.type==='hidden')return false;const text=(n.textContent||'').trim();const named=n.getAttribute('aria-label')||n.getAttribute('aria-labelledby')||n.getAttribute('title')||n.getAttribute('placeholder')||n.getAttribute('name')||n.id||(n.labels&&n.labels.length);return n.tagName==='BUTTON'?!text&&!named:!named}).map(n=>n.outerHTML.slice(0,180)));expect(bad,`${file} unnamed controls`).toEqual([]);
