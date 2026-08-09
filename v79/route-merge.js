@@ -13,7 +13,7 @@
       if(doc.getElementById('cryptoAnalysisHookScript'))return;
       const hook=doc.createElement('script');
       hook.id='cryptoAnalysisHookScript';
-      hook.src='./chart-analysis-hook.js?v=7930free11';
+      hook.src='./chart-analysis-hook.js?v=7930free13';
       hook.onload=()=>{
         if(doc.getElementById('cryptoOnchainScript'))return;
         const onchain=doc.createElement('script');
