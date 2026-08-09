@@ -8,6 +8,8 @@ on:
       - 'v79/service-worker.js'
       - 'v79/app-extension.js'
       - 'v79/support-extension.js'
+      - 'v79/support.html'
+      - 'v79/admin-support.js'
       - 'v79/app.html'
       - 'v79/public-free-home.js'
       - 'v79/home-chart.js'
@@ -43,14 +45,17 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free4'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free5'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
           grep -F "./home-chart.js" v79/service-worker.js
           grep -F "./platform.css" v79/service-worker.js
           grep -F "./education.html" v79/service-worker.js
-          grep -F "'platform.css'" v79/service-worker.js
+          grep -F "./support.html" v79/service-worker.js
+          grep -F "./admin-support.js" v79/service-worker.js
+          grep -F "'support.html'" v79/service-worker.js
+          grep -F "'admin-support.js'" v79/service-worker.js
           grep -F "./recovery.html" v79/service-worker.js
           grep -F "supabase.co" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -89,6 +94,19 @@ jobs:
           grep -F "Scanner v14" v79/education.html
           grep -F "Backtest" v79/education.html
           grep -F "не финансовый совет" v79/education.html
+      - name: Validate protected support flow
+        run: |
+          node --check v79/admin-support.js
+          grep -F "crypto-lab-v79-support" v79/support.html
+          grep -F "action:'create'" v79/support.html
+          grep -F "action:'reply'" v79/support.html
+          grep -F "action:'admin_update'" v79/admin-support.js
+          grep -F "user_notified" v79/admin-support.js
+          grep -F "params.set('ticket',ticket)" v79/support-extension.js
+          if grep -F 'value="billing"' v79/support.html; then
+            echo 'Billing category must stay hidden in PUBLIC FREE support' >&2
+            exit 1
+          fi
       - name: Validate install and public free navigation
         run: |
           grep -F "navigator.serviceWorker.register('./service-worker.js" v79/app-extension.js
