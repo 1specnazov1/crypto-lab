@@ -15,10 +15,13 @@ on:
       - 'v79/auth-gateway.js'
       - 'v79/registration-consent.js'
       - 'v79/app.html'
+      - 'v79/route-merge.js'
       - 'v79/public-free-home.js'
       - 'v79/home-chart.js'
       - 'v79/chart.html'
       - 'v79/chart-interactions.js'
+      - 'v79/chart-analysis-tools.js'
+      - 'v79/chart-analysis-hook.js'
       - 'v79/platform.css'
       - 'v79/education.html'
       - 'v79/offline.html'
@@ -51,13 +54,19 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free8'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free9'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
           grep -F "./home-chart.js" v79/service-worker.js
           grep -F "./chart-interactions.js" v79/service-worker.js
+          grep -F "./chart-analysis-tools.js" v79/service-worker.js
+          grep -F "./chart-analysis-hook.js" v79/service-worker.js
+          grep -F "./route-merge.js" v79/service-worker.js
           grep -F "'chart-interactions.js'" v79/service-worker.js
+          grep -F "'chart-analysis-tools.js'" v79/service-worker.js
+          grep -F "'chart-analysis-hook.js'" v79/service-worker.js
+          grep -F "'route-merge.js'" v79/service-worker.js
           grep -F "./access-gate.js" v79/service-worker.js
           grep -F "./admin-access.js" v79/service-worker.js
           grep -F "./platform.css" v79/service-worker.js
@@ -115,10 +124,29 @@ jobs:
           grep -F "1M" v79/home-chart.js
           grep -F "quoteVolume" v79/home-chart.js
           grep -F "pointermove" v79/home-chart.js
-      - name: Validate detailed market chart interactions
+      - name: Validate unified chart analytics and technical tools
         run: |
+          node --check v79/route-merge.js
           node --check v79/chart-interactions.js
-          grep -F 'chart-interactions.js?v=7930free8' v79/chart.html
+          node --check v79/chart-analysis-tools.js
+          node --check v79/chart-analysis-hook.js
+          grep -F 'route-merge.js?v=7930free9' v79/app.html
+          grep -F "ROUTES.findIndex(r=>r[0]==='market')" v79/route-merge.js
+          grep -F "График и аналитика" v79/route-merge.js
+          grep -F "chart-analysis-tools.js?v=7930free9" v79/route-merge.js
+          grep -F "chart-analysis-hook.js?v=7930free9" v79/route-merge.js
+          grep -F "['ema','EMA']" v79/chart-analysis-tools.js
+          grep -F "['fib','FIB']" v79/chart-analysis-tools.js
+          grep -F "['macd','MACD']" v79/chart-analysis-tools.js
+          grep -F "['bb','BB']" v79/chart-analysis-tools.js
+          grep -F "['vwap','VWAP']" v79/chart-analysis-tools.js
+          grep -F "['atr','ATR']" v79/chart-analysis-tools.js
+          grep -F "ON-CHAIN" v79/chart-analysis-tools.js
+          grep -F "cryptoChartAnalysisToolsV1" v79/chart-analysis-tools.js
+          grep -F "tools.enabled('ema')" v79/chart-analysis-hook.js
+          grep -F "tools.enabled('levels')" v79/chart-analysis-hook.js
+          grep -F "tools.enabled('volume')" v79/chart-analysis-hook.js
+          grep -F "tools.enabled('rsi')" v79/chart-analysis-hook.js
           grep -F "addEventListener('wheel'" v79/chart-interactions.js
           grep -F "addEventListener('pointermove'" v79/chart-interactions.js
           grep -F "formatTime(c.time)" v79/chart-interactions.js
