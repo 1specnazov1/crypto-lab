@@ -55,7 +55,7 @@ jobs:
           PY
       - name: Validate service-worker safety
         run: |
-          grep -F "const CACHE='crypto-lab-v79-7930-free10'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free11'" v79/service-worker.js
           grep -F "./offline.html" v79/service-worker.js
           grep -F "./free-access-ui.js" v79/service-worker.js
           grep -F "./public-free-home.js" v79/service-worker.js
@@ -137,9 +137,9 @@ jobs:
           grep -F 'route-merge.js?v=7930free9' v79/app.html
           grep -F "ROUTES.findIndex(r=>r[0]==='market')" v79/route-merge.js
           grep -F "График и аналитика" v79/route-merge.js
-          grep -F "chart-analysis-tools.js?v=7930free10" v79/route-merge.js
-          grep -F "chart-analysis-hook.js?v=7930free10" v79/route-merge.js
-          grep -F "chart-onchain.js?v=7930free10" v79/route-merge.js
+          grep -F "chart-analysis-tools.js?v=7930free11" v79/route-merge.js
+          grep -F "chart-analysis-hook.js?v=7930free11" v79/route-merge.js
+          grep -F "chart-onchain.js?v=7930free11" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
           grep -F "['macd','MACD']" v79/chart-analysis-tools.js
@@ -159,6 +159,8 @@ jobs:
           grep -F "Coin Metrics Community API" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
           grep -F "Authorization:" v79/chart-onchain.js
+          grep -F "cloneNode(true)" v79/chart-onchain.js
+          grep -F "onchainNote')?.remove()" v79/chart-onchain.js
           grep -F "addEventListener('wheel'" v79/chart-interactions.js
           grep -F "addEventListener('pointermove'" v79/chart-interactions.js
           grep -F "formatTime(c.time)" v79/chart-interactions.js
