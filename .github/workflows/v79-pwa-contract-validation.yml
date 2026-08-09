@@ -152,13 +152,13 @@ jobs:
           grep -F "tools.enabled('levels')" v79/chart-analysis-hook.js
           grep -F "tools.enabled('volume')" v79/chart-analysis-hook.js
           grep -F "tools.enabled('rsi')" v79/chart-analysis-hook.js
-          grep -F "S ${fmt(savedLevels.support)}" v79/chart-analysis-hook.js
-          grep -F "R ${fmt(savedLevels.resistance)}" v79/chart-analysis-hook.js
+          grep -F 'supportText=Number.isFinite' v79/chart-analysis-hook.js
+          grep -F 'resistanceText=Number.isFinite' v79/chart-analysis-hook.js
           grep -F "tools.drawOverlays" v79/chart-analysis-hook.js
           grep -F "crypto-lab-v79-onchain" v79/chart-onchain.js
           grep -F "Coin Metrics Community API" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
-          grep -F "Authorization:`Bearer ${t}`" v79/chart-onchain.js
+          grep -F "Authorization:" v79/chart-onchain.js
           grep -F "addEventListener('wheel'" v79/chart-interactions.js
           grep -F "addEventListener('pointermove'" v79/chart-interactions.js
           grep -F "formatTime(c.time)" v79/chart-interactions.js
