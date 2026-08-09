@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930free12';
+  const BUILD='7930free13';
   const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-news';
   const APIKEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
   if(!ROUTES.some(r=>r[0]==='news')){
@@ -17,6 +17,9 @@
   frameUrl=function newsFrameUrl(route,signal){if(route==='news')return './news.html?lang='+encodeURIComponent(lang);return previousFrameUrl(route,signal)};
   open=function newsOpen(route,signal){if(route!=='news')return previousOpen(route,signal);current='news';$('nav').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.route==='news'));$('side').classList.remove('open');['homeView','scannerView','frameView','placeholderView'].forEach(id=>$(id).classList.add('hide'));$('frameView').classList.remove('hide');$('frame').src=frameUrl('news')};
 
+  function enhanceNewsFrame(){const frame=document.getElementById('frame');let doc;try{doc=frame?.contentDocument}catch{return}if(!doc?.getElementById('regions')||doc.querySelector('[data-region="OTHER"]'))return;const global=doc.querySelector('[data-region="GLOBAL"]');const b=doc.createElement('button');b.type='button';b.dataset.region='OTHER';b.textContent=lang==='uk'?'🌍 Інші країни':lang==='en'?'🌍 Other countries':'🌍 Другие страны';global?.insertAdjacentElement('beforebegin',b)}
+  document.getElementById('frame')?.addEventListener('load',()=>setTimeout(enhanceNewsFrame,0));
+
   if(!document.getElementById('newsTickerStyles')){const s=document.createElement('style');s.id='newsTickerStyles';s.textContent=`
     .market-news-ticker{display:none;position:relative;z-index:4;height:31px;overflow:hidden;border-bottom:1px solid #f6465d55;background:linear-gradient(90deg,#241216,#171417 42%,#19170e);cursor:pointer;white-space:nowrap}
     .market-news-ticker.show{display:block}.market-news-ticker:before{content:'⚡ BREAKING';position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;padding:0 10px;background:#2b1217;color:#ff8a9b;font-size:10px;font-weight:950;letter-spacing:.06em;border-right:1px solid #f6465d55}
@@ -31,7 +34,7 @@
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function dir(d){if(lang==='uk')return d==='positive'?'BTC: ймовірно +':d==='negative'?'BTC: ймовірно −':d==='mixed'?'BTC: змішано':'BTC: нейтрально';if(lang==='en')return d==='positive'?'BTC: likely +':d==='negative'?'BTC: likely −':d==='mixed'?'BTC: mixed':'BTC: neutral';return d==='positive'?'BTC: вероятно +':d==='negative'?'BTC: вероятно −':d==='mixed'?'BTC: смешанно':'BTC: нейтрально'}
   async function refreshTicker(){const tk=authToken();if(!tk){ticker?.classList.remove('show');return}try{const r=await fetch(ENDPOINT+'?limit=30&min_impact=75',{headers:{Authorization:`Bearer ${tk}`,apikey:APIKEY},cache:'no-store'});const j=await r.json();if(!r.ok||!j?.ok)throw Error();const arr=(j.breaking||[]).slice(0,5);if(!arr.length){ticker?.classList.remove('show');window.CRYPTO_NEWS_TICKER_STATUS={ok:true,breaking:0,last_refresh:new Date().toISOString()};return}const text=arr.map(x=>`<b>${esc(fmt(x.published_at))} · ${esc(x.region)}</b> · ${esc(x.title)} · <span class="src">${esc(x?.metadata?.source_name||x.domain||'')} · Impact ${esc(x.impact_score)} · ${esc(dir(x.direction))}</span>`).join('&nbsp;&nbsp;&nbsp; ◆ &nbsp;&nbsp;&nbsp;');const track=document.getElementById('marketNewsTrack');if(track){track.innerHTML=text;track.style.animationDuration=Math.max(24,Math.min(75,text.replace(/<[^>]+>/g,'').length/8))+'s'}ticker?.classList.add('show');window.CRYPTO_NEWS_TICKER_STATUS={ok:true,breaking:arr.length,last_refresh:new Date().toISOString()}}catch{ticker?.classList.remove('show');window.CRYPTO_NEWS_TICKER_STATUS={ok:false,breaking:0,last_refresh:new Date().toISOString()}}}
-  const baseTranslate=translate;translate=function newsTranslate(){baseTranslate();refreshTicker()};translate();
+  const baseTranslate=translate;translate=function newsTranslate(){baseTranslate();enhanceNewsFrame();refreshTicker()};translate();
   const requested=new URLSearchParams(location.search).get('route');if(requested==='news')setTimeout(()=>open('news'),0);
   refreshTicker();setInterval(refreshTicker,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshTicker()});
 })();
