@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930free5';
+  const BUILD='7930free6';
   if (!ROUTES.some(route => route[0] === 'support')) ROUTES.push(['support', '❓']);
   if (!T.ru.nav.includes('Поддержка')) T.ru.nav.push('Поддержка');
   if (!T.uk.nav.includes('Підтримка')) T.uk.nav.push('Підтримка');
@@ -33,18 +33,16 @@
   };
 
   const frame = $('frame');
+  function injectAdminScript(doc,id,file){if(doc.getElementById(id))return;const script=doc.createElement('script');script.id=id;script.src=`./${file}?v=${BUILD}`;script.async=false;doc.head.appendChild(script);}
   frame.addEventListener('load', () => {
     try {
       const doc = frame.contentDocument;
       const path = frame.contentWindow.location.pathname;
-      if (!doc || !path.endsWith('/admin.html') || doc.getElementById('adminSupportScript')) return;
-      const script = doc.createElement('script');
-      script.id = 'adminSupportScript';
-      script.src = `./admin-support.js?v=${BUILD}`;
-      script.async = false;
-      doc.head.appendChild(script);
+      if (!doc || !path.endsWith('/admin.html')) return;
+      injectAdminScript(doc,'adminSupportScript','admin-support.js');
+      injectAdminScript(doc,'adminAccessScript','admin-access.js');
     } catch (error) {
-      console.warn('Support admin integration unavailable', error);
+      console.warn('Admin extensions unavailable', error);
     }
   });
 
