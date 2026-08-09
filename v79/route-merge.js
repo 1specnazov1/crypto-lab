@@ -25,6 +25,13 @@
     };
     doc.body.appendChild(tools);
   }
+  function loadNewsExtension(){
+    if(document.getElementById('cryptoNewsExtensionScript'))return;
+    const script=document.createElement('script');
+    script.id='cryptoNewsExtensionScript';
+    script.src='./news-extension.js?v=7930free12';
+    document.body.appendChild(script);
+  }
   try {
     const marketIndex=ROUTES.findIndex(r=>r[0]==='market');
     if(marketIndex>=0)ROUTES.splice(marketIndex,1);
@@ -38,5 +45,6 @@
     translate=function mergedTranslate(){baseTranslate();document.querySelector('#nav [data-route="market"]')?.remove()};
     document.getElementById('frame')?.addEventListener('load',()=>setTimeout(injectAnalyticsTools,0));
     translate();
+    loadNewsExtension();
   } catch (e) { console.warn('route merge skipped',e); }
 })();
