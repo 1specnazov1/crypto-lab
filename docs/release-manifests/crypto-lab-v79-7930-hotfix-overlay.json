@@ -2,13 +2,13 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, compact Binance-style mobile shell, Education module and protected support email notifications.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, compact Binance-style mobile shell, Education module, protected support email notifications and the final accessibility audit fixes.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free6",
+  "pwa_cache": "crypto-lab-v79-7930-free7",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "fc117604ee2a07e71af0870bb8cf983969be7684",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "3a99a26cb49f9b581f8d1f12f31ce9b6e6294882",
-      "marker": "crypto-lab-v79-7930-free6"
+      "sha": "d538a48f8af545b70fe5bf80c239e37759328fc1",
+      "marker": "crypto-lab-v79-7930-free7"
     }
   }
 }
