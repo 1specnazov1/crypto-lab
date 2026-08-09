@@ -4,6 +4,7 @@
   const TURNSTILE='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   const AUTH_KEY='sb-txhzxbizjpinowepfjkm-auth-token';
   const q=new URLSearchParams(location.search);
+  if(location.hostname==='127.0.0.1'||location.hostname==='localhost')return;
   const TEXT={
     ru:{title:'Доступ к CRYPTO LAB',sub:'CRYPTO LAB сейчас бесплатный. Доступ выдаётся по персональному приглашению.',label:'Введите ваш email',placeholder:'name@example.com',send:'Отправить заявку',login:'У меня уже есть доступ — Войти',note:'После одобрения владелец CRYPTO LAB передаст вам персональную одноразовую ссылку.',captcha:'Подтвердите, что вы не робот.',bad:'Не удалось отправить заявку. Попробуйте позже.',ok:'Заявка отправлена. После одобрения вы получите персональную ссылку от владельца.',working:'Отправка…'},
     uk:{title:'Доступ до CRYPTO LAB',sub:'CRYPTO LAB зараз безкоштовний. Доступ надається за персональним запрошенням.',label:'Введіть ваш email',placeholder:'name@example.com',send:'Надіслати заявку',login:'У мене вже є доступ — Увійти',note:'Після схвалення власник CRYPTO LAB передасть вам персональне одноразове посилання.',captcha:'Підтвердьте, що ви не робот.',bad:'Не вдалося надіслати заявку. Спробуйте пізніше.',ok:'Заявку надіслано. Після схвалення ви отримаєте персональне посилання від власника.',working:'Надсилання…'},
