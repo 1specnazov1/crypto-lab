@@ -7,9 +7,11 @@ on:
       - 'tests/v79-mobile-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
+      - 'tests/v79-public-launch-audit.spec.js'
       - 'playwright.config.mjs'
       - 'playwright.owner-launch.config.mjs'
       - 'playwright.owner-mobile.config.mjs'
+      - 'playwright.full-audit.config.mjs'
       - 'package.json'
       - '.github/workflows/v79-browser-smoke.yml'
   pull_request:
@@ -18,9 +20,11 @@ on:
       - 'tests/v79-mobile-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
+      - 'tests/v79-public-launch-audit.spec.js'
       - 'playwright.config.mjs'
       - 'playwright.owner-launch.config.mjs'
       - 'playwright.owner-mobile.config.mjs'
+      - 'playwright.full-audit.config.mjs'
       - 'package.json'
       - '.github/workflows/v79-browser-smoke.yml'
   workflow_dispatch:
@@ -35,7 +39,7 @@ concurrency:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -99,6 +103,11 @@ jobs:
         env:
           CI: 'true'
 
+      - name: Run full public launch audit
+        run: npx playwright test --config=playwright.full-audit.config.mjs
+        env:
+          CI: 'true'
+
       - name: Upload browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5
@@ -106,6 +115,7 @@ jobs:
           name: v79-browser-smoke-report
           path: |
             playwright-report/
+            playwright-report-full-audit/
             test-results/
           if-no-files-found: ignore
           retention-days: 14
