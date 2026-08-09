@@ -2,17 +2,17 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release also includes the informative BTC/USDT candlestick terminal, detailed interactive Market chart with date/time axis, OHLC tooltip, wheel zoom, historical pan and enhanced RSI, compact Binance-style mobile shell, Education module, protected support email notifications and the final accessibility audit fixes.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release includes the informative BTC/USDT candlestick terminal, a unified Chart & analytics navigation section replacing duplicate Market/Chart tabs, timeframe-aware toggleable technical analysis tools (EMA, Fibonacci, RSI, MACD, Bollinger Bands, VWAP, ATR, support/resistance, volume and trend), detailed interactive chart date/time axis, OHLC tooltip, wheel zoom, historical pan and enhanced RSI, compact Binance-style mobile shell, Education module, protected support email notifications and accessibility audit fixes. On-chain remains explicitly unavailable until a real on-chain data source is connected; no synthetic on-chain values are shown.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free8",
+  "pwa_cache": "crypto-lab-v79-7930-free9",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "fc117604ee2a07e71af0870bb8cf983969be7684",
-      "marker": "access-gate.js?v=7930free6"
+      "sha": "b22e429e2f64bb720bbde8745160c4030688dacd",
+      "marker": "route-merge.js?v=7930free9"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "b04274da159465edee3ccb5be62c81e52920993e",
-      "marker": "crypto-lab-v79-7930-free8"
+      "sha": "9dcc4c794b35e0631b46cb8e17e81598bbd88ebf",
+      "marker": "crypto-lab-v79-7930-free9"
     }
   }
 }
