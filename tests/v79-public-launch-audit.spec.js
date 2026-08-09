@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = ['market','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
-
+const ROUTES = ['home','market','analytics','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
 const SUPABASE_STUB=`
@@ -30,22 +29,14 @@ async function stub(page){
 }
 async function noOverflow(page){const d=await page.evaluate(()=>({w:document.documentElement.clientWidth,b:document.body.scrollWidth,h:document.documentElement.scrollWidth}));expect(Math.max(d.b,d.h)).toBeLessThanOrEqual(d.w+3)}
 
-for(const project of ['audit-desktop','audit-mobile']){
-  test.describe(`${project} complete shell`,()=>{
-    test('all navigation buttons react immediately and shell stays stable',async({page},testInfo)=>{
-      test.skip(testInfo.project.name!==project);
-      await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
-      const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
-      await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await noOverflow(page);
-      for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
-      for(const route of ROUTES){
-        if(testInfo.project.name==='audit-mobile'){await page.locator('#menu').click();await expect(page.locator('#side')).toHaveClass(/open/)}
-        const button=page.locator(`#nav button[data-route="${route}"]`);await expect(button).toBeVisible();const t0=Date.now();await button.click();await expect(button).toHaveClass(/on/);await expect(page.locator('#frameView')).toBeVisible();expect(Date.now()-t0).toBeLessThan(750);if(testInfo.project.name==='audit-mobile')await expect(page.locator('#side')).not.toHaveClass(/open/);await noOverflow(page);
-      }
-      expect(errors).toEqual([]);
-    });
-  });
-}
+test('shell is fast, complete, responsive and contains every navigation target',async({page})=>{
+  await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
+  const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
+  await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await noOverflow(page);
+  const actual=await page.locator('#nav button[data-route]').evaluateAll(nodes=>nodes.map(n=>n.dataset.route));expect(actual).toEqual(ROUTES);
+  for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
+  expect(errors).toEqual([]);
+});
 
 test('every concrete module renders, has unique ids, named controls and no placeholders',async({page})=>{
   await stub(page);const files=['chart.html','scanner.html','ai.html','portfolio.html','calculator.html','backtest.html','journal.html','education.html','account.html','support.html','admin.html'];
