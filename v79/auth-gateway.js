@@ -3,10 +3,11 @@
   const REGISTER_ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register';
   const RECOVERY_ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover';
   const TURNSTILE_SCRIPT='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  const INVITE_TOKEN=(new URLSearchParams(location.search).get('invite')||'').trim();
   const TEXT={
-    ru:{unavailable:'Функция временно недоступна.',captcha:'Подтвердите, что вы не робот.',confirm:'Проверьте почту и подтвердите регистрацию.',reset:'Если аккаунт существует, ссылка восстановления будет отправлена на почту.',email:'Введите корректный email.',password:'Пароль: минимум 10 символов, заглавная и строчная буква, цифра.',working:'Обработка…'},
-    uk:{unavailable:'Функція тимчасово недоступна.',captcha:'Підтвердьте, що ви не робот.',confirm:'Перевірте пошту та підтвердьте реєстрацію.',reset:'Якщо акаунт існує, посилання відновлення буде надіслано на пошту.',email:'Введіть коректний email.',password:'Пароль: мінімум 10 символів, велика і мала літера, цифра.',working:'Обробка…'},
-    en:{unavailable:'This feature is temporarily unavailable.',captcha:'Complete the anti-bot check.',confirm:'Check your email and confirm registration.',reset:'If the account exists, a recovery link will be sent.',email:'Enter a valid email address.',password:'Password: at least 10 characters with upper case, lower case and a number.',working:'Processing…'}
+    ru:{unavailable:'Регистрация доступна только по персональному приглашению.',captcha:'Подтвердите, что вы не робот.',confirm:'Проверьте почту и подтвердите регистрацию.',reset:'Если аккаунт существует, ссылка восстановления будет отправлена на почту.',email:'Введите корректный email.',password:'Пароль: минимум 10 символов, заглавная и строчная буква, цифра.',working:'Обработка…',invite:'Персональное приглашение подтверждено',activate:'Активировать бесплатный доступ'},
+    uk:{unavailable:'Реєстрація доступна лише за персональним запрошенням.',captcha:'Підтвердьте, що ви не робот.',confirm:'Перевірте пошту та підтвердьте реєстрацію.',reset:'Якщо акаунт існує, посилання відновлення буде надіслано на пошту.',email:'Введіть коректний email.',password:'Пароль: мінімум 10 символів, велика і мала літера, цифра.',working:'Обробка…',invite:'Персональне запрошення підтверджено',activate:'Активувати безкоштовний доступ'},
+    en:{unavailable:'Registration is available only by personal invitation.',captcha:'Complete the anti-bot check.',confirm:'Check your email and confirm registration.',reset:'If the account exists, a recovery link will be sent.',email:'Enter a valid email address.',password:'Password: at least 10 characters with upper case, lower case and a number.',working:'Processing…',invite:'Personal invitation verified',activate:'Activate free access'}
   };
   const originalFetch=window.fetch.bind(window);
   let registerConfig={enabled:false,site_key:null,captcha_action:'crypto_register'};
@@ -33,69 +34,44 @@
     if(turnstileReady)return turnstileReady;
     turnstileReady=new Promise((resolve,reject)=>{
       const existing=document.querySelector(`script[src^="${TURNSTILE_SCRIPT.split('?')[0]}"]`);
-      if(existing){
-        const wait=()=>window.turnstile?resolve(window.turnstile):setTimeout(wait,30);
-        wait();return;
-      }
-      const script=document.createElement('script');
-      script.src=TURNSTILE_SCRIPT;script.async=true;script.defer=true;
-      script.onload=()=>resolve(window.turnstile);
-      script.onerror=()=>reject(new Error('Turnstile script unavailable'));
-      document.head.appendChild(script);
+      if(existing){const wait=()=>window.turnstile?resolve(window.turnstile):setTimeout(wait,30);wait();return;}
+      const script=document.createElement('script');script.src=TURNSTILE_SCRIPT;script.async=true;script.defer=true;script.onload=()=>resolve(window.turnstile);script.onerror=()=>reject(new Error('Turnstile script unavailable'));document.head.appendChild(script);
     });
     return turnstileReady;
   }
 
-  function ensureContainer(form,id,before){
-    let box=el(id);
-    if(box||!form)return box;
-    box=document.createElement('div');box.id=id;
-    box.style.cssText='min-height:1px;margin:10px 0;display:flex;justify-content:flex-start';
-    if(before)before.before(box);else form.appendChild(box);
-    return box;
-  }
+  function ensureContainer(form,id,before){let box=el(id);if(box||!form)return box;box=document.createElement('div');box.id=id;box.style.cssText='min-height:1px;margin:10px 0;display:flex;justify-content:flex-start';if(before)before.before(box);else form.appendChild(box);return box;}
 
   async function renderTurnstile(){
     if(!registerConfig.enabled&&!recoveryConfig.enabled)return;
     try{
       const api=await loadTurnstile();
-      if(registerConfig.enabled&&registerConfig.site_key&&signupWidget===null){
-        const form=el('signupForm'),button=el('signupBtn'),box=ensureContainer(form,'signupTurnstile',button);
-        signupWidget=api.render(box,{sitekey:registerConfig.site_key,action:registerConfig.captcha_action||'crypto_register',theme:'dark',size:'flexible',callback:token=>{signupToken=token;},'expired-callback':()=>{signupToken='';},'error-callback':()=>{signupToken='';}});
-      }
-      if(recoveryConfig.enabled&&recoveryConfig.site_key&&recoveryWidget===null){
-        const form=el('loginForm'),actions=form?.querySelector('.actions'),box=ensureContainer(form,'recoveryTurnstile',actions);
-        recoveryWidget=api.render(box,{sitekey:recoveryConfig.site_key,action:recoveryConfig.captcha_action||'crypto_recover',theme:'dark',size:'flexible',callback:token=>{recoveryToken=token;},'expired-callback':()=>{recoveryToken='';},'error-callback':()=>{recoveryToken='';}});
-      }
+      if(registerConfig.enabled&&registerConfig.site_key&&signupWidget===null){const form=el('signupForm'),button=el('signupBtn'),box=ensureContainer(form,'signupTurnstile',button);signupWidget=api.render(box,{sitekey:registerConfig.site_key,action:registerConfig.captcha_action||'crypto_register',theme:'dark',size:'flexible',callback:token=>{signupToken=token;},'expired-callback':()=>{signupToken='';},'error-callback':()=>{signupToken='';}});}
+      if(recoveryConfig.enabled&&recoveryConfig.site_key&&recoveryWidget===null){const form=el('loginForm'),actions=form?.querySelector('.actions'),box=ensureContainer(form,'recoveryTurnstile',actions);recoveryWidget=api.render(box,{sitekey:recoveryConfig.site_key,action:recoveryConfig.captcha_action||'crypto_recover',theme:'dark',size:'flexible',callback:token=>{recoveryToken=token;},'expired-callback':()=>{recoveryToken='';},'error-callback':()=>{recoveryToken='';}});}
     }catch(error){console.warn('Protected auth challenge unavailable',error);}
   }
 
   async function loadConfig(endpoint){
-    try{
-      const response=await originalFetch(endpoint,{method:'GET',cache:'no-store'});
-      const body=await response.json().catch(()=>({}));
-      return response.ok&&body?.ok?body:{enabled:false};
-    }catch{return {enabled:false};}
+    try{const target=endpoint===REGISTER_ENDPOINT&&INVITE_TOKEN?`${endpoint}?invite_token=${encodeURIComponent(INVITE_TOKEN)}`:endpoint;const response=await originalFetch(target,{method:'GET',cache:'no-store'});const body=await response.json().catch(()=>({}));return response.ok&&body?.ok?body:{enabled:false};}catch{return {enabled:false};}
   }
 
   async function submitSignup(event){
     event.preventDefault();
-    const button=el('signupBtn'),normal=copy().confirm;
-    if(!registerConfig.enabled)return show(copy().unavailable,'bad');
-    const email=el('signupEmail')?.value.trim()||'',password=el('signupPassword')?.value||'';
-    if(!validEmail(email))return show(copy().email,'bad');
+    const button=el('signupBtn'),normal=copy().activate;
+    if(!registerConfig.enabled||!INVITE_TOKEN)return show(copy().unavailable,'bad');
+    const password=el('signupPassword')?.value||'';
     if(!strongPassword(password))return show(copy().password,'bad');
     if(!signupToken)return show(copy().captcha,'bad');
     setBusy(button,true,normal);
     try{
-      const response=await originalFetch(REGISTER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password,display_name:el('signupName')?.value.trim()||'',locale:locale(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Kyiv',captcha_token:signupToken,website:''})});
+      const response=await originalFetch(REGISTER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({invite_token:INVITE_TOKEN,password,display_name:el('signupName')?.value.trim()||'',locale:locale(),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Kyiv',captcha_token:signupToken,website:''})});
       const body=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(body?.error||copy().unavailable);
       show(copy().confirm,'ok');
-      el('signupForm')?.reset();signupToken='';
+      el('signupPassword').value='';signupToken='';
       if(window.turnstile&&signupWidget!==null)window.turnstile.reset(signupWidget);
     }catch(error){show(error instanceof Error?error.message:String(error),'bad');if(window.turnstile&&signupWidget!==null)window.turnstile.reset(signupWidget);signupToken='';}
-    finally{if(button){button.disabled=!registerConfig.enabled;button.textContent=(typeof tr==='function'&&tr().signupBtn)||'Создать аккаунт';}}
+    finally{if(button){button.disabled=!registerConfig.enabled;button.textContent=copy().activate;}}
   }
 
   async function submitRecovery(){
@@ -105,58 +81,30 @@
     if(!validEmail(email))return show(copy().email,'bad');
     if(!recoveryToken)return show(copy().captcha,'bad');
     setBusy(button,true,normal);
-    try{
-      const response=await originalFetch(RECOVERY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,locale:locale(),captcha_token:recoveryToken,website:''})});
-      const body=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(body?.error||copy().unavailable);
-      show(copy().reset,'ok');
-    }catch(error){show(error instanceof Error?error.message:String(error),'bad');}
+    try{const response=await originalFetch(RECOVERY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,locale:locale(),captcha_token:recoveryToken,website:''})});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body?.error||copy().unavailable);show(copy().reset,'ok');}
+    catch(error){show(error instanceof Error?error.message:String(error),'bad');}
     finally{recoveryToken='';if(window.turnstile&&recoveryWidget!==null)window.turnstile.reset(recoveryWidget);if(button){button.disabled=false;button.textContent=normal;}}
   }
 
-  function ensureAdminAccess(){
-    try{
-      if(typeof account==='undefined'||account?.profile?.role!=='admin')return;
-      const header=document.querySelector('.account-head > div:last-child');
-      if(!header||el('adminPanelBtn'))return;
-      const button=document.createElement('button');
-      button.id='adminPanelBtn';button.className='btn';button.style.marginLeft='6px';button.textContent='Admin';
-      button.onclick=()=>{location.href='./admin.html';};
-      header.appendChild(button);
-    }catch{}
+  function ensureInviteUi(){
+    const tab=el('signupTab'),form=el('signupForm'),email=el('signupEmail'),title=el('signupTitle'),button=el('signupBtn');
+    if(registerConfig.enabled&&INVITE_TOKEN){
+      if(tab){tab.disabled=false;tab.title='';}
+      if(email){email.value=registerConfig.invite_email_masked||'Приглашённый email';email.disabled=true;email.required=false;}
+      if(title)title.textContent=copy().activate;
+      if(button)button.textContent=copy().activate;
+      if(form&&!el('inviteVerifiedNote')){const note=document.createElement('div');note.id='inviteVerifiedNote';note.className='msg show ok';note.style.display='block';note.textContent=`${copy().invite}: ${registerConfig.invite_email_masked||''}`;form.prepend(note);}
+      setTimeout(()=>tab?.click(),0);
+    }else if(tab){tab.disabled=true;tab.title=copy().unavailable;}
   }
 
-  function hookAdminAccess(){
-    try{
-      if(typeof loadAccount==='function'&&!loadAccount.__cryptoAdminHooked){
-        const originalLoadAccount=loadAccount;
-        const wrapped=async function(...args){const result=await originalLoadAccount.apply(this,args);ensureAdminAccess();return result;};
-        wrapped.__cryptoAdminHooked=true;
-        loadAccount=wrapped;
-      }
-    }catch{}
-    setTimeout(ensureAdminAccess,0);
-    setTimeout(ensureAdminAccess,750);
-  }
+  function ensureAdminAccess(){try{if(typeof account==='undefined'||account?.profile?.role!=='admin')return;const header=document.querySelector('.account-head > div:last-child');if(!header||el('adminPanelBtn'))return;const button=document.createElement('button');button.id='adminPanelBtn';button.className='btn';button.style.marginLeft='6px';button.textContent='Admin';button.onclick=()=>{location.href='./admin.html';};header.appendChild(button);}catch{}}
+  function hookAdminAccess(){try{if(typeof loadAccount==='function'&&!loadAccount.__cryptoAdminHooked){const originalLoadAccount=loadAccount;const wrapped=async function(...args){const result=await originalLoadAccount.apply(this,args);ensureAdminAccess();return result;};wrapped.__cryptoAdminHooked=true;loadAccount=wrapped;}}catch{}setTimeout(ensureAdminAccess,0);setTimeout(ensureAdminAccess,750);}
 
   function applyConfig(){
-    const signupButton=el('signupBtn'),password=el('signupPassword'),label=el('newPasswordLabel');
-    if(password)password.minLength=10;
-    if(label)label.textContent=copy().password;
-    if(signupButton&&!registerConfig.enabled){signupButton.disabled=true;signupButton.title=copy().unavailable;}
-    const signupForm=el('signupForm');if(signupForm)signupForm.onsubmit=submitSignup;
-    const resetButton=el('resetBtn');if(resetButton)resetButton.onclick=submitRecovery;
-    window.CRYPTO_AUTH_GATEWAY_STATUS={registration_enabled:!!registerConfig.enabled,recovery_enabled:!!recoveryConfig.enabled,protected_signup:true,protected_recovery:true,direct_supabase_signup_bypassed:true};
-    renderTurnstile();
-    ensureAdminAccess();
+    const signupButton=el('signupBtn'),password=el('signupPassword'),label=el('newPasswordLabel');if(password)password.minLength=10;if(label)label.textContent=copy().password;if(signupButton&&!registerConfig.enabled){signupButton.disabled=true;signupButton.title=copy().unavailable;}const signupForm=el('signupForm');if(signupForm)signupForm.onsubmit=submitSignup;const resetButton=el('resetBtn');if(resetButton)resetButton.onclick=submitRecovery;ensureInviteUi();window.CRYPTO_AUTH_GATEWAY_STATUS={registration_enabled:!!registerConfig.enabled,registration_mode:registerConfig.registration_mode||'invite_only_free',invite_valid:!!registerConfig.invite_valid,recovery_enabled:!!recoveryConfig.enabled,protected_signup:true,protected_recovery:true,direct_supabase_signup_bypassed:true};renderTurnstile();ensureAdminAccess();
   }
 
-  async function init(){
-    [registerConfig,recoveryConfig]=await Promise.all([loadConfig(REGISTER_ENDPOINT),loadConfig(RECOVERY_ENDPOINT)]);
-    applyConfig();
-  }
-  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(applyConfig,0));
-  window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(applyConfig,0);});
-  hookAdminAccess();
-  init();
+  async function init(){[registerConfig,recoveryConfig]=await Promise.all([loadConfig(REGISTER_ENDPOINT),loadConfig(RECOVERY_ENDPOINT)]);applyConfig();}
+  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(applyConfig,0));window.addEventListener('message',event=>{if(event.data?.type==='crypto-lab-language')setTimeout(applyConfig,0);});hookAdminAccess();init();
 })();
