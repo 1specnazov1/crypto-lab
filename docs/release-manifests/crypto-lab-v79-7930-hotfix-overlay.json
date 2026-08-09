@@ -2,13 +2,13 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release includes the informative BTC/USDT candlestick terminal, a unified Chart & analytics navigation section replacing duplicate Market/Chart tabs, timeframe-aware toggleable technical analysis tools (EMA, Fibonacci, RSI, MACD, Bollinger Bands, VWAP, ATR, support/resistance with exact visible price labels, volume and trend), detailed interactive chart date/time axis, OHLC tooltip, wheel zoom, historical pan and enhanced RSI, plus authenticated real on-chain metrics from Coin Metrics Community API and BTC live network metrics from mempool.space. The old on-chain placeholder handler is removed so only real-source status is shown, and unsupported assets never receive synthetic on-chain values. The release also retains the compact Binance-style mobile shell, Education module, protected support email notifications and accessibility audit fixes.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release includes the informative BTC/USDT candlestick terminal, unified Chart & analytics navigation, timeframe-aware technical analysis tools, exact S/R price labels, real on-chain metrics, and a new five-minute market-impact news engine. The News section prioritizes the US, Europe, China and Japan before global crypto coverage, scores impact on BTC/crypto, records source and publication time, and displays only high-confidence critical events in the top BREAKING ticker. The news collector runs every five minutes from Supabase cron and uses curated official/major sources with unknown outlets filtered out. The release also retains the compact Binance-style mobile shell, Education module, protected support email notifications and accessibility audit fixes.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free11",
+  "pwa_cache": "crypto-lab-v79-7930-free12",
   "asset_overrides": {
     "v79/app.html": {
       "sha": "b22e429e2f64bb720bbde8745160c4030688dacd",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "4f3d02b3904775de27a0674718a5b28d23aa7cef",
-      "marker": "crypto-lab-v79-7930-free11"
+      "sha": "efcd9d5ace13c8e65e7a3e76d306e730c9c41426",
+      "marker": "crypto-lab-v79-7930-free12"
     }
   }
 }
