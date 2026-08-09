@@ -8,7 +8,12 @@
   function env(){
     const canvas=document.getElementById('chart');
     if(!canvas||!Array.isArray(candles)||!candles.length)return null;
-    const {ctx,w,h}=fitCanvas(canvas),pad={l:12,r:82,t:20,b:42},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+    const dpr=Math.max(1,window.devicePixelRatio||1);
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width/dpr,h=canvas.height/dpr;
+    if(!ctx||!Number.isFinite(w)||!Number.isFinite(h)||w<=0||h<=0)return null;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const pad={l:12,r:82,t:20,b:42},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
     const requested=Number(storageGet('cryptoChartVisibleCandles'))||120;
     const count=Math.max(24,Math.min(candles.length,requested));
     const visible=candles.slice(-count),offset=candles.length-visible.length;
