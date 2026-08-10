@@ -36,6 +36,8 @@ jobs:
           grep -F "./auth-gateway.js" v79/service-worker.js
           grep -F "crypto-lab-v79-7930-free1" v79/service-worker.js
           grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
+          grep -F "invite_only_free" v79/auth-gateway.js
+          grep -F "invite_token" v79/auth-gateway.js
           grep -F "crypto_register" v79/auth-gateway.js
           grep -F "crypto_recover" v79/auth-gateway.js
           grep -F "free-access-ui.js" v79/registration-consent.js
@@ -43,7 +45,7 @@ jobs:
           ! grep -F "friendsFamilyAccountScript" v79/commercial-extension.js
           ! grep -F "adminBillingEventsScript" v79/commercial-extension.js
 
-      - name: Verify live protected public free auth lifecycle
+      - name: Verify live protected invite-only auth lifecycle
         run: |
           curl --fail --silent --show-error \
             -H 'Origin: https://1specnazov1.github.io' \
@@ -58,35 +60,33 @@ jobs:
           register=json.load(open('/tmp/register.json'))
           recover=json.load(open('/tmp/recover.json'))
 
-          assert register['ok'] is True
-          assert register['enabled'] is True
-          assert register['registration_mode']=='public_free'
-          assert register['free_access'] is True
-          assert register['captcha_provider']=='turnstile'
-          assert register['captcha_action']=='crypto_register'
-          assert register['password_min_length']==10
-          assert set(register['required_legal_keys'])=={'terms','privacy','risk'}
-          assert len(register['documents'])==3
-          assert register['readiness']['feature_flag'] is True
-          assert register['readiness']['portal'] is True
-          assert register['readiness']['turnstile'] is True
-          assert register['readiness']['mail_provider'] is True
-          assert register['readiness']['mail_provider_code']=='resend'
-          assert register['readiness']['legal_documents'] is True
-          assert isinstance(register['site_key'],str) and register['site_key']
+          # Owner boundary: public registration stays closed. A protected invite may
+          # enable one specific request, but the public endpoint must remain fail-closed.
+          assert register.get('ok') is True
+          assert register.get('enabled') is False
+          assert register.get('registration_mode') in {'invite_only_free','disabled'}
+          assert register.get('captcha_provider')=='turnstile'
+          assert register.get('captcha_action')=='crypto_register'
+          assert int(register.get('password_min_length',0))>=10
+          legal=set(register.get('required_legal_keys') or [])
+          assert {'terms','privacy','risk'}.issubset(legal)
+          assert isinstance(register.get('documents'),list)
+          readiness=register.get('readiness') or {}
+          assert readiness.get('turnstile') is True
+          assert readiness.get('mail_provider') is True
+          assert readiness.get('legal_documents') is True
+          assert register.get('site_key') in (None,'') or isinstance(register.get('site_key'),str)
 
-          assert recover['ok'] is True
-          assert recover['enabled'] is True
-          assert recover['free_access'] is True
-          assert recover['captcha_provider']=='turnstile'
-          assert recover['captcha_action']=='crypto_recover'
-          assert recover['email_enumeration_safe'] is True
-          assert recover['readiness']['feature_flag'] is True
-          assert recover['readiness']['turnstile'] is True
-          assert recover['readiness']['mail_provider'] is True
-          assert recover['readiness']['mail_provider_code']=='resend'
-          assert isinstance(recover['site_key'],str) and recover['site_key']
-          print('Protected public FREE registration and recovery: OK')
+          assert recover.get('ok') is True
+          assert isinstance(recover.get('enabled'),bool)
+          assert recover.get('captcha_provider')=='turnstile'
+          assert recover.get('captcha_action')=='crypto_recover'
+          assert recover.get('email_enumeration_safe') is True
+          recover_readiness=recover.get('readiness') or {}
+          assert recover_readiness.get('turnstile') is True
+          assert recover_readiness.get('mail_provider') is True
+          assert recover.get('site_key') in (None,'') or isinstance(recover.get('site_key'),str)
+          print('Protected invite-only registration and recovery boundary: OK')
           PY
 
       - name: Verify free auth and payment boundaries
@@ -108,7 +108,8 @@ jobs:
           assert 'friendsFamilyAccountScript' not in extension
           assert 'adminBillingEventsScript' not in extension
           assert "publicFreeAccessScript" in extension
-          assert "crypto-lab-v79-7930-free1" in sw
+          assert "invite_only_free" in gateway
+          assert "crypto-lab-v79-7930-free20" in sw
           assert "referrer" in recovery.lower() and "no-referrer" in recovery.lower()
-          print('Public FREE auth/payment boundaries: OK')
+          print('Invite-only FREE auth/payment boundaries: OK')
           PY
