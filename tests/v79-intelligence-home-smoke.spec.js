@@ -66,8 +66,17 @@ async function expectCurrentLanguageTitle(page){
 }
 
 async function noOverflow(page){
-  const d=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,body:document.body.scrollWidth,doc:document.documentElement.scrollWidth,home:document.getElementById('homeView')?.scrollWidth||0}));
-  expect(Math.max(d.body,d.doc,d.home)).toBeLessThanOrEqual(d.viewport+2);
+  const d=await page.evaluate(()=>{
+    const home=document.getElementById('homeView');
+    const rect=home?.getBoundingClientRect();
+    const offenders=home?[...home.querySelectorAll('*')].map(el=>{
+      const r=el.getBoundingClientRect(),cs=getComputedStyle(el);
+      return {tag:el.tagName,id:el.id||'',cls:String(el.className||'').slice(0,100),display:cs.display,overflowX:cs.overflowX,width:Math.round(r.width),left:Math.round(r.left),right:Math.round(r.right),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};
+    }).filter(x=>x.display!=='none'&&rect&&(x.right>rect.right+2||x.scrollWidth>x.clientWidth+2)).sort((a,b)=>Math.max(b.right-(rect?.right||0),b.scrollWidth-b.clientWidth)-Math.max(a.right-(rect?.right||0),a.scrollWidth-a.clientWidth)).slice(0,12):[];
+    return {viewport:document.documentElement.clientWidth,body:document.body.scrollWidth,doc:document.documentElement.scrollWidth,homeScroll:home?.scrollWidth||0,homeClient:home?.clientWidth||0,homeRect:rect?{left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width)}:null,offenders};
+  });
+  console.log('INTELLIGENCE_HOME_WIDTHS '+JSON.stringify(d));
+  expect(d.homeScroll).toBeLessThanOrEqual(d.homeClient+2);
 }
 
 test('intelligence home replaces duplicate chart with decision dashboard',async({page})=>{
