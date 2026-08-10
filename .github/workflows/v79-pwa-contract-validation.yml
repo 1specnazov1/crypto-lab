@@ -29,7 +29,7 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free16'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free17'" v79/service-worker.js
           for asset in news-extension.js news.html chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
@@ -81,7 +81,7 @@ jobs:
           node --check v79/chart-visual-upgrades.js
           node --check v79/chart-onchain.js
           grep -F "chart-analysis-hook.js?v=7930free13" v79/route-merge.js
-          grep -F "chart-visual-upgrades.js?v=7930free16" v79/route-merge.js
+          grep -F "chart-visual-upgrades.js?v=7930free17" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
@@ -100,12 +100,15 @@ jobs:
           grep -F "AUTO SWING" v79/chart-visual-upgrades.js
           grep -F "return [.382,.5,.618,.786]" v79/chart-visual-upgrades.js
           grep -F "return [1.272,1.618,2]" v79/chart-visual-upgrades.js
+          grep -F "chartLeft=pad.l+2" v79/chart-visual-upgrades.js
+          grep -F "ctx.lineTo(chartRight,yy)" v79/chart-visual-upgrades.js
           grep -F "#0ecb81" v79/chart-visual-upgrades.js
           grep -F "#f6465d" v79/chart-visual-upgrades.js
           grep -F "fibRatioLabel" v79/chart-visual-upgrades.js
           grep -F "EMA20" v79/chart-visual-upgrades.js
           grep -F "EMA50" v79/chart-visual-upgrades.js
           grep -F "EMA200" v79/chart-visual-upgrades.js
+          grep -F "x0=pad.l+8" v79/chart-visual-upgrades.js
           grep -F "FIB AUTO RETR" v79/chart-visual-upgrades.js
           grep -F "FIB EXT" v79/chart-visual-upgrades.js
           grep -F "Coin Metrics" v79/chart-onchain.js
