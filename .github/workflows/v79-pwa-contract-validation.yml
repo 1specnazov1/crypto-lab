@@ -29,7 +29,7 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free20'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free21'" v79/service-worker.js
           for asset in news-extension.js news.html public-free-home.js home-intelligence.js chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
@@ -44,9 +44,11 @@ jobs:
         run: |
           node --check v79/public-free-home.js
           node --check v79/home-intelligence.js
-          grep -F "public-free-home.js?v=7930free20" v79/app.html
+          grep -F "public-free-home.js?v=7930free21" v79/app.html
           grep -F "home-intelligence.js?v=7930free20" v79/public-free-home.js
           grep -F "cryptoIntelligenceHomeScript" v79/public-free-home.js
+          grep -F "Object.defineProperty(window,'DATA'" v79/public-free-home.js
+          grep -F "max-width:190px!important" v79/public-free-home.js
           grep -F "MARKET INTELLIGENCE · 30-SECOND BRIEF" v79/home-intelligence.js
           grep -F "Opportunity Radar" v79/home-intelligence.js
           grep -F "Market Heatmap" v79/home-intelligence.js
