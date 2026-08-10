@@ -18,7 +18,7 @@
         if(doc.getElementById('cryptoOnchainScript'))return;
         const onchain=doc.createElement('script');
         onchain.id='cryptoOnchainScript';
-        onchain.src='./chart-onchain.js?v=7930free11';
+        onchain.src='./chart-onchain.js?v=7930free14';
         doc.body.appendChild(onchain);
       };
       doc.body.appendChild(hook);
