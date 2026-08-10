@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 const ROUTES = ['home','analytics','news','scanner','ai','portfolio','calculator','backtest','journal','education','account','support'];
 const BINANCE_KLINES=Array.from({length:120},(_,i)=>{const t=Date.UTC(2026,7,9,0,i),o=65000+i*2,c=o+(i%2?3:-2);return[t,String(o),String(Math.max(o,c)+8),String(Math.min(o,c)-8),String(c),String(12+i/10),t+59999]});
 const BINANCE_TICKER={symbol:'BTCUSDT',lastPrice:'65123.45',priceChangePercent:'1.25',quoteVolume:'1450000000'};
+const AUDIT_BASES=['BTC','ETH','SOL','XRP','BNB','DOGE','LINK','SUI','ADA','AVAX','ONDO','XLM'];
+const AUDIT_CHANGES=[1.25,.8,2.4,-.4,.5,3.1,1.6,-1.2,.7,-1.8,2.1,-.3];
+const BINANCE_BASKET=AUDIT_BASES.map((base,i)=>({symbol:base+'USDT',lastPrice:String([65123.45,1927.2,76.9,1.033,612.4,.152,16.8,1.92,.61,31.2,.91,.128][i]),priceChangePercent:String(AUDIT_CHANGES[i]),quoteVolume:String(1450000000-i*55000000)}));
 const NEWS={ok:true,items:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters',watch_entities:['Donald Trump / White House']}}],breaking:[{id:'n1',region:'US',category:'regulation',title:'Test market-moving policy headline',url:'https://example.invalid/news',domain:'reuters.com',published_at:new Date().toISOString(),source_tier:2,impact_score:92,urgency:3,direction:'positive',market_reason:'Policy can affect digital-asset capital flows.',is_breaking:true,metadata:{reason_key:'regulation',source_name:'Reuters',watch_entities:['Donald Trump / White House']}}],state:{status:'ok',accepted_count:1,last_finished_at:new Date().toISOString()},refresh_seconds:300};
 const SUPABASE_STUB=`
 (() => {
@@ -25,7 +28,7 @@ async function stub(page){
     if(url.includes('/functions/v1/crypto-lab-v79-commercial'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,mode:'invite_free',paid_features_enabled:false,code:'PAID_FEATURES_DISABLED'})});
     if(url.includes('/functions/v1/crypto-lab-v79-onchain'))return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'Authentication required'})});
     if(url.includes('api.binance.com'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-    if(url.includes('data-api.binance.vision')){if(url.includes('/klines'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_KLINES)});if(url.includes('/ticker/24hr'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_TICKER)});return route.fulfill({status:404,body:'{}'});}
+    if(url.includes('data-api.binance.vision')){if(url.includes('/klines'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_KLINES)});if(url.includes('/ticker/24hr'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(url.includes('symbols=')?BINANCE_BASKET:BINANCE_TICKER)});if(url.includes('/ticker/price'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(BINANCE_BASKET.map(x=>({symbol:x.symbol,price:x.lastPrice})))});return route.fulfill({status:404,body:'{}'});}
     if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:SUPABASE_STUB});
     if(url.includes('challenges.cloudflare.com'))return route.fulfill({status:200,contentType:'application/javascript',body:TURNSTILE_STUB});
     return route.abort();
@@ -36,10 +39,10 @@ async function noOverflow(page){const d=await page.evaluate(()=>({w:document.doc
 test('shell is fast, complete, responsive and contains every navigation target',async({page})=>{
   await stub(page);const errors=[];page.on('pageerror',e=>errors.push(String(e.message||e)));
   const started=Date.now();await page.goto('/v79/app.html?full-audit=1',{waitUntil:'domcontentloaded'});expect(Date.now()-started).toBeLessThan(3000);
-  await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('[data-home-tf]')).toHaveCount(8);await expect(page.locator('#nav button[data-route="news"]')).toBeVisible();await noOverflow(page);
+  await expect(page.locator('#homeView')).toBeVisible();await expect(page.locator('#homeView')).toHaveClass(/ih/);await expect(page.locator('#homeBtcCanvas')).toHaveCount(0);await expect(page.locator('#ihHeat .ih-tile')).toHaveCount(12);await expect(page.locator('#ihOpp .ih-row')).toHaveCount(5);await expect(page.locator('#nav button[data-route="news"]')).toBeVisible();await noOverflow(page);
   const actual=await page.locator('#nav button[data-route]').evaluateAll(nodes=>nodes.map(n=>n.dataset.route));expect(actual).toEqual(ROUTES);expect(actual).not.toContain('market');
   await expect(page.locator('#marketNewsTicker')).toHaveClass(/show/);
-  for(const tf of ['1m','5m','15m','1h','4h','1D','1W','1M']){await page.locator(`[data-home-tf="${tf}"]`).click();await expect(page.locator(`[data-home-tf="${tf}"]`)).toHaveClass(/on/)}
+  await page.locator('[data-r="analytics"]').first().click();await expect(page.locator('#frameView')).toBeVisible();await expect(page.locator('#frame')).toHaveAttribute('src',/chart\.html/);
   expect(errors).toEqual([]);
 });
 
