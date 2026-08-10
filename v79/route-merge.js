@@ -10,24 +10,31 @@
     tools.id='cryptoAnalysisToolsScript';
     tools.src='./chart-analysis-tools.js?v=7930free11';
     tools.onload=()=>{
-      if(doc.getElementById('cryptoAnalysisHookScript'))return;
-      const hook=doc.createElement('script');
-      hook.id='cryptoAnalysisHookScript';
-      hook.src='./chart-analysis-hook.js?v=7930free13';
-      hook.onload=()=>{
-        const visual=doc.createElement('script');
-        visual.id='cryptoChartVisualUpgradesScript';
-        visual.src='./chart-visual-upgrades.js?v=7930free17';
-        visual.onload=()=>{
-          if(doc.getElementById('cryptoOnchainScript'))return;
-          const onchain=doc.createElement('script');
-          onchain.id='cryptoOnchainScript';
-          onchain.src='./chart-onchain.js?v=7930free14';
-          doc.body.appendChild(onchain);
+      if(doc.getElementById('cryptoChartVisualUpgradesScript'))return;
+      const visual=doc.createElement('script');
+      visual.id='cryptoChartVisualUpgradesScript';
+      visual.src='./chart-visual-upgrades.js?v=7930free18';
+      visual.onload=()=>{
+        const scale=doc.createElement('script');
+        scale.id='cryptoChartFibScaleScript';
+        scale.src='./chart-fib-scale.js?v=7930free18';
+        scale.onload=()=>{
+          if(doc.getElementById('cryptoAnalysisHookScript'))return;
+          const hook=doc.createElement('script');
+          hook.id='cryptoAnalysisHookScript';
+          hook.src='./chart-analysis-hook.js?v=7930free18';
+          hook.onload=()=>{
+            if(doc.getElementById('cryptoOnchainScript'))return;
+            const onchain=doc.createElement('script');
+            onchain.id='cryptoOnchainScript';
+            onchain.src='./chart-onchain.js?v=7930free14';
+            doc.body.appendChild(onchain);
+          };
+          doc.body.appendChild(hook);
         };
-        doc.body.appendChild(visual);
+        doc.body.appendChild(scale);
       };
-      doc.body.appendChild(hook);
+      doc.body.appendChild(visual);
     };
     doc.body.appendChild(tools);
   }
