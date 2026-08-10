@@ -15,11 +15,17 @@
       hook.id='cryptoAnalysisHookScript';
       hook.src='./chart-analysis-hook.js?v=7930free13';
       hook.onload=()=>{
-        if(doc.getElementById('cryptoOnchainScript'))return;
-        const onchain=doc.createElement('script');
-        onchain.id='cryptoOnchainScript';
-        onchain.src='./chart-onchain.js?v=7930free14';
-        doc.body.appendChild(onchain);
+        const visual=doc.createElement('script');
+        visual.id='cryptoChartVisualUpgradesScript';
+        visual.src='./chart-visual-upgrades.js?v=7930free15';
+        visual.onload=()=>{
+          if(doc.getElementById('cryptoOnchainScript'))return;
+          const onchain=doc.createElement('script');
+          onchain.id='cryptoOnchainScript';
+          onchain.src='./chart-onchain.js?v=7930free14';
+          doc.body.appendChild(onchain);
+        };
+        doc.body.appendChild(visual);
       };
       doc.body.appendChild(hook);
     };
