@@ -3,24 +3,8 @@
   const tools=window.CryptoChartTools;
   if(!tools||typeof tools.drawOverlays!=='function')return;
 
-  const KEY='cryptoChartFibVisualModeV3';
-  let fibMode='retracement';
-  try{fibMode=localStorage.getItem(KEY)||'retracement'}catch{}
-  if(!['retracement','extension'].includes(fibMode))fibMode='retracement';
-
-  const toolbar=document.getElementById('analysisTools');
-  const fibButton=toolbar?.querySelector('[data-tool="fib"]');
-  if(toolbar&&fibButton&&!document.getElementById('fibMode')){
-    const sel=document.createElement('select');
-    sel.id='fibMode';
-    sel.className='analysis-tool fib-mode';
-    sel.setAttribute('aria-label','Fibonacci mode');
-    sel.innerHTML='<option value="retracement">FIB AUTO RETR</option><option value="extension">FIB EXT</option>';
-    sel.value=fibMode;
-    sel.style.cssText='padding:7px 6px;min-width:92px;color:#d8dee9;background:#171c22;border-color:#2b3139;font-weight:800;font-size:10px';
-    sel.addEventListener('change',()=>{fibMode=sel.value;try{localStorage.setItem(KEY,fibMode)}catch{};requestAnimationFrame(()=>{try{draw()}catch{}})});
-    fibButton.insertAdjacentElement('afterend',sel);
-  }
+  const RETRACEMENT_LEVELS=[.382,.5,.618,.786];
+  const EXTENSION_LEVELS=[1.272,1.618,2];
 
   function f(v){try{return typeof fmt==='function'?fmt(v):Number(v).toFixed(2)}catch{return String(v)}}
   function fibRatioLabel(r){
@@ -71,12 +55,18 @@
     return {startIdx:start.i,endIdx:end.i,start:start.p,end:end.p,up,range};
   }
   function fibLevels(z){
-    if(fibMode==='extension'){
-      const dir=z.up?1:-1;
-      return [1.272,1.618,2].map(r=>({r,v:z.start+dir*z.range*r}));
-    }
-    return [.382,.5,.618,.786].map(r=>({r,v:z.up?z.end-z.range*r:z.end+z.range*r}));
+    const retracement=RETRACEMENT_LEVELS.map(r=>({r,kind:'R',v:z.up?z.end-z.range*r:z.end+z.range*r}));
+    const dir=z.up?1:-1;
+    const extension=EXTENSION_LEVELS.map(r=>({r,kind:'E',v:z.start+dir*z.range*r}));
+    return [...retracement,...extension];
   }
+  function fibScaleLevels(rows){
+    if(!tools.enabled('fib')||!rows?.length)return [];
+    const z=autoSwing(rows);if(!z)return [];
+    return fibLevels(z).map(x=>x.v).filter(Number.isFinite);
+  }
+  window.CryptoFibScaleLevels=fibScaleLevels;
+
   function updateFibSummary(z,levels,rows){
     const body=document.getElementById('technicalAnalysisBody');
     const row=[...(body?.querySelectorAll('.analysis-row')||[])].find(x=>x.querySelector('b')?.textContent==='FIB');
@@ -84,7 +74,7 @@
     const span=row.querySelector('span');if(!span)return;
     const last=Number(rows?.at(-1)?.close);
     const nearest=Number.isFinite(last)?levels.reduce((a,b)=>Math.abs(b.v-last)<Math.abs(a.v-last)?b:a,levels[0]):levels[0];
-    span.textContent=`AUTO SWING ${z.up?'↑':'↓'} · ${fibMode==='extension'?'EXT':'RETR'} · ${fibRatioLabel(nearest.r)} · ${f(nearest.v)}`;
+    span.textContent=`AUTO SWING ${z.up?'↑':'↓'} · RETR+EXT · 7 LEVELS · ${nearest.kind}${fibRatioLabel(nearest.r)} ${f(nearest.v)}`;
   }
   function drawFib(env){
     if(!tools.enabled('fib'))return;
@@ -93,16 +83,16 @@
     const levels=fibLevels(z),{ctx,w,pad,y,x}=env;
     const x1=x(z.startIdx),x2=x(z.endIdx),chartLeft=pad.l+2,chartRight=w-pad.r-4,current=Number(rows.at(-1)?.close);
     ctx.save();
-    ctx.strokeStyle='rgba(132,142,156,.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x1,y(z.start));ctx.lineTo(x2,y(z.end));ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='rgba(132,142,156,.48)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x1,y(z.start));ctx.lineTo(x2,y(z.end));ctx.stroke();ctx.setLineDash([]);
     for(const px of [[x1,y(z.start)],[x2,y(z.end)]]){ctx.fillStyle='#f0b90b';ctx.beginPath();ctx.arc(px[0],px[1],3,0,Math.PI*2);ctx.fill()}
-    levels.forEach(({r,v})=>{
+    levels.forEach(({r,v,kind})=>{
       const yy=y(v),isSupport=Number.isFinite(current)?v<=current:true,color=isSupport?'#0ecb81':'#f6465d',textColor=isSupport?'#e8fff7':'#fff0f3';
-      ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.7;ctx.shadowBlur=8;ctx.shadowColor=color;ctx.beginPath();ctx.moveTo(chartLeft,yy);ctx.lineTo(chartRight,yy);ctx.stroke();ctx.restore();
-      const label=`${fibRatioLabel(r)} · ${f(v)}`;
+      ctx.save();ctx.strokeStyle=color;ctx.lineWidth=kind==='E'?1.9:1.55;ctx.globalAlpha=kind==='E'?.96:.82;ctx.shadowBlur=kind==='E'?9:6;ctx.shadowColor=color;ctx.setLineDash(kind==='E'?[8,4]:[]);ctx.beginPath();ctx.moveTo(chartLeft,yy);ctx.lineTo(chartRight,yy);ctx.stroke();ctx.restore();
+      const label=`${kind} ${fibRatioLabel(r)} · ${f(v)}`;
       ctx.font='bold 10px system-ui';const tw=ctx.measureText(label).width+10,lx=chartRight-tw;
-      ctx.fillStyle='rgba(8,11,15,.94)';ctx.fillRect(lx,yy-9,tw,16);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(lx+.5,yy-8.5,tw-1,15);ctx.fillStyle=textColor;ctx.fillText(label,lx+5,yy+3);
+      ctx.fillStyle='rgba(8,11,15,.95)';ctx.fillRect(lx,yy-9,tw,16);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(lx+.5,yy-8.5,tw-1,15);ctx.fillStyle=textColor;ctx.fillText(label,lx+5,yy+3);
     });
-    const swingText=`AUTO SWING ${z.up?'LOW → HIGH':'HIGH → LOW'} · ${fibMode==='extension'?'EXTENSION':'RETRACEMENT'}`;
+    const swingText=`AUTO SWING ${z.up?'LOW → HIGH':'HIGH → LOW'} · RETRACEMENT + EXTENSION`;
     ctx.font='bold 9px system-ui';ctx.fillStyle='#aeb7c4';ctx.fillText(swingText,chartLeft+100,Math.max(pad.t+11,Math.min(y(z.start),y(z.end))-8));
     ctx.restore();
     updateFibSummary(z,levels,rows);
@@ -124,7 +114,7 @@
     ctx.save();ctx.font='bold 10px system-ui';
     items.forEach(o=>{
       const text=`${o.name} ${f(o.v)}`,tw=ctx.measureText(text).width+12;
-      ctx.fillStyle='rgba(8,11,15,.94)';ctx.fillRect(x0,o.yy-9,tw,16);ctx.strokeStyle=o.color;ctx.lineWidth=1;ctx.strokeRect(x0+.5,o.yy-8.5,tw-1,15);ctx.fillStyle=o.color;ctx.fillText(text,x0+6,o.yy+3);
+      ctx.fillStyle='rgba(8,11,15,.95)';ctx.fillRect(x0,o.yy-9,tw,16);ctx.strokeStyle=o.color;ctx.lineWidth=1;ctx.strokeRect(x0+.5,o.yy-8.5,tw-1,15);ctx.fillStyle=o.color;ctx.fillText(text,x0+6,o.yy+3);
       ctx.strokeStyle=o.color;ctx.globalAlpha=.65;ctx.beginPath();ctx.moveTo(x0+tw+4,o.yy);ctx.lineTo(x0+tw+22,o.actual);ctx.stroke();ctx.globalAlpha=1;
     });
     ctx.restore();
