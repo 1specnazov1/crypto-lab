@@ -13,16 +13,16 @@
       if(doc.getElementById('cryptoChartVisualUpgradesScript'))return;
       const visual=doc.createElement('script');
       visual.id='cryptoChartVisualUpgradesScript';
-      visual.src='./chart-visual-upgrades.js?v=7930free18';
+      visual.src='./chart-visual-upgrades.js?v=7930free19';
       visual.onload=()=>{
         const scale=doc.createElement('script');
         scale.id='cryptoChartFibScaleScript';
-        scale.src='./chart-fib-scale.js?v=7930free18';
+        scale.src='./chart-fib-scale.js?v=7930free19';
         scale.onload=()=>{
           if(doc.getElementById('cryptoAnalysisHookScript'))return;
           const hook=doc.createElement('script');
           hook.id='cryptoAnalysisHookScript';
-          hook.src='./chart-analysis-hook.js?v=7930free18';
+          hook.src='./chart-analysis-hook.js?v=7930free19';
           hook.onload=()=>{
             if(doc.getElementById('cryptoOnchainScript'))return;
             const onchain=doc.createElement('script');
