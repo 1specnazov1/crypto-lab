@@ -10,6 +10,13 @@
     if(!Object.getOwnPropertyDescriptor(window,'lang')){
       Object.defineProperty(window,'lang',{configurable:true,get:()=>lang,set:value=>{lang=value;}});
     }
+    // app.js stores dashboard state in a top-level `let DATA`, so it is not
+    // automatically available as window.DATA. The intelligence homepage reads
+    // window.DATA for Scanner health; expose the same live object instead of
+    // maintaining a second copy.
+    if(!Object.getOwnPropertyDescriptor(window,'DATA')){
+      Object.defineProperty(window,'DATA',{configurable:true,get:()=>DATA});
+    }
   }catch{}
   if(!document.getElementById('cryptoIntelligenceHomeShellFix')){
     const style=document.createElement('style');
@@ -28,6 +35,7 @@
       #homeView.ih .ih-newsrow{grid-template-columns:auto minmax(0,1fr) auto}
       #homeView.ih .ih-newsrow>*,#homeView.ih .ih-risk>*,#homeView.ih .ih-row>*,#homeView.ih .ih-focusrow>*{min-width:0}
       #homeView.ih .ih-newsrow b,#homeView.ih .ih-newsrow small,#homeView.ih .ih-focusrow span,#homeView.ih .ih-state,#homeView.ih .ih-brief p{overflow-wrap:anywhere;word-break:break-word}
+      #homeView.ih .ih-actions>.ih-btn.main{display:inline-flex!important;grid-template-rows:none!important;width:auto!important;max-width:190px!important;height:38px!important;min-height:38px!important;max-height:38px!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;padding:7px 12px!important}
       @media(min-width:681px){
         html,body{max-width:100vw!important;overflow-x:hidden!important}
         .app{width:100vw!important;max-width:100vw!important;grid-template-columns:230px minmax(0,calc(100vw - 230px))!important;overflow:hidden!important}
@@ -44,6 +52,7 @@
         #homeView.ih .ih-grid3{grid-template-columns:minmax(0,1fr)}
         #homeView.ih .ih-heat{grid-template-columns:repeat(3,minmax(0,1fr))}
         #homeView.ih .ih-row{grid-template-columns:minmax(0,1fr) auto auto}
+        #homeView.ih .ih-actions>.ih-btn.main{max-width:100%!important}
       }
     `;
     document.head.appendChild(style);
