@@ -60,11 +60,12 @@
       rows.push(metric(w.height,b.block_height,null));
       rows.push(`<div class="analysis-row"><b>${w.diff}</b><span>${Number.isFinite(Number(b.difficulty_change_pct))?Number(b.difficulty_change_pct).toFixed(2)+'%':'—'}</span></div>`);
     }
-    rows.push(`<div class="analysis-note">${data.degraded?w.fallback:w.healthy}</div>`);
+    const fallback=!!(data.fallback_active||data.degraded);
+    rows.push(`<div class="analysis-note">${fallback?w.fallback:w.healthy}</div>`);
     body.innerHTML=rows.join('')+`<div class="analysis-note">${w.note}</div>`;
     const src=document.getElementById('onchainSource');
     const providers=Array.isArray(data?.source?.providers)?data.source.providers:[];
-    src.textContent=`${data.data_time?'Data '+new Date(data.data_time).toLocaleDateString():''}${data.data_time?' · ':''}${providers.length?providers.join(' + '):'On-chain provider'} · ${data.cached?'cache':'live fetch'}${data.degraded?' · FALLBACK':''}`;
+    src.textContent=`${data.data_time?'Data '+new Date(data.data_time).toLocaleDateString():''}${data.data_time?' · ':''}${providers.length?providers.join(' + '):'On-chain provider'} · ${data.cached?'cache':'live fetch'}${fallback?' · FALLBACK ACTIVE':''}`;
   }
   async function load(force=false){
     if(!enabled||loading)return;
