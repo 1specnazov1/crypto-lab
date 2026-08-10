@@ -4,8 +4,6 @@
   const technical=document.getElementById('technicalAnalysisPanel');
   if(!original||!technical)return;
 
-  // Replace the original placeholder button so its legacy anonymous click handler
-  // cannot reveal the obsolete "feed not connected" notice alongside real data.
   const button=original.cloneNode(true);
   original.replaceWith(button);
   document.getElementById('onchainNote')?.remove();
@@ -19,11 +17,11 @@
   const panel=document.createElement('section');
   panel.className='card panel';
   panel.id='onchainPanel';
-  panel.innerHTML='<h3 id="onchainTitle">ON-CHAIN</h3><div class="analysis-result" id="onchainBody"><div class="muted">Включите ON-CHAIN для загрузки реальных сетевых метрик.</div></div><div class="analysis-note" id="onchainSource">Источник: Coin Metrics Community API; для BTC дополнительно mempool.space.</div>';
+  panel.innerHTML='<h3 id="onchainTitle">ON-CHAIN</h3><div class="analysis-result" id="onchainBody"><div class="muted">Включите ON-CHAIN для загрузки реальных сетевых метрик.</div></div><div class="analysis-note" id="onchainSource">Источники: Coin Metrics + Blockchain.com + mempool.space (BTC fallback).</div>';
   technical.insertAdjacentElement('afterend',panel);
 
   button.classList.remove('unavailable');
-  button.title='Реальные on-chain метрики: Coin Metrics Community API; для BTC live-сеть дополнительно mempool.space.';
+  button.title='Реальные on-chain метрики с резервированием источников: Coin Metrics; для BTC Blockchain.com и mempool.space.';
 
   function token(){
     try{
@@ -39,7 +37,7 @@
   function usd(v){const x=Number(v);if(!Number.isFinite(x))return '—';return '$'+new Intl.NumberFormat('en-US',{notation:Math.abs(x)>=10000?'compact':'standard',maximumFractionDigits:2}).format(x)}
   function change(v){const x=Number(v);if(!Number.isFinite(x))return '';return ` <small class="${x>0?'pos':x<0?'neg':'neutral'}">${x>0?'+':''}${x.toFixed(1)}% / 7d</small>`}
   function metric(label,value,delta,formatter=compact){return `<div class="analysis-row"><b>${esc(label)}</b><span>${esc(formatter(value))}${change(delta)}</span></div>`}
-  function words(){return lang==='uk'?{title:'ON-CHAIN · реальні дані',auth:'Увійдіть в акаунт CRYPTO LAB для on-chain даних.',loading:'Завантажую on-chain метрики…',none:'Для цього активу Community API не повернув on-chain дані.',err:'On-chain джерело тимчасово недоступне.',active:'Активні адреси',tx:'Транзакції',transfer:'Обсяг переказів',fees:'Комісії',supply:'Пропозиція',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Висота блока',diff:'Складність',note:'On-chain — мережеві дані 1D, вони не є внутрішньоденним індикатором свічкового TF.'}:lang==='en'?{title:'ON-CHAIN · real data',auth:'Sign in to CRYPTO LAB to load on-chain data.',loading:'Loading on-chain metrics…',none:'Community API returned no on-chain data for this asset.',err:'On-chain source is temporarily unavailable.',active:'Active addresses',tx:'Transactions',transfer:'Transfer volume',fees:'Fees',supply:'Supply',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Block height',diff:'Difficulty',note:'On-chain uses daily network data; it is not an intraday candle-timeframe indicator.'}:{title:'ON-CHAIN · реальные данные',auth:'Войдите в аккаунт CRYPTO LAB для загрузки on-chain данных.',loading:'Загружаю on-chain метрики…',none:'Для этого актива Community API не вернул on-chain данные.',err:'On-chain источник временно недоступен.',active:'Активные адреса',tx:'Транзакции',transfer:'Объём переводов',fees:'Комиссии',supply:'Предложение',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Высота блока',diff:'Сложность',note:'On-chain использует сетевые данные 1D и не является внутридневным индикатором свечного TF.'}}
+  function words(){return lang==='uk'?{title:'ON-CHAIN · реальні дані',auth:'Увійдіть в акаунт CRYPTO LAB для on-chain даних.',loading:'Завантажую on-chain метрики…',none:'Для цього активу джерела не повернули on-chain дані.',err:'On-chain джерела тимчасово недоступні.',active:'Активні адреси',tx:'Транзакції',transfer:'Обсяг переказів',fees:'Комісії',supply:'Пропозиція',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Висота блока',diff:'Складність',fallback:'Резервний режим активний: частина даних отримана з альтернативного джерела.',healthy:'Джерела on-chain працюють штатно.',note:'On-chain — мережеві дані 1D, вони не є внутрішньоденним індикатором свічкового TF.'}:lang==='en'?{title:'ON-CHAIN · real data',auth:'Sign in to CRYPTO LAB to load on-chain data.',loading:'Loading on-chain metrics…',none:'No on-chain provider returned data for this asset.',err:'On-chain providers are temporarily unavailable.',active:'Active addresses',tx:'Transactions',transfer:'Transfer volume',fees:'Fees',supply:'Supply',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Block height',diff:'Difficulty',fallback:'Fallback mode active: some metrics are coming from an alternate provider.',healthy:'On-chain providers are healthy.',note:'On-chain uses daily network data; it is not an intraday candle-timeframe indicator.'}:{title:'ON-CHAIN · реальные данные',auth:'Войдите в аккаунт CRYPTO LAB для загрузки on-chain данных.',loading:'Загружаю on-chain метрики…',none:'Для этого актива источники не вернули on-chain данные.',err:'On-chain источники временно недоступны.',active:'Активные адреса',tx:'Транзакции',transfer:'Объём переводов',fees:'Комиссии',supply:'Предложение',hash:'HashRate',mempool:'Mempool TX',fast:'Fast fee',hour:'1h fee',height:'Высота блока',diff:'Сложность',fallback:'Резервный режим активен: часть метрик получена из альтернативного источника.',healthy:'On-chain источники работают штатно.',note:'On-chain использует сетевые данные 1D и не является внутридневным индикатором свечного TF.'}}
   function render(){
     if(!enabled)return;
     const w=words(),body=document.getElementById('onchainBody');document.getElementById('onchainTitle').textContent=`${w.title} · ${String(symbol||'').toUpperCase()}`;
@@ -62,8 +60,11 @@
       rows.push(metric(w.height,b.block_height,null));
       rows.push(`<div class="analysis-row"><b>${w.diff}</b><span>${Number.isFinite(Number(b.difficulty_change_pct))?Number(b.difficulty_change_pct).toFixed(2)+'%':'—'}</span></div>`);
     }
+    rows.push(`<div class="analysis-note">${data.degraded?w.fallback:w.healthy}</div>`);
     body.innerHTML=rows.join('')+`<div class="analysis-note">${w.note}</div>`;
-    const src=document.getElementById('onchainSource');src.textContent=`${data.data_time?'Data '+new Date(data.data_time).toLocaleDateString():''} · Coin Metrics Community API${String(data.asset)==='btc'?' + mempool.space':''} · ${data.cached?'cache':'live fetch'}`;
+    const src=document.getElementById('onchainSource');
+    const providers=Array.isArray(data?.source?.providers)?data.source.providers:[];
+    src.textContent=`${data.data_time?'Data '+new Date(data.data_time).toLocaleDateString():''}${data.data_time?' · ':''}${providers.length?providers.join(' + '):'On-chain provider'} · ${data.cached?'cache':'live fetch'}${data.degraded?' · FALLBACK':''}`;
   }
   async function load(force=false){
     if(!enabled||loading)return;
@@ -74,7 +75,7 @@
     try{
       const r=await fetch(`${URL}?asset=${encodeURIComponent(asset)}`,{headers:{Authorization:`Bearer ${t}`,apikey:APIKEY,Accept:'application/json'},cache:'no-store'});
       const j=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(j?.error||`HTTP ${r.status}`);
+      if(!r.ok)throw new Error(j?.error||j?.message||`HTTP ${r.status}`);
       data=j;lastAsset=asset;
     }catch(e){data={error:e?.message||words().err};lastAsset=asset}
     finally{loading=false;render()}
