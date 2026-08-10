@@ -6,15 +6,11 @@
     en:{serverOk:'FREE Scanner is running',serverBad:'Waiting for a fresh Scanner run',scannerBanner:'A+ analysis refreshes every 15 minutes. Experimental Telegram signals are not sent.',scannerDesc:'Fresh free shadow market analysis with no auto-trading or paid features.',newSignals:'Shadow A+',monitorChecked:'Telegram monitor'}
   };
   try{Object.entries(patch).forEach(([key,value])=>Object.assign(T[key],value));}catch{}
-  // app.js keeps language in a top-level lexical binding. Expose it to the
-  // independently loaded intelligence module without duplicating language state.
   try{
     if(!Object.getOwnPropertyDescriptor(window,'lang')){
       Object.defineProperty(window,'lang',{configurable:true,get:()=>lang,set:value=>{lang=value;}});
     }
   }catch{}
-  // CSS Grid's default auto minimum can let English labels/news widen an fr track.
-  // Use zero-minimum tracks so every intelligence block remains inside the shell.
   if(!document.getElementById('cryptoIntelligenceHomeShellFix')){
     const style=document.createElement('style');
     style.id='cryptoIntelligenceHomeShellFix';
@@ -32,6 +28,13 @@
       #homeView.ih .ih-newsrow{grid-template-columns:auto minmax(0,1fr) auto}
       #homeView.ih .ih-newsrow>*,#homeView.ih .ih-risk>*,#homeView.ih .ih-row>*,#homeView.ih .ih-focusrow>*{min-width:0}
       #homeView.ih .ih-newsrow b,#homeView.ih .ih-newsrow small,#homeView.ih .ih-focusrow span,#homeView.ih .ih-state,#homeView.ih .ih-brief p{overflow-wrap:anywhere;word-break:break-word}
+      @media(min-width:681px){
+        html,body{max-width:100vw!important;overflow-x:hidden!important}
+        .app{width:100vw!important;max-width:100vw!important;grid-template-columns:230px minmax(0,calc(100vw - 230px))!important;overflow:hidden!important}
+        .main{width:calc(100vw - 230px)!important;max-width:calc(100vw - 230px)!important;min-width:0!important;overflow:hidden!important}
+        .top,.work{width:100%!important;max-width:100%!important;min-width:0!important}
+        .top .ticker{min-width:0!important;max-width:100%!important;overflow:hidden!important}
+      }
       @media(max-width:1100px){
         #homeView.ih .ih-hero,#homeView.ih .ih-grid2{grid-template-columns:minmax(0,1fr)}
         #homeView.ih .ih-grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
