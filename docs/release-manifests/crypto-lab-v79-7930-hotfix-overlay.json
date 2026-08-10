@@ -2,17 +2,17 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The release includes the informative BTC/USDT candlestick terminal, unified Chart & analytics navigation, timeframe-aware technical analysis tools, exact S/R price labels and real on-chain metrics. The chart canvas regression is repaired without monkey-patching native CanvasRenderingContext2D methods, and release audit now requires visible candlestick pixels. The five-minute market-impact news engine prioritizes the US, Europe, China, Japan, other major countries and global crypto coverage; it scores impact on BTC/crypto, records source and publication time, and displays only high-confidence critical events in the top BREAKING ticker. A persistent server-side priority watchlist covers White House/Donald Trump, David Sacks, BlackRock/Larry Fink, Ripple leadership, Vitalik Buterin, Elon Musk, Michael Saylor/Strategy, Coinbase/Brian Armstrong, CZ/Binance, SEC, CFTC, U.S. Treasury, key U.S. crypto lawmakers, major ETF managers, major banks and global regulators/central banks including Europe, UK, Japan, China and Ukraine. The news collector and priority watchlist run every five minutes. The release also retains the compact Binance-style mobile shell, Education module, protected support email notifications and accessibility audit fixes.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is now an intelligence-first dashboard: market regime, breadth, opportunity radar, risk radar, heatmap, high-impact catalysts, portfolio snapshot, focus list and system health replace the duplicated homepage chart; the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior. The five-minute market-impact news engine and protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free13",
+  "pwa_cache": "crypto-lab-v79-7930-free20",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "b22e429e2f64bb720bbde8745160c4030688dacd",
-      "marker": "route-merge.js?v=7930free9"
+      "sha": "66ab954e46c3744502b0a5608451785d0e525ca8",
+      "marker": "public-free-home.js?v=7930free20"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "8794ff45d3e224abbb42e808947571a21c4392bb",
-      "marker": "crypto-lab-v79-7930-free13"
+      "sha": "132e68ab1b1bfd39948593a966e7d1cc8fc4f9b3",
+      "marker": "crypto-lab-v79-7930-free20"
     }
   }
 }
