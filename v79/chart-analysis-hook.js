@@ -14,15 +14,21 @@
     if(!ctx||!Number.isFinite(w)||!Number.isFinite(h)||w<=0||h<=0)return null;
     ctx.setTransform(dpr,0,0,dpr,0,0);
     const pad={l:12,r:82,t:20,b:42},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
-    const requested=Number(storageGet('cryptoChartVisibleCandles'))||120;
-    const count=Math.max(24,Math.min(candles.length,requested));
-    const visible=candles.slice(-count),offset=candles.length-visible.length;
+    let current=null;
+    try{current=typeof window.CryptoChartViewport==='function'?window.CryptoChartViewport():null}catch{}
+    if(!current?.rows?.length){
+      const requested=Number(storageGet('cryptoChartVisibleCandles'))||120;
+      const count=Math.max(24,Math.min(candles.length,requested));
+      const visible=candles.slice(-count),offset=candles.length-visible.length;
+      current={rows:visible,start:offset,end:candles.length,count:visible.length};
+    }
+    const visible=current.rows,offset=current.start;
     const fibLevels=typeof window.CryptoFibScaleLevels==='function'?window.CryptoFibScaleLevels(visible):[];
     const levels=[marketLevels.support,marketLevels.resistance,signal.entryLow,signal.entryHigh,signal.stop,signal.tp1,signal.tp2,signal.tp3,...fibLevels].filter(Number.isFinite);
     let min=Math.min(...visible.map(c=>c.low),...levels),max=Math.max(...visible.map(c=>c.high),...levels);
     const margin=(max-min||1)*.07;min-=margin;max+=margin;
     const y=v=>pad.t+(max-v)/(max-min||1)*ch,x=i=>pad.l+(i+.5)/visible.length*cw;
-    return {ctx,w,h,pad,cw,ch,current:{rows:visible,start:offset,end:candles.length},visible,offset,y,x};
+    return {ctx,w,h,pad,cw,ch,current,visible,offset,y,x,min,max};
   }
 
   function priceLabel(ctx,w,pad,y,value,prefix,color){
