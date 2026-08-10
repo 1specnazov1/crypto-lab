@@ -80,6 +80,12 @@ test('intelligence home replaces duplicate chart with decision dashboard',async(
   await expect(page.locator('#ihOpp .ih-row')).toHaveCount(5);
   await expect(page.locator('#ihHeat .ih-tile')).toHaveCount(12);
   await expect(page.locator('#ihData')).toHaveText('ONLINE');
+  await expect(page.locator('#serverText')).toContainText('FREE Scanner');
+  await expect(page.locator('#serverBox')).not.toHaveClass(/bad/);
+  const primary=await page.locator('.ih-actions>.ih-btn.main').boundingBox();
+  expect(primary).not.toBeNull();
+  expect(primary.width).toBeLessThanOrEqual(190);
+  expect(primary.height).toBeLessThanOrEqual(40);
   await noOverflow(page);
 });
 
