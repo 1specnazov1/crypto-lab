@@ -17,7 +17,8 @@
     const requested=Number(storageGet('cryptoChartVisibleCandles'))||120;
     const count=Math.max(24,Math.min(candles.length,requested));
     const visible=candles.slice(-count),offset=candles.length-visible.length;
-    const levels=[marketLevels.support,marketLevels.resistance,signal.entryLow,signal.entryHigh,signal.stop,signal.tp1,signal.tp2,signal.tp3].filter(Number.isFinite);
+    const fibLevels=typeof window.CryptoFibScaleLevels==='function'?window.CryptoFibScaleLevels(visible):[];
+    const levels=[marketLevels.support,marketLevels.resistance,signal.entryLow,signal.entryHigh,signal.stop,signal.tp1,signal.tp2,signal.tp3,...fibLevels].filter(Number.isFinite);
     let min=Math.min(...visible.map(c=>c.low),...levels),max=Math.max(...visible.map(c=>c.high),...levels);
     const margin=(max-min||1)*.07;min-=margin;max+=margin;
     const y=v=>pad.t+(max-v)/(max-min||1)*ch,x=i=>pad.l+(i+.5)/visible.length*cw;
