@@ -17,7 +17,7 @@
       hook.onload=()=>{
         const visual=doc.createElement('script');
         visual.id='cryptoChartVisualUpgradesScript';
-        visual.src='./chart-visual-upgrades.js?v=7930free16';
+        visual.src='./chart-visual-upgrades.js?v=7930free17';
         visual.onload=()=>{
           if(doc.getElementById('cryptoOnchainScript'))return;
           const onchain=doc.createElement('script');
