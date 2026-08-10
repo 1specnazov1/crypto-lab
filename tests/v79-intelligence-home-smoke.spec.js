@@ -59,15 +59,21 @@ async function open(page){
   await expect(page.locator('#ihReg')).toBeVisible();
 }
 
+async function expectCurrentLanguageTitle(page){
+  const selected=await page.locator('#lang').inputValue();
+  const expected=selected==='uk'?'Ринок за 30 секунд':selected==='en'?'Market in 30 seconds':'Рынок за 30 секунд';
+  await expect(page.locator('#title')).toContainText(expected);
+}
+
 async function noOverflow(page){
-  const d=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,body:document.body.scrollWidth,doc:document.documentElement.scrollWidth}));
-  expect(Math.max(d.body,d.doc)).toBeLessThanOrEqual(d.viewport+2);
+  const d=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,body:document.body.scrollWidth,doc:document.documentElement.scrollWidth,home:document.getElementById('homeView')?.scrollWidth||0}));
+  expect(Math.max(d.body,d.doc,d.home)).toBeLessThanOrEqual(d.viewport+2);
 }
 
 test('intelligence home replaces duplicate chart with decision dashboard',async({page})=>{
   await open(page);
   await expect(page.locator('#homeBtcCanvas')).toHaveCount(0);
-  await expect(page.locator('#title')).toContainText('Рынок за 30 секунд');
+  await expectCurrentLanguageTitle(page);
   await expect(page.locator('#statBtc')).toHaveText('$65,123.45');
   await expect(page.locator('#ihBreadth')).not.toHaveText('—');
   await expect(page.locator('#ihRisk')).not.toHaveText('—');
