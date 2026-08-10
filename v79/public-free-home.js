@@ -6,6 +6,13 @@
     en:{serverOk:'FREE Scanner is running',serverBad:'Waiting for a fresh Scanner run',scannerBanner:'A+ analysis refreshes every 15 minutes. Experimental Telegram signals are not sent.',scannerDesc:'Fresh free shadow market analysis with no auto-trading or paid features.',newSignals:'Shadow A+',monitorChecked:'Telegram monitor'}
   };
   try{Object.entries(patch).forEach(([key,value])=>Object.assign(T[key],value));}catch{}
+  // app.js keeps language in a top-level lexical binding. Expose a safe bridge so
+  // independently loaded homepage modules always read the current RU/UA/EN value.
+  try{
+    if(!Object.getOwnPropertyDescriptor(window,'cryptoLabLanguageValue')){
+      Object.defineProperty(window,'cryptoLabLanguageValue',{configurable:true,get:()=>lang,set:value=>{lang=value;}});
+    }
+  }catch{}
   if(document.getElementById('cryptoIntelligenceHomeScript'))return;
   const script=document.createElement('script');
   script.id='cryptoIntelligenceHomeScript';
