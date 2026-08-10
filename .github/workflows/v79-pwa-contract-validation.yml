@@ -29,11 +29,12 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free18'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free19'" v79/service-worker.js
           for asset in news-extension.js news.html chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
+          grep -F "fetch(req,{cache:'no-store'})" v79/service-worker.js
           if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
             echo 'Service worker must not perform write requests' >&2
             exit 1
@@ -72,7 +73,7 @@ jobs:
           grep -F "b.dataset.region='OTHER'" v79/news-extension.js
           grep -F "Другие страны" v79/news-extension.js
 
-      - name: Validate chart analytics, simultaneous Fibonacci and resilient on-chain fallback
+      - name: Validate chart analytics, unified viewport and resilient on-chain fallback
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
@@ -81,9 +82,9 @@ jobs:
           node --check v79/chart-visual-upgrades.js
           node --check v79/chart-fib-scale.js
           node --check v79/chart-onchain.js
-          grep -F "chart-analysis-hook.js?v=7930free18" v79/route-merge.js
-          grep -F "chart-visual-upgrades.js?v=7930free18" v79/route-merge.js
-          grep -F "chart-fib-scale.js?v=7930free18" v79/route-merge.js
+          grep -F "chart-analysis-hook.js?v=7930free19" v79/route-merge.js
+          grep -F "chart-visual-upgrades.js?v=7930free19" v79/route-merge.js
+          grep -F "chart-fib-scale.js?v=7930free19" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
@@ -91,15 +92,20 @@ jobs:
           grep -F "['bb','BB']" v79/chart-analysis-tools.js
           grep -F "['vwap','VWAP']" v79/chart-analysis-tools.js
           grep -F "['atr','ATR']" v79/chart-analysis-tools.js
+          grep -F "window.CryptoChartViewport = view" v79/chart-interactions.js
+          grep -F "window.CryptoChartInteractionState = state" v79/chart-interactions.js
+          grep -F "...fibLevels" v79/chart-interactions.js
+          grep -F "window.CryptoChartLastScale" v79/chart-interactions.js
+          grep -F "addEventListener('wheel'" v79/chart-interactions.js
+          grep -F "formatTime(c.time)" v79/chart-interactions.js
+          grep -F "window.CryptoChartViewport" v79/chart-analysis-hook.js
+          grep -F "CryptoFibScaleLevels" v79/chart-analysis-hook.js
           grep -F "function priceLabel" v79/chart-analysis-hook.js
           grep -F "canvas.width/dpr" v79/chart-analysis-hook.js
-          grep -F "CryptoFibScaleLevels" v79/chart-analysis-hook.js
           if grep -F "CanvasRenderingContext2D.prototype" v79/chart-analysis-hook.js; then
             echo 'Native canvas prototype monkey-patching must not return' >&2
             exit 1
           fi
-          grep -F "addEventListener('wheel'" v79/chart-interactions.js
-          grep -F "formatTime(c.time)" v79/chart-interactions.js
           grep -F "AUTO SWING" v79/chart-visual-upgrades.js
           grep -F "const RETRACEMENT_LEVELS=[.382,.5,.618,.786]" v79/chart-visual-upgrades.js
           grep -F "const EXTENSION_LEVELS=[1.272,1.618,2]" v79/chart-visual-upgrades.js
@@ -116,8 +122,11 @@ jobs:
           grep -F "EMA50" v79/chart-visual-upgrades.js
           grep -F "EMA200" v79/chart-visual-upgrades.js
           grep -F "x0=pad.l+8" v79/chart-visual-upgrades.js
-          grep -F "CryptoFibScaleLevels" v79/chart-fib-scale.js
-          grep -F "...fibLevels" v79/chart-fib-scale.js
+          grep -F "window.CryptoChartUnifiedScale = true" v79/chart-fib-scale.js
+          if grep -F "drawMain=function" v79/chart-fib-scale.js; then
+            echo 'Fibonacci scale module must not replace the chart renderer' >&2
+            exit 1
+          fi
           grep -F "Coin Metrics" v79/chart-onchain.js
           grep -F "Blockchain.com" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
