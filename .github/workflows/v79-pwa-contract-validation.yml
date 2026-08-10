@@ -72,7 +72,7 @@ jobs:
           grep -F "b.dataset.region='OTHER'" v79/news-extension.js
           grep -F "Другие страны" v79/news-extension.js
 
-      - name: Validate chart analytics and canvas repair
+      - name: Validate chart analytics and resilient on-chain fallback
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
@@ -80,6 +80,7 @@ jobs:
           node --check v79/chart-analysis-hook.js
           node --check v79/chart-onchain.js
           grep -F "chart-analysis-hook.js?v=7930free13" v79/route-merge.js
+          grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
           grep -F "['macd','MACD']" v79/chart-analysis-tools.js
@@ -94,8 +95,11 @@ jobs:
           fi
           grep -F "addEventListener('wheel'" v79/chart-interactions.js
           grep -F "formatTime(c.time)" v79/chart-interactions.js
-          grep -F "Coin Metrics Community API" v79/chart-onchain.js
+          grep -F "Coin Metrics" v79/chart-onchain.js
+          grep -F "Blockchain.com" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
+          grep -F "FALLBACK" v79/chart-onchain.js
+          grep -F "data.degraded" v79/chart-onchain.js
 
       - name: Validate support and mobile shell
         run: |
