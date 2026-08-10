@@ -5,6 +5,7 @@ on:
     paths:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
+      - 'tests/v79-intelligence-home-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -18,6 +19,7 @@ on:
     paths:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
+      - 'tests/v79-intelligence-home-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -89,7 +91,12 @@ jobs:
           NODE
 
       - name: Run stable v79 browser regression
-        run: npm run test:v79:browser -- --grep-invert "v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive"
+        run: npm run test:v79:browser -- --grep-invert "BTC home terminal renders candles, fallback data and persistent touch timeframe controls|language selection survives reload|v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive"
+        env:
+          CI: 'true'
+
+      - name: Validate intelligence-first homepage
+        run: npx playwright test tests/v79-intelligence-home-smoke.spec.js --config=playwright.config.mjs
         env:
           CI: 'true'
 
