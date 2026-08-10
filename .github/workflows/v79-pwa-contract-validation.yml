@@ -29,8 +29,8 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free13'" v79/service-worker.js
-          for asset in news-extension.js news.html chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-onchain.js route-merge.js access-gate.js support.html; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free15'" v79/service-worker.js
+          for asset in news-extension.js news.html chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -72,14 +72,16 @@ jobs:
           grep -F "b.dataset.region='OTHER'" v79/news-extension.js
           grep -F "Другие страны" v79/news-extension.js
 
-      - name: Validate chart analytics and resilient on-chain fallback
+      - name: Validate chart analytics, professional Fibonacci and resilient on-chain fallback
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
           node --check v79/chart-analysis-tools.js
           node --check v79/chart-analysis-hook.js
+          node --check v79/chart-visual-upgrades.js
           node --check v79/chart-onchain.js
           grep -F "chart-analysis-hook.js?v=7930free13" v79/route-merge.js
+          grep -F "chart-visual-upgrades.js?v=7930free15" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
           grep -F "['ema','EMA']" v79/chart-analysis-tools.js
           grep -F "['fib','FIB']" v79/chart-analysis-tools.js
@@ -95,6 +97,13 @@ jobs:
           fi
           grep -F "addEventListener('wheel'" v79/chart-interactions.js
           grep -F "formatTime(c.time)" v79/chart-interactions.js
+          grep -F "AUTO SWING" v79/chart-visual-upgrades.js
+          grep -F "Golden" v79/chart-visual-upgrades.js || grep -F "r===.618" v79/chart-visual-upgrades.js
+          grep -F "EMA20" v79/chart-visual-upgrades.js
+          grep -F "EMA50" v79/chart-visual-upgrades.js
+          grep -F "EMA200" v79/chart-visual-upgrades.js
+          grep -F "FIB AUTO RETR" v79/chart-visual-upgrades.js
+          grep -F "FIB EXT" v79/chart-visual-upgrades.js
           grep -F "Coin Metrics" v79/chart-onchain.js
           grep -F "Blockchain.com" v79/chart-onchain.js
           grep -F "mempool.space" v79/chart-onchain.js
