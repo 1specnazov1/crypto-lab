@@ -6,6 +6,12 @@
     let doc;
     try{doc=frame.contentDocument}catch{return}
     if(!doc||!doc.getElementById('chart')||doc.getElementById('cryptoAnalysisToolsScript'))return;
+    if(!doc.getElementById('cryptoChartLivePriceScript')){
+      const live=doc.createElement('script');
+      live.id='cryptoChartLivePriceScript';
+      live.src='./chart-live-price.js?v=7930free23';
+      doc.body.appendChild(live);
+    }
     const tools=doc.createElement('script');
     tools.id='cryptoAnalysisToolsScript';
     tools.src='./chart-analysis-tools.js?v=7930free11';
@@ -13,7 +19,7 @@
       if(doc.getElementById('cryptoChartVisualUpgradesScript'))return;
       const visual=doc.createElement('script');
       visual.id='cryptoChartVisualUpgradesScript';
-      visual.src='./chart-visual-upgrades.js?v=7930free19';
+      visual.src='./chart-visual-upgrades.js?v=7930free23';
       visual.onload=()=>{
         const scale=doc.createElement('script');
         scale.id='cryptoChartFibScaleScript';
@@ -43,6 +49,13 @@
     const script=document.createElement('script');
     script.id='cryptoNewsExtensionScript';
     script.src='./news-extension.js?v=7930free22';
+    script.onload=()=>{
+      if(document.getElementById('cryptoNewsTickerControlsScript'))return;
+      const controls=document.createElement('script');
+      controls.id='cryptoNewsTickerControlsScript';
+      controls.src='./news-ticker-controls.js?v=7930free23';
+      document.body.appendChild(controls);
+    };
     document.body.appendChild(script);
   }
   try {
