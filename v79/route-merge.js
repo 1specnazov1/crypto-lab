@@ -53,7 +53,7 @@
       if(document.getElementById('cryptoNewsTickerControlsScript'))return;
       const controls=document.createElement('script');
       controls.id='cryptoNewsTickerControlsScript';
-      controls.src='./news-ticker-controls.js?v=7930free23';
+      controls.src='./news-ticker-controls.js?v=7930free24';
       document.body.appendChild(controls);
     };
     document.body.appendChild(script);
