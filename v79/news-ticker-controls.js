@@ -13,7 +13,7 @@
   function clear(){try{localStorage.removeItem(KEY)}catch{}}
   function ticker(){return $('marketNewsTicker')}
   function checkbox(){return $('newsTickerToggle')}
-  function syncControl(){const cb=checkbox();if(!cb)return;cb.checked=ticker()?.classList.contains('show')||false;const text=$('newsTickerToggleText');if(text)text.textContent=label()}
+  function syncControl(){const cb=checkbox();if(!cb)return;cb.checked=ticker()?.classList.contains('show')||false;const text=$('newsTickerToggleText'),next=label();if(text&&text.textContent!==next)text.textContent=next}
   function hideCurrent(){const sig=signature()||lastSignature;if(sig)write(sig);ticker()?.classList.remove('show');syncControl()}
   function showCurrent(){clear();if(signature())ticker()?.classList.add('show');syncControl()}
   function install(){
