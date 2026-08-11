@@ -6,6 +6,7 @@ on:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
       - 'tests/v79-intelligence-home-smoke.spec.js'
+      - 'tests/v79-news-shell-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -20,6 +21,7 @@ on:
       - 'v79/**'
       - 'tests/v79-mobile-smoke.spec.js'
       - 'tests/v79-intelligence-home-smoke.spec.js'
+      - 'tests/v79-news-shell-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -97,6 +99,11 @@ jobs:
 
       - name: Validate intelligence-first homepage
         run: npx playwright test tests/v79-intelligence-home-smoke.spec.js --config=playwright.config.mjs
+        env:
+          CI: 'true'
+
+      - name: Validate ticker language and module shell position
+        run: npx playwright test tests/v79-news-shell-smoke.spec.js --config=playwright.config.mjs
         env:
           CI: 'true'
 
