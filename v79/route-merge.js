@@ -42,7 +42,7 @@
     if(document.getElementById('cryptoNewsExtensionScript'))return;
     const script=document.createElement('script');
     script.id='cryptoNewsExtensionScript';
-    script.src='./news-extension.js?v=7930free14';
+    script.src='./news-extension.js?v=7930free22';
     document.body.appendChild(script);
   }
   try {
