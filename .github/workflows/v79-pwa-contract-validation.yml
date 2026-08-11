@@ -29,8 +29,8 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free21'" v79/service-worker.js
-          for asset in news-extension.js news.html public-free-home.js home-intelligence.js chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free22'" v79/service-worker.js
+          for asset in news-extension.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -60,6 +60,14 @@ jobs:
             exit 1
           fi
 
+      - name: Validate route viewport reset
+        run: |
+          node --check v79/route-viewport-fix.js
+          grep -F "route-viewport-fix.js?v=7930free22" v79/app.html
+          grep -F "frame?.contentWindow" v79/route-viewport-fix.js
+          grep -F "scrollTo(0,0)" v79/route-viewport-fix.js
+          grep -F "attributeName==='src'" v79/route-viewport-fix.js
+
       - name: Validate invite-only FREE access
         run: |
           node --check v79/access-gate.js
@@ -78,7 +86,8 @@ jobs:
         run: |
           node --check v79/news-extension.js
           test -s v79/news.html
-          grep -F "news-extension.js?v=7930free14" v79/route-merge.js
+          grep -F "news-extension.js?v=7930free22" v79/route-merge.js
+          grep -F "route-merge.js?v=7930free22" v79/app.html
           grep -F "ROUTES.splice(insertAt,0,['news','⚡'])" v79/news-extension.js
           grep -F "crypto-lab-v79-news" v79/news-extension.js
           grep -F "crypto-lab-v79-news" v79/news.html
