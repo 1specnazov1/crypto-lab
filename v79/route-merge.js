@@ -19,7 +19,7 @@
       if(doc.getElementById('cryptoChartVisualUpgradesScript'))return;
       const visual=doc.createElement('script');
       visual.id='cryptoChartVisualUpgradesScript';
-      visual.src='./chart-visual-upgrades.js?v=7930free23';
+      visual.src='./chart-visual-upgrades.js?v=7930free25';
       visual.onload=()=>{
         const scale=doc.createElement('script');
         scale.id='cryptoChartFibScaleScript';
