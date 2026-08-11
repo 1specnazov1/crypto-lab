@@ -2,17 +2,17 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is an intelligence-first dashboard and the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior, uses a verified multi-source Binance live-price guard instead of presenting a closed candle as live price, and keeps Fibonacci visually subdued so candles remain readable. The market-impact news ticker follows RU/UA/EN selection, is controlled only by the top checkbox, and automatically returns for a newly detected breaking story. Runtime performance safeguards unload hidden iframe modules, pause hidden ticker animation, use offscreen rendering containment on the intelligence home, and make core runtime assets network-first. Route viewport reset prevents iframe scroll carryover. Protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is an intelligence-first dashboard and the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior, uses a verified multi-source Binance live-price guard instead of presenting a closed candle as live price, and keeps Fibonacci visually subdued so candles remain readable. Fibonacci level and price labels are now rendered as unframed red resistance or green support text in the right-side price axis, with collision avoidance around live price and market/signal labels. The market-impact news ticker follows RU/UA/EN selection, is controlled only by the top checkbox, and automatically returns for a newly detected breaking story. Runtime performance safeguards unload hidden iframe modules, pause hidden ticker animation, use offscreen rendering containment on the intelligence home, and make core runtime assets network-first. Route viewport reset prevents iframe scroll carryover. Protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free24",
+  "pwa_cache": "crypto-lab-v79-7930-free25",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "697725570f9a5f61d5ab303c851bf723e9279d27",
-      "marker": "runtime-performance.js?v=7930speed1"
+      "sha": "a8f0ecd771f59b84bc8933372bd87fb9fa4e6e2d",
+      "marker": "route-merge.js?v=7930free25"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "24e4a6f19dd067b55dc0d494f99a5dc6c2b4f762",
-      "marker": "crypto-lab-v79-7930-free24"
+      "sha": "fda83867ff06914ae03d3f8f179e6c8539a71c04",
+      "marker": "crypto-lab-v79-7930-free25"
     }
   }
 }
