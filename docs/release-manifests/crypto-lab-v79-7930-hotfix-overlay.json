@@ -2,17 +2,17 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is now an intelligence-first dashboard: market regime, breadth, opportunity radar, risk radar, heatmap, high-impact catalysts, portfolio snapshot, focus list and system health replace the duplicated homepage chart; the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior. The five-minute market-impact news engine and protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is now an intelligence-first dashboard: market regime, breadth, opportunity radar, risk radar, heatmap, high-impact catalysts, portfolio snapshot, focus list and system health replace the duplicated homepage chart; the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior. The five-minute market-impact news engine uses a fixed three-row shell so ticker, modules and header remain aligned, and the breaking ticker follows RU/UA/EN selection with server-localized headlines. Protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free20",
+  "pwa_cache": "crypto-lab-v79-7930-free21",
   "asset_overrides": {
     "v79/app.html": {
-      "sha": "66ab954e46c3744502b0a5608451785d0e525ca8",
-      "marker": "public-free-home.js?v=7930free20"
+      "sha": "c0db0d649286b0acd548d7d49814c1cc41389067",
+      "marker": "public-free-home.js?v=7930free21"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -23,8 +23,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "132e68ab1b1bfd39948593a966e7d1cc8fc4f9b3",
-      "marker": "crypto-lab-v79-7930-free20"
+      "sha": "7bacd2e54a2be2517212958d27c62886ae9262f9",
+      "marker": "crypto-lab-v79-7930-free21"
     }
   }
 }
