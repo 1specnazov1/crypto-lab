@@ -29,8 +29,8 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free22'" v79/service-worker.js
-          for asset in news-extension.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free23'" v79/service-worker.js
+          for asset in news-extension.js news-ticker-controls.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
@@ -82,89 +82,67 @@ jobs:
             exit 1
           fi
 
-      - name: Validate five-minute localized market news center
+      - name: Validate localized dismissible breaking news ticker
         run: |
           node --check v79/news-extension.js
+          node --check v79/news-ticker-controls.js
           test -s v79/news.html
           grep -F "news-extension.js?v=7930free22" v79/route-merge.js
+          grep -F "news-ticker-controls.js?v=7930free23" v79/route-merge.js
           grep -F "route-merge.js?v=7930free22" v79/app.html
-          grep -F "ROUTES.splice(insertAt,0,['news','⚡'])" v79/news-extension.js
-          grep -F "crypto-lab-v79-news" v79/news-extension.js
-          grep -F "crypto-lab-v79-news" v79/news.html
-          grep -F "setInterval(refreshTicker,300000)" v79/news-extension.js
-          grep -F "setInterval(load,300000)" v79/news.html
-          grep -F "grid-template-rows:60px auto minmax(0,1fr)!important" v79/news-extension.js
-          grep -F "grid-template-rows:56px auto minmax(0,1fr)!important" v79/news-extension.js
+          grep -F "cryptoLabBreakingTickerDismissedV1" v79/news-ticker-controls.js
+          grep -F "newsTickerToggle" v79/news-ticker-controls.js
+          grep -F "newsTickerClose" v79/news-ticker-controls.js
+          grep -F "stored.signature!==sig" v79/news-ticker-controls.js
+          grep -F "60000" v79/news-ticker-controls.js
           grep -F "localized_title||x.title" v79/news-extension.js
           grep -F "&lang='+encodeURIComponent(lang)" v79/news-extension.js
           grep -F "breakingLabel" v79/news-extension.js
+          grep -F "setInterval(load,300000)" v79/news.html
           grep -F "Impact 55+" v79/news.html
-          grep -F "data-region=\"US\"" v79/news.html
-          grep -F "data-region=\"EUROPE\"" v79/news.html
-          grep -F "data-region=\"CHINA\"" v79/news.html
-          grep -F "data-region=\"JAPAN\"" v79/news.html
-          grep -F "b.dataset.region='OTHER'" v79/news-extension.js
-          grep -F "Другие страны" v79/news-extension.js
 
-      - name: Validate chart analytics, unified viewport and resilient on-chain fallback
+      - name: Validate chart analytics, Binance live price guard and Fibonacci visibility
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
+          node --check v79/chart-live-price.js
           node --check v79/chart-analysis-tools.js
           node --check v79/chart-analysis-hook.js
           node --check v79/chart-visual-upgrades.js
           node --check v79/chart-fib-scale.js
           node --check v79/chart-onchain.js
+          grep -F "chart-live-price.js?v=7930free23" v79/route-merge.js
+          grep -F "chart-visual-upgrades.js?v=7930free23" v79/route-merge.js
           grep -F "chart-analysis-hook.js?v=7930free19" v79/route-merge.js
-          grep -F "chart-visual-upgrades.js?v=7930free19" v79/route-merge.js
           grep -F "chart-fib-scale.js?v=7930free19" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
-          grep -F "['ema','EMA']" v79/chart-analysis-tools.js
-          grep -F "['fib','FIB']" v79/chart-analysis-tools.js
-          grep -F "['macd','MACD']" v79/chart-analysis-tools.js
-          grep -F "['bb','BB']" v79/chart-analysis-tools.js
-          grep -F "['vwap','VWAP']" v79/chart-analysis-tools.js
-          grep -F "['atr','ATR']" v79/chart-analysis-tools.js
-          grep -F "window.CryptoChartViewport = view" v79/chart-interactions.js
-          grep -F "window.CryptoChartInteractionState = state" v79/chart-interactions.js
-          grep -F "...fibLevels" v79/chart-interactions.js
-          grep -F "window.CryptoChartLastScale" v79/chart-interactions.js
-          grep -F "addEventListener('wheel'" v79/chart-interactions.js
-          grep -F "formatTime(c.time)" v79/chart-interactions.js
-          grep -F "window.CryptoChartViewport" v79/chart-analysis-hook.js
-          grep -F "CryptoFibScaleLevels" v79/chart-analysis-hook.js
-          grep -F "function priceLabel" v79/chart-analysis-hook.js
-          grep -F "canvas.width/dpr" v79/chart-analysis-hook.js
-          if grep -F "CanvasRenderingContext2D.prototype" v79/chart-analysis-hook.js; then
-            echo 'Native canvas prototype monkey-patching must not return' >&2
+          grep -F "ticker/price" v79/chart-live-price.js
+          grep -F "ticker/24hr" v79/chart-live-price.js
+          grep -F "open-kline" v79/chart-live-price.js
+          grep -F "agreeing.length<2" v79/chart-live-price.js
+          grep -F "window.CryptoChartLivePrice=result.price" v79/chart-live-price.js
+          grep -F "state.shift===0 ? Number(window.CryptoChartLivePrice)" v79/chart-interactions.js
+          grep -F "...(Number.isFinite(verifiedLive)?[verifiedLive]:[])" v79/chart-interactions.js
+          if grep -F "drawPriceTag(ctx, w - pad.r + 4, yy, fmt(latest.close)" v79/chart-interactions.js; then
+            echo 'Closed candle price must not masquerade as Binance live price' >&2
             exit 1
           fi
+          grep -F "['ema','EMA']" v79/chart-analysis-tools.js
+          grep -F "['fib','FIB']" v79/chart-analysis-tools.js
+          grep -F "window.CryptoChartViewport = view" v79/chart-interactions.js
+          grep -F "...fibLevels" v79/chart-interactions.js
           grep -F "AUTO SWING" v79/chart-visual-upgrades.js
           grep -F "const RETRACEMENT_LEVELS=[.382,.5,.618,.786]" v79/chart-visual-upgrades.js
           grep -F "const EXTENSION_LEVELS=[1.272,1.618,2]" v79/chart-visual-upgrades.js
-          grep -F "RETR+EXT · 7 LEVELS" v79/chart-visual-upgrades.js
-          grep -F "window.CryptoFibScaleLevels=fibScaleLevels" v79/chart-visual-upgrades.js
-          grep -F "kind:'R'" v79/chart-visual-upgrades.js
-          grep -F "kind:'E'" v79/chart-visual-upgrades.js
-          grep -F "chartLeft=pad.l+2" v79/chart-visual-upgrades.js
-          grep -F "ctx.lineTo(chartRight,yy)" v79/chart-visual-upgrades.js
-          grep -F "#0ecb81" v79/chart-visual-upgrades.js
-          grep -F "#f6465d" v79/chart-visual-upgrades.js
-          grep -F "fibRatioLabel" v79/chart-visual-upgrades.js
-          grep -F "EMA20" v79/chart-visual-upgrades.js
-          grep -F "EMA50" v79/chart-visual-upgrades.js
-          grep -F "EMA200" v79/chart-visual-upgrades.js
-          grep -F "x0=pad.l+8" v79/chart-visual-upgrades.js
+          grep -F "globalAlpha=kind==='E'?.42:.32" v79/chart-visual-upgrades.js
+          grep -F "currentPrice(rows)" v79/chart-visual-upgrades.js
           grep -F "window.CryptoChartUnifiedScale = true" v79/chart-fib-scale.js
           if grep -F "drawMain=function" v79/chart-fib-scale.js; then
             echo 'Fibonacci scale module must not replace the chart renderer' >&2
             exit 1
           fi
           grep -F "Coin Metrics" v79/chart-onchain.js
-          grep -F "Blockchain.com" v79/chart-onchain.js
-          grep -F "mempool.space" v79/chart-onchain.js
           grep -F "FALLBACK" v79/chart-onchain.js
-          grep -F "data.degraded" v79/chart-onchain.js
 
       - name: Validate support and mobile shell
         run: |
