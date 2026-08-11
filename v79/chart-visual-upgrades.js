@@ -81,17 +81,27 @@
     if(!tools.enabled('fib'))return;
     const rows=env?.current?.rows||env?.visible;if(!rows?.length)return;
     const z=autoSwing(rows);if(!z)return;
-    const levels=fibLevels(z),{ctx,w,pad,y,x}=env;
+    const levels=fibLevels(z),{ctx,w,h,pad,y,x}=env;
     const x1=x(z.startIdx),x2=x(z.endIdx),chartLeft=pad.l+2,chartRight=w-pad.r-4,current=currentPrice(rows);
+    const axisX=chartRight+7;
+    const top=pad.t+7,bottom=(h||500)-pad.b-7;
+    const reserved=[current,globalThis.marketLevels?.support,globalThis.marketLevels?.resistance,globalThis.signal?.stop,globalThis.signal?.tp1,globalThis.signal?.tp2,globalThis.signal?.tp3].filter(Number.isFinite).map(v=>y(v));
+    const used=[];
     ctx.save();
     ctx.strokeStyle='rgba(132,142,156,.24)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x1,y(z.start));ctx.lineTo(x2,y(z.end));ctx.stroke();ctx.setLineDash([]);
     for(const px of [[x1,y(z.start)],[x2,y(z.end)]]){ctx.fillStyle='rgba(240,185,11,.72)';ctx.beginPath();ctx.arc(px[0],px[1],2.5,0,Math.PI*2);ctx.fill()}
     levels.forEach(({r,v,kind})=>{
-      const yy=y(v),isSupport=Number.isFinite(current)?v<=current:true,color=isSupport?'#0ecb81':'#f6465d',textColor=isSupport?'#d7fff0':'#ffe5e9';
+      const yy=y(v),isSupport=Number.isFinite(current)?v<=current:true,color=isSupport?'#0ecb81':'#f6465d';
       ctx.save();ctx.strokeStyle=color;ctx.lineWidth=kind==='E'?1.45:1.2;ctx.globalAlpha=kind==='E'?.42:.32;ctx.shadowBlur=0;ctx.setLineDash(kind==='E'?[7,5]:[]);ctx.beginPath();ctx.moveTo(chartLeft,yy);ctx.lineTo(chartRight,yy);ctx.stroke();ctx.restore();
-      const label=`${kind} ${fibRatioLabel(r)} · ${f(v)}`;
-      ctx.font='bold 10px system-ui';const tw=ctx.measureText(label).width+10,lx=chartRight-tw;
-      ctx.fillStyle='rgba(8,11,15,.78)';ctx.fillRect(lx,yy-9,tw,16);ctx.save();ctx.globalAlpha=.72;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(lx+.5,yy-8.5,tw-1,15);ctx.restore();ctx.fillStyle=textColor;ctx.fillText(label,lx+5,yy+3);
+      const label=`${fibRatioLabel(r)} ${f(v)}`;
+      let labelY=Math.max(top,Math.min(bottom,yy));
+      const blocked=[...reserved,...used];
+      for(let tries=0;tries<5&&blocked.some(vy=>Math.abs(vy-labelY)<11);tries++){
+        const down=labelY+12<=bottom,labelUp=labelY-12>=top;
+        labelY=down?labelY+12:labelUp?labelY-12:labelY;
+      }
+      used.push(labelY);
+      ctx.save();ctx.font='bold 9px system-ui';const available=Math.max(28,pad.r-10);if(ctx.measureText(label).width>available)ctx.font='bold 8px system-ui';ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineWidth=2.5;ctx.strokeStyle='rgba(8,11,15,.92)';ctx.strokeText(label,axisX,labelY);ctx.fillStyle=color;ctx.fillText(label,axisX,labelY);ctx.restore();
     });
     const swingText=`AUTO SWING ${z.up?'LOW → HIGH':'HIGH → LOW'} · RETRACEMENT + EXTENSION`;
     ctx.font='bold 9px system-ui';ctx.fillStyle='rgba(174,183,196,.68)';ctx.fillText(swingText,chartLeft+100,Math.max(pad.t+11,Math.min(y(z.start),y(z.end))-8));
