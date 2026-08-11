@@ -54,16 +54,27 @@ test('breaking ticker follows RU UA EN language selection',async({page})=>{
   await page.locator('#lang').selectOption('en');await expect(page.locator('#marketNewsTicker')).toHaveAttribute('data-label','⚡ BREAKING');await expect(page.locator('#marketNewsTrack')).toContainText('Brazil central bank');await expect(page.locator('#marketNewsTrack')).toContainText('Impact 82');
 });
 
-test('operator can dismiss ticker and a new hot headline automatically restores it',async({page})=>{
+test('checkbox dismisses ticker and a new hot headline automatically restores it',async({page})=>{
   await stub(page);await page.goto('/v79/app.html?ticker-dismiss=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#newsTickerToggle')).toBeChecked();
-  await expect(page.locator('#newsTickerClose')).toBeVisible();
-  await page.locator('#newsTickerClose').click();
+  await expect(page.locator('#newsTickerClose')).toHaveCount(0);
+  await page.locator('#newsTickerToggle').uncheck();
   await expect(page.locator('#marketNewsTicker')).not.toHaveClass(/show/);
   await expect(page.locator('#newsTickerToggle')).not.toBeChecked();
   await page.locator('#marketNewsTrack').evaluate(el=>{el.textContent=(el.textContent||'')+' · NEW VERIFIED HOT STORY'});
   await expect(page.locator('#marketNewsTicker')).toHaveClass(/show/);
   await expect(page.locator('#newsTickerToggle')).toBeChecked();
+});
+
+test('leaving a heavy module releases the hidden iframe runtime',async({page})=>{
+  await stub(page);await page.goto('/v79/app.html?runtime-speed=1',{waitUntil:'domcontentloaded'});
+  await page.locator('#nav button[data-route="analytics"]').click();
+  await expect(page.frameLocator('#frame').locator('#chart')).toBeVisible();
+  await page.locator('#nav button[data-route="home"]').click();
+  await expect(page.locator('#homeView')).toBeVisible();
+  await expect.poll(()=>page.locator('#frame').getAttribute('src')).toBe('about:blank');
+  const perf=await page.evaluate(()=>window.CryptoLabRuntimePerformance);
+  expect(perf?.frameUnloads).toBeGreaterThan(0);
 });
 
 test('4H chart uses verified Binance live consensus instead of stale closed candle close',async({page})=>{
