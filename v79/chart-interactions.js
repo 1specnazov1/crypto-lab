@@ -108,7 +108,8 @@
     if (!visible.length) return;
 
     const fibLevels = typeof window.CryptoFibScaleLevels === 'function' ? window.CryptoFibScaleLevels(visible) : [];
-    const levels = [marketLevels.support, marketLevels.resistance, signal.entryLow, signal.entryHigh, signal.stop, signal.tp1, signal.tp2, signal.tp3, ...fibLevels].filter(Number.isFinite);
+    const verifiedLive = state.shift===0 ? Number(window.CryptoChartLivePrice) : NaN;
+    const levels = [marketLevels.support, marketLevels.resistance, signal.entryLow, signal.entryHigh, signal.stop, signal.tp1, signal.tp2, signal.tp3, ...(Number.isFinite(verifiedLive)?[verifiedLive]:[]), ...fibLevels].filter(Number.isFinite);
     let min = Math.min(...visible.map(c => c.low), ...levels), max = Math.max(...visible.map(c => c.high), ...levels);
     const margin = (max - min || 1) * .07; min -= margin; max += margin;
     const y = v => pad.t + (max - v) / (max - min || 1) * ch;
@@ -168,9 +169,10 @@
     const maxVol = Math.max(...visible.map(c => c.volume), 1), vh = ch * .18;
     visible.forEach((c, i) => { ctx.fillStyle = c.close >= c.open ? 'rgba(14,203,129,.26)' : 'rgba(246,70,93,.26)'; const hh = c.volume / maxVol * vh; ctx.fillRect(x(i) - bar / 2, pad.t + ch - hh, bar, hh); });
 
-    const latest = candles.at(-1);
-    if (latest && latest.time >= visible[0].time && latest.time <= visible.at(-1).time) {
-      const yy = y(latest.close); ctx.save(); ctx.strokeStyle = '#0ecb81'; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke(); ctx.setLineDash([]); drawPriceTag(ctx, w - pad.r + 4, yy, fmt(latest.close), '#0ecb81'); ctx.restore();
+    if (Number.isFinite(verifiedLive)) {
+      const lastClosed=candles.at(-1)?.close;
+      const col=Number.isFinite(lastClosed)&&verifiedLive<lastClosed?'#f6465d':'#0ecb81';
+      const yy = y(verifiedLive); ctx.save(); ctx.strokeStyle = col; ctx.setLineDash([5, 5]); ctx.globalAlpha=.9; ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; drawPriceTag(ctx, w - pad.r + 4, yy, fmt(verifiedLive), col); ctx.restore();
     }
 
     if (Number.isInteger(state.hoverGlobal) && state.hoverGlobal >= offset && state.hoverGlobal < current.end) {
