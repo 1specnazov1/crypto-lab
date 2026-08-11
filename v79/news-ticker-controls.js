@@ -50,4 +50,5 @@
   const observer=new MutationObserver(()=>queueMicrotask(evaluateMutation));observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
   $('lang')?.addEventListener('change',()=>{languageSwitchUntil=Date.now()+2500;setTimeout(()=>{install();syncControl()},0)},true);
   install();setTimeout(evaluateMutation,100);setInterval(()=>{install();evaluateMutation()},1500);
+  setInterval(()=>{if(document.hidden)return;try{if(typeof translate==='function')translate()}catch{}},60000);
 })();
