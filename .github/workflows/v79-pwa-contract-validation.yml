@@ -29,7 +29,7 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free24'" v79/service-worker.js
+          grep -F "const CACHE='crypto-lab-v79-7930-free25'" v79/service-worker.js
           for asset in runtime-performance.js news-extension.js news-ticker-controls.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
@@ -67,7 +67,7 @@ jobs:
           node --check v79/runtime-performance.js
           grep -F "route-viewport-fix.js?v=7930free22" v79/app.html
           grep -F "runtime-performance.js?v=7930speed1" v79/app.html
-          grep -F "route-merge.js?v=7930free24" v79/app.html
+          grep -F "route-merge.js?v=7930free25" v79/app.html
           grep -F "frame?.contentWindow" v79/route-viewport-fix.js
           grep -F "scrollTo(0,0)" v79/route-viewport-fix.js
           grep -F "attributeName==='src'" v79/route-viewport-fix.js
@@ -118,7 +118,7 @@ jobs:
           grep -F "setInterval(load,300000)" v79/news.html
           grep -F "Impact 55+" v79/news.html
 
-      - name: Validate chart analytics, Binance live price guard and Fibonacci visibility
+      - name: Validate chart analytics, Binance live price guard and Fibonacci price-axis labels
         run: |
           node --check v79/route-merge.js
           node --check v79/chart-interactions.js
@@ -129,7 +129,7 @@ jobs:
           node --check v79/chart-fib-scale.js
           node --check v79/chart-onchain.js
           grep -F "chart-live-price.js?v=7930free23" v79/route-merge.js
-          grep -F "chart-visual-upgrades.js?v=7930free23" v79/route-merge.js
+          grep -F "chart-visual-upgrades.js?v=7930free25" v79/route-merge.js
           grep -F "chart-analysis-hook.js?v=7930free19" v79/route-merge.js
           grep -F "chart-fib-scale.js?v=7930free19" v79/route-merge.js
           grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
@@ -152,6 +152,14 @@ jobs:
           grep -F "const RETRACEMENT_LEVELS=[.382,.5,.618,.786]" v79/chart-visual-upgrades.js
           grep -F "const EXTENSION_LEVELS=[1.272,1.618,2]" v79/chart-visual-upgrades.js
           grep -F "globalAlpha=kind==='E'?.42:.32" v79/chart-visual-upgrades.js
+          grep -F "const axisX=chartRight+7" v79/chart-visual-upgrades.js
+          grep -F 'const label=`${fibRatioLabel(r)} ${f(v)}`' v79/chart-visual-upgrades.js
+          grep -F "ctx.strokeText(label,axisX,labelY)" v79/chart-visual-upgrades.js
+          grep -F "ctx.fillStyle=color;ctx.fillText(label,axisX,labelY)" v79/chart-visual-upgrades.js
+          if grep -F "ctx.strokeRect(lx" v79/chart-visual-upgrades.js; then
+            echo 'Fibonacci labels must not use framed boxes' >&2
+            exit 1
+          fi
           grep -F "currentPrice(rows)" v79/chart-visual-upgrades.js
           grep -F "window.CryptoChartUnifiedScale = true" v79/chart-fib-scale.js
           if grep -F "drawMain=function" v79/chart-fib-scale.js; then
