@@ -74,17 +74,21 @@ jobs:
             exit 1
           fi
 
-      - name: Validate five-minute market news center
+      - name: Validate five-minute localized market news center
         run: |
           node --check v79/news-extension.js
           test -s v79/news.html
-          grep -F "news-extension.js?v=7930free12" v79/route-merge.js
+          grep -F "news-extension.js?v=7930free14" v79/route-merge.js
           grep -F "ROUTES.splice(insertAt,0,['news','⚡'])" v79/news-extension.js
           grep -F "crypto-lab-v79-news" v79/news-extension.js
           grep -F "crypto-lab-v79-news" v79/news.html
           grep -F "setInterval(refreshTicker,300000)" v79/news-extension.js
           grep -F "setInterval(load,300000)" v79/news.html
-          grep -F "BREAKING" v79/news-extension.js
+          grep -F "grid-template-rows:60px auto minmax(0,1fr)!important" v79/news-extension.js
+          grep -F "grid-template-rows:56px auto minmax(0,1fr)!important" v79/news-extension.js
+          grep -F "localized_title||x.title" v79/news-extension.js
+          grep -F "&lang='+encodeURIComponent(lang)" v79/news-extension.js
+          grep -F "breakingLabel" v79/news-extension.js
           grep -F "Impact 55+" v79/news.html
           grep -F "data-region=\"US\"" v79/news.html
           grep -F "data-region=\"EUROPE\"" v79/news.html
