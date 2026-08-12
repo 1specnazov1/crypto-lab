@@ -54,6 +54,12 @@ test('news summary Critical High and Breaking cards filter the feed and subtitle
   await expect(frame.locator('#impact')).toHaveValue('55');
   await expect(frame.locator('.item:visible')).toHaveCount(1);
   await expect(frame.locator('.item:visible')).toHaveClass(/breaking/);
+
+  await frame.locator('#regions [data-region="ALL"]').click();
+  await expect(frame.locator('#impact')).toHaveValue('55');
+  await expect(frame.locator('.item:visible')).toHaveCount(3);
+  const mode=await frame.locator('body').evaluate(()=>window.CRYPTO_NEWS_UI_UPGRADES?.mode);
+  expect(mode).toBe('all');
 });
 
 test('breaking ticker auto-hides after exactly three full passes and returns only for new content',async({page})=>{
