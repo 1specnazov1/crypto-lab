@@ -44,6 +44,18 @@
     };
     doc.body.appendChild(tools);
   }
+  function injectNewsUi(){
+    const frame=document.getElementById('frame');
+    if(!frame)return;
+    let doc,path='';
+    try{doc=frame.contentDocument;path=frame.contentWindow?.location?.pathname||''}catch{return}
+    if(!doc||!path.endsWith('/news.html')||doc.getElementById('cryptoNewsUiUpgradesScript'))return;
+    const script=doc.createElement('script');
+    script.id='cryptoNewsUiUpgradesScript';
+    script.src='./news-ui-upgrades.js?v=7930free26';
+    doc.body.appendChild(script);
+  }
+  function enhanceFrame(){injectAnalyticsTools();injectNewsUi()}
   function loadNewsExtension(){
     if(document.getElementById('cryptoNewsExtensionScript'))return;
     const script=document.createElement('script');
@@ -53,7 +65,7 @@
       if(document.getElementById('cryptoNewsTickerControlsScript'))return;
       const controls=document.createElement('script');
       controls.id='cryptoNewsTickerControlsScript';
-      controls.src='./news-ticker-controls.js?v=7930free24';
+      controls.src='./news-ticker-controls.js?v=7930free26';
       document.body.appendChild(controls);
     };
     document.body.appendChild(script);
@@ -69,7 +81,7 @@
     for(const code of ['ru','uk','en'])if(Array.isArray(T?.[code]?.nav)&&T[code].nav.length>1)T[code].nav[1]=labels[code];
     const baseTranslate=translate;
     translate=function mergedTranslate(){baseTranslate();document.querySelector('#nav [data-route="market"]')?.remove()};
-    document.getElementById('frame')?.addEventListener('load',()=>setTimeout(injectAnalyticsTools,0));
+    document.getElementById('frame')?.addEventListener('load',()=>setTimeout(enhanceFrame,0));
     translate();
     loadNewsExtension();
   } catch (e) { console.warn('route merge skipped',e); }
