@@ -43,12 +43,12 @@ test('news summary Critical High and Breaking cards filter the feed and subtitle
   await frame.locator('[data-news-filter="high"]').click();
   await expect(frame.locator('#impact')).toHaveValue('75');
   await expect(frame.locator('.item:visible')).toHaveCount(1);
-  await expect(frame.locator('.item:visible .scorebox strong')).toContainText('78');
+  await expect(frame.locator('.item:visible .score strong')).toContainText('78');
 
   await frame.locator('[data-news-filter="critical"]').click();
   await expect(frame.locator('#impact')).toHaveValue('82');
   await expect(frame.locator('.item:visible')).toHaveCount(1);
-  await expect(frame.locator('.item:visible .scorebox strong')).toContainText('86');
+  await expect(frame.locator('.item:visible .score strong')).toContainText('86');
 
   await frame.locator('[data-news-filter="breaking"]').click();
   await expect(frame.locator('#impact')).toHaveValue('55');
