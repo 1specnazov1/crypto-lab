@@ -1,9 +1,19 @@
 'use strict';
 (() => {
   if(window.CryptoLabRuntimePerformance)return;
-  const state={version:'7930speed1',frameUnloads:0};
+  const state={version:'7930speed2',frameUnloads:0};
   window.CryptoLabRuntimePerformance=state;
   const $=id=>document.getElementById(id);
+
+  // Canonical public brand in the browser tab / installed app shell.
+  document.title='CRYPTO LAB — Crypto Market Intelligence';
+  let description=document.querySelector('meta[name="description"]');
+  if(!description){
+    description=document.createElement('meta');
+    description.name='description';
+    document.head.appendChild(description);
+  }
+  description.content='CRYPTO LAB — real-time crypto market intelligence, analytics, scanner, AI, portfolio, risk and market-moving news.';
 
   if(!document.getElementById('cryptoRuntimePerformanceStyles')){
     const style=document.createElement('style');
