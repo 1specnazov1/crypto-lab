@@ -18,14 +18,6 @@
       "sha": "a8f0ecd771f59b84bc8933372bd87fb9fa4e6e2d",
       "marker": "route-merge.js?v=7930free25"
     },
-    "v79/session-security.js": {
-      "sha": "abe63b7ed3c57b2ad0e3b6b519fe1ada8fe531cd",
-      "marker": "setText"
-    },
-    "v79/icon.svg": {
-      "sha": "c15315f4610e983f78ed183b60f5542a01148827",
-      "marker": "CL"
-    },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
       "marker": "publicFreeAccessScript"
