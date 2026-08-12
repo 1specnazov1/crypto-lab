@@ -15,7 +15,7 @@
     if (document.getElementById('serverBacktestHistory')) return;
     const style = document.createElement('style');
     style.id = 'serverBacktestHistoryStyles';
-    style.textContent = '.status-pill{display:inline-flex;padding:3px 7px;border-radius:999px;border:1px solid var(--line);font-size:9px;font-weight:800}.status-pill.completed{color:#a7f3d0;border-color:#0ecb8155}.status-pill.rejected,.status-pill.failed{color:#ffc4cd;border-color:#f6465d55}.history-table{min-width:860px}';
+    style.textContent = '.status-pill{display:inline-flex;padding:3px 7px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:800}.status-pill.completed{color:#a7f3d0;border-color:#0ecb8155}.status-pill.rejected,.status-pill.failed{color:#ffc4cd;border-color:#f6465d55}.history-table{min-width:860px}';
     document.head.appendChild(style);
     const footer = document.getElementById('footer');
     if (!footer) return;
@@ -65,6 +65,15 @@
     </tr>`).join('') : `<tr><td colspan="8" class="empty">${text().empty}</td></tr>`;
   }
 
+  function installRunGuard(){
+    if(document.getElementById('backtestRunGuardScript'))return;
+    const script=document.createElement('script');
+    script.id='backtestRunGuardScript';
+    script.src='./backtest-run-guard.js?v=7930free29';
+    script.async=false;
+    document.head.appendChild(script);
+  }
+
   mount();
   const originalStatus = typeof status === 'function' ? status : null;
   if (originalStatus) {
@@ -74,5 +83,6 @@
       return result;
     };
   }
+  installRunGuard();
   load();
 })();
