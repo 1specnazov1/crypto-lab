@@ -29,13 +29,14 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free27'" v79/service-worker.js
-          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html session-security.js icon.svg; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free28'" v79/service-worker.js
+          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html session-security.js icon.svg module-mobile.css platform.css; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "'app.js'" v79/service-worker.js
           grep -F "'session-security.js'" v79/service-worker.js
           grep -F "'icon.svg'" v79/service-worker.js
+          grep -F "'module-mobile.css'" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
           grep -F "fetch(req,{cache:'no-store'})" v79/service-worker.js
           if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
@@ -44,6 +45,10 @@ jobs:
           fi
           grep -F '>CL</text>' v79/icon.svg
           grep -F '#00e5ff' v79/icon.svg
+          grep -F 'CRYPTO LAB readability baseline' v79/platform.css
+          grep -F 'Global module readability baseline' v79/module-mobile.css
+          grep -F 'font-size:12px!important' v79/platform.css
+          grep -F 'font-size:12px!important' v79/module-mobile.css
 
       - name: Validate intelligence-first home
         run: |
