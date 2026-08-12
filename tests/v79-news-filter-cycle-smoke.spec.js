@@ -9,7 +9,10 @@ const ITEMS=[
 const MARKET=[{symbol:'BTCUSDT',lastPrice:'64000',priceChangePercent:'0.5',quoteVolume:'1000000000'},{symbol:'ETHUSDT',lastPrice:'1900',priceChangePercent:'0.3',quoteVolume:'500000000'},{symbol:'SOLUSDT',lastPrice:'76',priceChangePercent:'1.2',quoteVolume:'300000000'},{symbol:'XRPUSDT',lastPrice:'1.02',priceChangePercent:'-0.4',quoteVolume:'200000000'}];
 
 async function stub(page){
-  await page.addInitScript(()=>localStorage.setItem('sb-txhzxbizjpinowepfjkm-auth-token',JSON.stringify({access_token:'news-filter-token'})));
+  await page.addInitScript(()=>{
+    localStorage.setItem('cryptoLabLanguage','ru');
+    localStorage.setItem('sb-txhzxbizjpinowepfjkm-auth-token',JSON.stringify({access_token:'news-filter-token'}));
+  });
   await page.route('https://**/*',async route=>{
     const raw=route.request().url();
     if(raw.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,server_time:NOW,latest_run:{finished_at:NOW,success:true,class_a_found:0,symbols_checked:20,timeframes:['5M']},scanner_job:{active:true},monitor_job:{active:false},signal_counts:{waiting:0,active:0,closed:0},signals:[],runs:[]})});
@@ -67,6 +70,10 @@ test('breaking ticker auto-hides after exactly three full passes and returns onl
   await expect(page.locator('#newsTickerToggle')).not.toBeChecked();
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('cryptoLabBreakingTickerDismissedV1')||'null'));
   expect(stored?.reason).toBe('completed');
+
+  await page.locator('#newsTickerToggle').check({force:true});
+  await expect(ticker).not.toHaveClass(/show/);
+  await expect(page.locator('#newsTickerToggle')).not.toBeChecked();
 
   await track.evaluate(el=>{el.textContent=(el.textContent||'')+' · NEW HOT STORY'});
   await expect(ticker).toHaveClass(/show/);
