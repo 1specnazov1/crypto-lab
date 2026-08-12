@@ -8,7 +8,7 @@
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free29",
+  "pwa_cache": "crypto-lab-v79-7930-free28",
   "asset_overrides": {
     "v79/index.html": {
       "sha": "a71cf240bca4bcf6601b5fdb2db98f583cb3bb1d",
@@ -27,8 +27,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "b741116c434467fd23e4da70211be73fbdb072b6",
-      "marker": "crypto-lab-v79-7930-free29"
+      "sha": "c090d41db15ebdc8bd932eb6a0d5624a5e294ec4",
+      "marker": "crypto-lab-v79-7930-free28"
     }
   }
 }
