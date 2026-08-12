@@ -29,8 +29,8 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free25'" v79/service-worker.js
-          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free26'" v79/service-worker.js
+          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "'app.js'" v79/service-worker.js
@@ -89,14 +89,19 @@ jobs:
             exit 1
           fi
 
-      - name: Validate localized checkbox-controlled breaking news ticker
+      - name: Validate news filters and three-pass localized breaking ticker
         run: |
           node --check v79/news-extension.js
           node --check v79/news-ticker-controls.js
+          node --check v79/news-ui-upgrades.js
           test -s v79/news.html
           grep -F "news-extension.js?v=7930free22" v79/route-merge.js
-          grep -F "news-ticker-controls.js?v=7930free24" v79/route-merge.js
+          grep -F "news-ticker-controls.js?v=7930free26" v79/route-merge.js
+          grep -F "news-ui-upgrades.js?v=7930free26" v79/route-merge.js
           grep -F "cryptoLabBreakingTickerDismissedV1" v79/news-ticker-controls.js
+          grep -F "const MAX_PASSES=3" v79/news-ticker-controls.js
+          grep -F "animationiteration" v79/news-ticker-controls.js
+          grep -F "hideCurrent('completed')" v79/news-ticker-controls.js
           grep -F "newsTickerToggle" v79/news-ticker-controls.js
           grep -F "stored.signature!==sig" v79/news-ticker-controls.js
           grep -F "trackObserver.observe(track" v79/news-ticker-controls.js
@@ -112,6 +117,9 @@ jobs:
             echo 'Ticker control must be event-driven, not polling' >&2
             exit 1
           fi
+          grep -F "data-news-filter" v79/news-ui-upgrades.js
+          grep -F "mode==='breaking'" v79/news-ui-upgrades.js
+          grep -F "news-title-cont" v79/news-ui-upgrades.js
           grep -F "localized_title||x.title" v79/news-extension.js
           grep -F "&lang='+encodeURIComponent(lang)" v79/news-extension.js
           grep -F "breakingLabel" v79/news-extension.js
