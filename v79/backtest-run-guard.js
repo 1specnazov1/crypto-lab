@@ -12,7 +12,7 @@
     en:{checking:'FREE · limit checked on run',auth:'Sign in to run the backtest',session:'Session check failed. Try again.',timeout:'The backtest server did not respond in time. Run it again.',failed:'Backtest failed.'}
   };
   const text=()=>copy[typeof lang==='string'?lang:'ru']||copy.ru;
-  let busy=false;
+  let busy=false,lastServerQuota=null;
 
   function withTimeout(promise,ms,label){
     return Promise.race([
@@ -27,6 +27,12 @@
     if(loader)loader.classList.toggle('on',value);
   }
 
+  function showServerQuota(){
+    if(!quotaNode||!lastServerQuota)return false;
+    quotaNode.textContent=lastServerQuota.limit<0?'FREE · ∞':`${typeof tr==='function'?tr().left:'Осталось'}: ${lastServerQuota.remaining??'—'}/${lastServerQuota.limit??'—'}`;
+    return true;
+  }
+
   async function safeSession(){
     try{
       const result=await withTimeout(sb.auth.getSession(),5000,text().session);
@@ -39,6 +45,7 @@
 
   async function safeQuota(){
     if(busy)return;
+    if(lastServerQuota){showServerQuota();button.disabled=false;return;}
     if(quotaNode)quotaNode.textContent=text().checking;
     button.disabled=false;
     try{
@@ -55,7 +62,7 @@
       }
     }catch(error){
       // Client quota lookup is informational only. The Edge Function enforces quota again server-side.
-      if(quotaNode)quotaNode.textContent=text().checking;
+      if(quotaNode&&!lastServerQuota)quotaNode.textContent=text().checking;
       console.warn('Backtest quota preview unavailable; server-side guard remains authoritative',error);
     }finally{
       if(!busy)button.disabled=false;
@@ -67,6 +74,7 @@
     if(busy)return;
     setBusy(true);
     if(statusNode){statusNode.className='status';statusNode.textContent=typeof tr==='function'?tr().loading:'Сервер выполняет бэктест…';}
+    let succeeded=false;
     try{
       const session=await safeSession();
       if(!session)throw new Error(text().auth);
@@ -85,17 +93,19 @@
       if(!response.ok)throw new Error(data?.error||('HTTP '+response.status));
       RESULT=data.result;
       render(data.result);
-      if(quotaNode)quotaNode.textContent=data?.quota?.limit<0?'FREE · ∞':`${typeof tr==='function'?tr().left:'Осталось'}: ${data?.quota?.remaining??'—'}/${data?.quota?.limit??'—'}`;
+      lastServerQuota=data?.quota||null;
+      showServerQuota();
       const engine=document.getElementById('engine');if(engine)engine.textContent='Server engine v'+data.result.engineVersion;
       if(statusNode){statusNode.textContent='OK';statusNode.className='status ok';}
+      succeeded=true;
       try{if(typeof load==='function')await load();}catch{}
     }catch(error){
       const message=error?.name==='AbortError'?text().timeout:(error?.message||text().failed);
       if(statusNode){statusNode.textContent=message;statusNode.className='status bad';}
-      const body=document.getElementById('body');if(body)body.innerHTML=`<tr><td colspan="12" class="empty neg">${String(message).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</td></tr>`;
+      const body=document.getElementById('body');if(body)body.innerHTML=`<tr><td colspan="12" class="empty neg">${String(message).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}</td></tr>`;
     }finally{
       setBusy(false);
-      safeQuota();
+      if(succeeded)showServerQuota();else safeQuota();
     }
   }
 
@@ -108,6 +118,6 @@
   // Old quota() may finish later and disable the button; keep it interactive unless a run is actually in progress.
   const observer=new MutationObserver(()=>{if(!busy&&button.disabled)button.disabled=false;});
   observer.observe(button,{attributes:true,attributeFilter:['disabled']});
-  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(safeQuota,0),{passive:true});
+  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(()=>{if(!showServerQuota())safeQuota();},0),{passive:true});
   setTimeout(safeQuota,0);
 })();
