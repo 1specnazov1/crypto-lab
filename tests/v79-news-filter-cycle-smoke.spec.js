@@ -73,7 +73,7 @@ test('breaking ticker auto-hides after exactly three full passes and returns onl
   const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('cryptoLabBreakingTickerDismissedV1')||'null'));
   expect(stored?.reason).toBe('completed');
 
-  await page.locator('#newsTickerToggle').check({force:true});
+  await page.locator('#newsTickerToggle').evaluate(el=>{el.checked=true;el.dispatchEvent(new Event('change',{bubbles:true}))});
   await expect(ticker).not.toHaveClass(/show/);
   await expect(page.locator('#newsTickerToggle')).not.toBeChecked();
 
