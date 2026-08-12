@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+  // Contract marker: data-news-filter cards are interactive summary filters.
   const $=id=>document.getElementById(id);
   const summary=document.querySelector('.summary');
   const list=$('list');
@@ -45,19 +46,12 @@
     }
   }
 
-  function markActive(){
-    Object.entries(filterCards).forEach(([key,card])=>card?.classList.toggle('filter-on',mode===key));
-  }
-
+  function markActive(){Object.entries(filterCards).forEach(([key,card])=>card?.classList.toggle('filter-on',mode===key))}
   function applyMode(){
     const articles=[...list.querySelectorAll('.item')];
-    articles.forEach(article=>{
-      const hide=mode==='breaking'&&!article.classList.contains('breaking');
-      article.classList.toggle('news-filter-hidden',hide);
-    });
+    articles.forEach(article=>article.classList.toggle('news-filter-hidden',mode==='breaking'&&!article.classList.contains('breaking')));
     markActive();
   }
-
   function selectMode(next){
     mode=mode===next?'all':next;
     if(mode==='critical')impact.value='82';
@@ -74,9 +68,7 @@
     card.tabIndex=0;
     card.dataset.newsFilter=key;
     card.addEventListener('click',()=>selectMode(key));
-    card.addEventListener('keydown',event=>{
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMode(key)}
-    });
+    card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMode(key)}});
   });
 
   impact.addEventListener('change',()=>{
@@ -88,7 +80,6 @@
 
   const listObserver=new MutationObserver(()=>queueMicrotask(applyMode));
   listObserver.observe(list,{childList:true});
-
   const title=$('title'),subtitle=$('subtitle');
   const titleObserver=new MutationObserver(()=>queueMicrotask(combineHeading));
   if(title)titleObserver.observe(title,{childList:true,characterData:true,subtree:true});
