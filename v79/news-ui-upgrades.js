@@ -5,6 +5,7 @@
   const summary=document.querySelector('.summary');
   const list=$('list');
   const impact=$('impact');
+  const regions=$('regions');
   if(!summary||!list||!impact)return;
 
   let mode='all';
@@ -71,6 +72,12 @@
     });
     markActive();
   }
+  function resetAll(){
+    mode='all';
+    impact.value='55';
+    impact.dispatchEvent(new Event('change',{bubbles:true}));
+    queueMicrotask(applyMode);
+  }
   function selectMode(next){
     mode=mode===next?'all':next;
     if(mode==='critical')impact.value='82';
@@ -90,6 +97,11 @@
     card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMode(key)}});
   });
 
+  regions?.addEventListener('click',event=>{
+    const button=event.target.closest('[data-region]');
+    if(button?.dataset.region==='ALL')resetAll();
+  });
+
   impact.addEventListener('change',()=>{
     if(mode==='breaking')return;
     const v=Number(impact.value);
@@ -106,5 +118,5 @@
 
   combineHeading();
   applyMode();
-  window.CRYPTO_NEWS_UI_UPGRADES={get mode(){return mode},apply:applyMode};
+  window.CRYPTO_NEWS_UI_UPGRADES={get mode(){return mode},apply:applyMode,resetAll};
 })();
