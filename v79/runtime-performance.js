@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   if(window.CryptoLabRuntimePerformance)return;
-  const state={version:'7930speed2',frameUnloads:0};
+  const state={version:'7930speed3',frameUnloads:0,scannerAutocompleteGuards:0};
   window.CryptoLabRuntimePerformance=state;
   const $=id=>document.getElementById(id);
 
@@ -27,6 +27,28 @@
     document.head.appendChild(style);
   }
 
+  function suppressScannerBrowserSuggestions(){
+    const frame=$('frame');
+    if(!frame)return;
+    try{
+      const doc=frame.contentDocument;
+      const input=doc?.getElementById('search');
+      if(!input||!String(frame.getAttribute('src')||'').includes('scanner.html'))return;
+      input.setAttribute('autocomplete','off');
+      input.setAttribute('autocorrect','off');
+      input.setAttribute('autocapitalize','none');
+      input.setAttribute('spellcheck','false');
+      input.setAttribute('aria-autocomplete','none');
+      input.setAttribute('name','crypto-lab-scanner-symbol-filter-v79');
+      state.scannerAutocompleteGuards++;
+    }catch{}
+  }
+
+  const frame=$('frame');
+  frame?.addEventListener('load',()=>{
+    suppressScannerBrowserSuggestions();
+  },{passive:true});
+
   function unloadHiddenFrame(){
     const frame=$('frame'),view=$('frameView');
     if(!frame||!view||!view.classList.contains('hide'))return;
@@ -41,7 +63,10 @@
     const baseOpen=open;
     open=function performanceOpen(route,signal){
       const result=baseOpen(route,signal);
-      requestAnimationFrame(unloadHiddenFrame);
+      requestAnimationFrame(()=>{
+        unloadHiddenFrame();
+        suppressScannerBrowserSuggestions();
+      });
       return result;
     };
   }catch(error){console.warn('CRYPTO LAB route performance guard unavailable',error)}
@@ -50,6 +75,6 @@
   document.addEventListener('visibilitychange',visibility,{passive:true});
   visibility();
 
-  if('requestIdleCallback' in window)requestIdleCallback(unloadHiddenFrame,{timeout:1200});
-  else setTimeout(unloadHiddenFrame,250);
+  if('requestIdleCallback' in window)requestIdleCallback(()=>{unloadHiddenFrame();suppressScannerBrowserSuggestions();},{timeout:1200});
+  else setTimeout(()=>{unloadHiddenFrame();suppressScannerBrowserSuggestions();},250);
 })();
