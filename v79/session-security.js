@@ -4,9 +4,10 @@
   const language=()=>typeof lang==='string'?lang:'ru';
   const text=()=>COPY[language()]||COPY.ru;
   const fmt=value=>value?new Date(value).toLocaleString():text().unknown;
-  let mounted=false,busy=false,lastSessionId=null;
+  let mounted=false,busy=false,lastSessionId=null,loadQueued=false;
   const channel='BroadcastChannel' in window?new BroadcastChannel('crypto-lab-auth'):null;
   function notify(value,bad=false){if(typeof show==='function')show(value,bad?'bad':'ok');}
+  function setText(id,value){const node=document.getElementById(id);if(node&&node.textContent!==String(value))node.textContent=String(value);}
   function card(){
     if(mounted||!document.getElementById('accountView')||!session)return;
     const accountView=document.getElementById('accountView');
@@ -14,18 +15,20 @@
     accountView.querySelector('.card')?.after(node);mounted=true;
     document.getElementById('refreshSessionBtn').onclick=refreshSession;
     document.getElementById('globalLogoutBtn').onclick=globalLogout;
-    translateCard();loadState();
+    translateCard();queueLoadState();
   }
-  function translateCard(){if(!mounted)return;const c=text();document.getElementById('sessionSecurityTitle').textContent=c.title;document.getElementById('lastSignInLabel').textContent=c.last;document.getElementById('sessionExpiryLabel').textContent=c.expires;document.getElementById('emailConfirmedLabel').textContent=c.confirmed;document.getElementById('aalLabel').textContent=c.aal;document.getElementById('refreshSessionBtn').textContent=c.refresh;document.getElementById('globalLogoutBtn').textContent=c.global;}
+  function translateCard(){if(!mounted)return;const c=text();setText('sessionSecurityTitle',c.title);setText('lastSignInLabel',c.last);setText('sessionExpiryLabel',c.expires);setText('emailConfirmedLabel',c.confirmed);setText('aalLabel',c.aal);setText('refreshSessionBtn',c.refresh);setText('globalLogoutBtn',c.global);}
   function setBusy(value){busy=value;['refreshSessionBtn','globalLogoutBtn'].forEach(id=>{const button=document.getElementById(id);if(button)button.disabled=value;});}
-  async function loadState(){if(!session||busy)return;try{const {data,error}=await client.rpc('get_my_crypto_security_state');if(error)throw error;document.getElementById('sessionSecurityUser').textContent=session.user?.email||'';document.getElementById('lastSignIn').textContent=fmt(data?.last_sign_in_at);document.getElementById('sessionExpiry').textContent=fmt(data?.session_expires_at);document.getElementById('emailConfirmed').textContent=fmt(data?.email_confirmed_at);document.getElementById('aalValue').textContent=String(data?.aal||'aal1').toUpperCase();lastSessionId=session.access_token?.slice(-12)||null;}catch(error){console.warn('Security state unavailable',error);}}
+  function queueLoadState(){if(loadQueued)return;loadQueued=true;setTimeout(()=>{loadQueued=false;loadState();},0);}
+  async function loadState(){if(!session||busy||!mounted)return;try{const {data,error}=await client.rpc('get_my_crypto_security_state');if(error)throw error;setText('sessionSecurityUser',session.user?.email||'');setText('lastSignIn',fmt(data?.last_sign_in_at));setText('sessionExpiry',fmt(data?.session_expires_at));setText('emailConfirmed',fmt(data?.email_confirmed_at));setText('aalValue',String(data?.aal||'aal1').toUpperCase());lastSessionId=session.access_token?.slice(-12)||null;}catch(error){console.warn('Security state unavailable',error);}}
   async function refreshSession(){if(busy)return;setBusy(true);try{const {data,error}=await client.auth.refreshSession();if(error)throw error;session=data.session;notify(text().refreshed);await loadState();}catch(error){notify(error.message||error,true);}finally{setBusy(false);}}
   async function globalLogout(){if(busy||!confirm(text().confirmGlobal))return;setBusy(true);try{const {error}=await client.auth.signOut({scope:'global'});if(error)throw error;channel?.postMessage({type:'GLOBAL_SIGNOUT',at:Date.now()});notify(text().signedOut);}catch(error){notify(error.message||error,true);}finally{setBusy(false);}}
-  async function verifySession(){try{const {data,error}=await client.auth.getSession();if(error||!data.session){if(document.getElementById('accountView')&&!document.getElementById('accountView').classList.contains('hide'))notify(text().expired,true);return;}session=data.session;if(lastSessionId!==session.access_token?.slice(-12))loadState();}catch(error){console.warn('Session verification failed',error);}}
+  async function verifySession(){try{const {data,error}=await client.auth.getSession();if(error||!data.session){if(document.getElementById('accountView')&&!document.getElementById('accountView').classList.contains('hide'))notify(text().expired,true);return;}session=data.session;if(lastSessionId!==session.access_token?.slice(-12))queueLoadState();}catch(error){console.warn('Session verification failed',error);}}
   channel?.addEventListener('message',event=>{if(event.data?.type==='GLOBAL_SIGNOUT')client.auth.signOut({scope:'local'}).catch(()=>{});});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)verifySession();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)verifySession();},{passive:true});
+  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(translateCard,0),{passive:true});
   setInterval(verifySession,300000);
-  const observer=new MutationObserver(()=>{card();translateCard();});observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
-  client.auth.onAuthStateChange((_event,current)=>{session=current;if(!current){mounted=false;document.getElementById('sessionSecurityCard')?.remove();}else setTimeout(card,0);});
+  client.auth.onAuthStateChange((_event,current)=>{session=current;if(!current){mounted=false;document.getElementById('sessionSecurityCard')?.remove();}else setTimeout(()=>{card();translateCard();},0);});
   card();
+  setTimeout(()=>{card();translateCard();},250);
 })();
