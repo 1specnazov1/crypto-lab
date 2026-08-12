@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tests/v79-owner-launch-smoke.spec.js'
+      - 'tests/v79-backtest-run-smoke.spec.js'
       - 'playwright.owner-launch.config.mjs'
       - 'v79/app.html'
       - 'v79/app.js'
@@ -19,6 +20,9 @@ on:
       - 'v79/ai.html'
       - 'v79/portfolio.html'
       - 'v79/journal.html'
+      - 'v79/backtest.html'
+      - 'v79/backtest-history.js'
+      - 'v79/backtest-run-guard.js'
       - '.github/workflows/v79-owner-launch-smoke.yml'
   workflow_dispatch:
 
