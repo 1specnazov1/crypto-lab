@@ -13,7 +13,7 @@
   function clear(){try{localStorage.removeItem(KEY)}catch{}}
   function ticker(){return $('marketNewsTicker')}
   function checkbox(){return $('newsTickerToggle')}
-  function resetPasses(sig=''){passSignature=sig;passes=0}
+  function resetPasses(sig=''){passSignature=sig;passes=0;window.CRYPTO_NEWS_TICKER_PASSES={signature:sig,passes:0,max:MAX_PASSES}}
   function syncControl(){const cb=checkbox();if(cb)cb.checked=!!ticker()?.classList.contains('show');const text=$('newsTickerToggleText'),next=label();if(text&&text.textContent!==next)text.textContent=next}
   function hideCurrent(reason='operator'){const sig=signature()||lastSignature;if(sig)write(sig,reason);ticker()?.classList.remove('show');syncControl()}
   function showCurrent(){
