@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is an intelligence-first dashboard and the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior, uses a verified multi-source Binance live-price guard instead of presenting a closed candle as live price, and keeps Fibonacci visually subdued so candles remain readable. Fibonacci level and price labels are rendered as unframed red resistance or green support text in the right-side price axis, with collision avoidance around live price and market/signal labels. The News dashboard now treats Critical, High and Breaking 24h summary cards as interactive filters and presents the market-impact scope as an inline continuation of the News heading. The localized breaking ticker remains controlled only by the top checkbox, automatically hides after exactly three full passes of the current breaking content, remembers that completed story, and reappears only when a new hot story changes the ticker content. Runtime performance safeguards unload hidden iframe modules, pause hidden ticker animation, use offscreen rendering containment on the intelligence home, and make core runtime assets network-first. Route viewport reset prevents iframe scroll carryover. Protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-only launch: existing users retain login/recovery, new users submit an email access request, the owner receives notification and manually issues an email-bound single-use 7-day invitation link; registration without a valid invitation is disabled. All core analytical modules remain free. BASIC/PRO, checkout, recurring billing, mainnet, refund execution and Telegram auto-signals remain disabled. The v79 home is an intelligence-first dashboard and the full candlestick terminal remains in Chart & analytics. The chart keeps unified candles, EMA and seven-level Fibonacci viewport behavior, uses a verified multi-source Binance live-price guard instead of presenting a closed candle as live price, and keeps Fibonacci visually subdued so candles remain readable. Fibonacci level and price labels are rendered as unframed red resistance or green support text in the right-side price axis, with collision avoidance around live price and market/signal labels. The News dashboard now treats Critical, High and Breaking 24h summary cards as interactive filters and presents the market-impact scope as an inline continuation of the News heading. The localized breaking ticker remains controlled only by the top checkbox, automatically hides after exactly three full passes of the current breaking content, remembers that completed story, and reappears only when a new hot story changes the ticker content. Runtime performance safeguards unload hidden iframe modules, pause hidden ticker animation, use offscreen rendering containment on the intelligence home, and make core runtime assets network-first. Route viewport reset prevents iframe scroll carryover. Browser and installed-PWA branding is standardized as CRYPTO LAB — Crypto Market Intelligence. Protected support/access boundaries remain unchanged. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -10,9 +10,21 @@
   },
   "pwa_cache": "crypto-lab-v79-7930-free26",
   "asset_overrides": {
+    "v79/index.html": {
+      "sha": "a71cf240bca4bcf6601b5fdb2db98f583cb3bb1d",
+      "marker": "CRYPTO LAB — Crypto Market Intelligence"
+    },
     "v79/app.html": {
       "sha": "a8f0ecd771f59b84bc8933372bd87fb9fa4e6e2d",
       "marker": "route-merge.js?v=7930free25"
+    },
+    "v79/runtime-performance.js": {
+      "sha": "084ac28b52e2c1e58ac6a7dd0f5c5d72426e8dce",
+      "marker": "CRYPTO LAB — Crypto Market Intelligence"
+    },
+    "v79/manifest.webmanifest": {
+      "sha": "abefd7354daa4750a97122e4b7d0f075a2be4cdb",
+      "marker": "CRYPTO LAB — Crypto Market Intelligence"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
