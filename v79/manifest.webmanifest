@@ -1,7 +1,7 @@
 {
-  "name": "CRYPTO LAB v79",
+  "name": "CRYPTO LAB — Crypto Market Intelligence",
   "short_name": "CRYPTO LAB",
-  "description": "Криптовалютный аналитический терминал: рынок, сканер, AI, портфель, журнал, бэктест и поддержка.",
+  "description": "Real-time crypto market intelligence: market analytics, scanner, AI, portfolio, risk and market-moving news.",
   "id": "/crypto-lab/v79/",
   "start_url": "./index.html?source=pwa",
   "scope": "./",
