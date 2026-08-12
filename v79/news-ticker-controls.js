@@ -16,7 +16,12 @@
   function resetPasses(sig=''){passSignature=sig;passes=0}
   function syncControl(){const cb=checkbox();if(cb)cb.checked=!!ticker()?.classList.contains('show');const text=$('newsTickerToggleText'),next=label();if(text&&text.textContent!==next)text.textContent=next}
   function hideCurrent(reason='operator'){const sig=signature()||lastSignature;if(sig)write(sig,reason);ticker()?.classList.remove('show');syncControl()}
-  function showCurrent(){clear();const sig=signature();resetPasses(sig);if(sig)ticker()?.classList.add('show');syncControl()}
+  function showCurrent(){
+    const sig=signature();if(!sig){syncControl();return}
+    const stored=read();
+    if(stored?.hidden&&stored.signature===sig&&stored.reason==='completed'){ticker()?.classList.remove('show');syncControl();return}
+    clear();resetPasses(sig);ticker()?.classList.add('show');syncControl()
+  }
   function applyState(){
     const sig=signature();if(!sig){syncControl();return}
     if(sig!==passSignature)resetPasses(sig);
