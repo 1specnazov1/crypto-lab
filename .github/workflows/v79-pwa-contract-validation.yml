@@ -29,17 +29,21 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free26'" v79/service-worker.js
-          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html; do
+          grep -F "const CACHE='crypto-lab-v79-7930-free27'" v79/service-worker.js
+          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html session-security.js icon.svg; do
             grep -F "./$asset" v79/service-worker.js
           done
           grep -F "'app.js'" v79/service-worker.js
+          grep -F "'session-security.js'" v79/service-worker.js
+          grep -F "'icon.svg'" v79/service-worker.js
           grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
           grep -F "fetch(req,{cache:'no-store'})" v79/service-worker.js
           if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
             echo 'Service worker must not perform write requests' >&2
             exit 1
           fi
+          grep -F '>CL</text>' v79/icon.svg
+          grep -F '#00e5ff' v79/icon.svg
 
       - name: Validate intelligence-first home
         run: |
@@ -61,10 +65,11 @@ jobs:
             exit 1
           fi
 
-      - name: Validate route viewport reset and runtime performance
+      - name: Validate route viewport reset, runtime performance and account responsiveness guard
         run: |
           node --check v79/route-viewport-fix.js
           node --check v79/runtime-performance.js
+          node --check v79/session-security.js
           grep -F "route-viewport-fix.js?v=7930free22" v79/app.html
           grep -F "runtime-performance.js?v=7930speed1" v79/app.html
           grep -F "route-merge.js?v=7930free25" v79/app.html
@@ -74,6 +79,12 @@ jobs:
           grep -F "content-visibility:auto" v79/runtime-performance.js
           grep -F "frame.src='about:blank'" v79/runtime-performance.js
           grep -F "animation-play-state:paused" v79/runtime-performance.js
+          grep -F "function setText" v79/session-security.js
+          grep -F "document.getElementById('lang')?.addEventListener('change'" v79/session-security.js
+          if grep -F "observer.observe(document.documentElement" v79/session-security.js; then
+            echo 'Whole-document MutationObserver is forbidden in Account session security' >&2
+            exit 1
+          fi
 
       - name: Validate invite-only FREE access
         run: |
