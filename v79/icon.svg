@@ -1,1 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0b0e11"/><rect x="42" y="42" width="428" height="428" rx="92" fill="#151a21" stroke="#2b3139" stroke-width="10"/><circle cx="256" cy="256" r="154" fill="#f0b90b"/><path d="M291 134c50 10 78 39 78 82 0 31-15 54-43 68 37 14 56 42 56 84 0 63-45 98-126 98H143v-53h31V187h-31v-53h113c12 0 24 0 35 2v-43h47v50c10 3 19 7 28 12v-62h47v91c0 18-6 31-18 40-12-43-46-69-104-78v-12zm-67 53v74h38c37 0 55-13 55-38 0-24-18-36-55-36h-38zm0 124v102h45c41 0 62-17 62-51 0-34-21-51-62-51h-45z" fill="#111820"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="gold" x1="72" y1="52" x2="438" y2="458" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff36b"/>
+      <stop offset="0.42" stop-color="#ffd21f"/>
+      <stop offset="0.72" stop-color="#f0b90b"/>
+      <stop offset="1" stop-color="#ff8a00"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientTransform="translate(164 126) rotate(42) scale(316)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.72"/>
+      <stop offset="0.38" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="18" y="18" width="476" height="476" rx="118" fill="url(#gold)"/>
+  <rect x="18" y="18" width="476" height="476" rx="118" fill="url(#shine)"/>
+  <rect x="37" y="37" width="438" height="438" rx="102" fill="none" stroke="#fff7b2" stroke-width="8" stroke-opacity="0.72"/>
+  <circle cx="256" cy="250" r="154" fill="#0a1525" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.28" stroke-width="6"/>
+  <text x="256" y="293" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="166" font-weight="900" letter-spacing="-18" fill="#07111f">CL</text>
+  <path d="M144 370h46l18-31 27 56 33-91 27 66h73" fill="none" stroke="#00e5ff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <circle cx="392" cy="104" r="20" fill="#ffffff" fill-opacity="0.92"/>
+  <circle cx="392" cy="104" r="10" fill="#00e5ff"/>
+</svg>
