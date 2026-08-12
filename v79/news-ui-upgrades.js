@@ -46,7 +46,7 @@
     }
   }
 
-  function scoreOf(article){return Number.parseInt(article.querySelector('.scorebox strong')?.textContent||'',10)}
+  function scoreOf(article){return Number.parseInt(article.querySelector('.score strong')?.textContent||'',10)}
   function publishedAt(article){
     const raw=article.querySelector('.meta span:last-child')?.textContent||'';
     const nums=raw.match(/\d{1,2}/g)||[];
