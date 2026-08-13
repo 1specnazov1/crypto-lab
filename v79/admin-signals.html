@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://txhzxbizjpinowepfjkm.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>CRYPTO LAB v79 · Signals & Telegram</title>
+<style>
+:root{--bg:#0b0e11;--p:#151a21;--p2:#1e2329;--line:#2b3139;--t:#eaecef;--m:#98a2b3;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d;--blue:#4d9fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:13px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.top{display:flex;gap:9px;align-items:center;padding:11px 14px;background:#101317;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.brand{font-weight:950}.brand span{color:var(--g)}.spacer{flex:1}.wrap{padding:14px;display:grid;gap:12px}.grid{display:grid;gap:10px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:var(--p);border:1px solid var(--line);border-radius:11px;padding:14px}.card h2,.card h3{margin:0 0 10px}.stat span,.muted{color:var(--m)}.stat b{display:block;font-size:22px;margin-top:6px}.mode{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-weight:900}.pill.ok{border-color:#0ecb8155;color:#9df1cb;background:#0ecb8110}.pill.warn{border-color:#f0b90b66;color:#ffe58f;background:#f0b90b10}.pill.bad{border-color:#f6465d66;color:#ffc4cd;background:#f6465d10}button{background:var(--p2);border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px 12px;cursor:pointer;font:inherit}button:disabled{opacity:.5;cursor:not-allowed}.gold{border-color:#f0b90b66;color:#ffe58f;background:#f0b90b12}.blue{border-color:#4d9fff66;color:#cce4ff;background:#4d9fff12}.danger{border-color:#f6465d66;color:#ffc4cd;background:#f6465d10}.note{line-height:1.55;padding:11px;border:1px solid #4d9fff38;background:#4d9fff0d;border-radius:9px;color:#bddcff}.warning{line-height:1.55;padding:11px;border:1px solid #f0b90b55;background:#f0b90b0c;border-radius:9px;color:#ffe9a3}.msg{display:none;padding:10px;border-radius:8px}.msg.show{display:block}.msg.ok{background:#0ecb8110;border:1px solid #0ecb8144;color:#a7f3d0}.msg.bad{background:#f6465d10;border:1px solid #f6465d44;color:#ffc4cd}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.row span{color:var(--m)}.row b{text-align:right}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{min-height:42px}.actions .primary{min-width:180px}.small{font-size:12px;color:var(--m)}
+@media(max-width:850px){.stats{grid-template-columns:1fr 1fr}.details{grid-template-columns:1fr}}@media(max-width:480px){.stats{grid-template-columns:1fr}.top{flex-wrap:wrap}.top .brand{width:100%}.top button{flex:1}.actions button{width:100%}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><span>CRYPTO</span> LAB v79 · SIGNALS & TELEGRAM</div><div class="spacer"></div><button id="admin">Admin</button><button id="site">CRYPTO LAB</button><button id="refresh">Обновить</button></header>
+<main class="wrap">
+<div id="msg" class="msg" role="status" aria-live="polite"></div>
+<section class="card">
+  <div class="mode"><h2 style="margin:0">Режим доставки сигналов</h2><span id="modePill" class="pill warn">Проверка…</span></div>
+  <p class="muted">Управление доступно только серверной роли admin. Токены Telegram и MONITOR_SECRET никогда не передаются в браузер.</p>
+  <div class="actions"><button id="shadow" class="blue primary">SHADOW · без Telegram</button><button id="live" class="gold primary">LIVE TELEGRAM</button></div>
+</section>
+<section class="grid stats">
+  <div class="card stat"><span>Scanner</span><b id="scanner">—</b></div>
+  <div class="card stat"><span>Signal Monitor</span><b id="monitor">—</b></div>
+  <div class="card stat"><span>Telegram AUTO</span><b id="telegram">—</b></div>
+  <div class="card stat"><span>TF</span><b id="tfs">—</b></div>
+</section>
+<section class="card">
+  <h3>Состояние конвейера</h3>
+  <div class="details">
+    <div>
+      <div class="row"><span>Открытые сигналы</span><b id="open">—</b></div>
+      <div class="row"><span>WAITING</span><b id="waiting">—</b></div>
+      <div class="row"><span>ACTIVE</span><b id="active">—</b></div>
+      <div class="row"><span>Очередь уведомлений</span><b id="pending">—</b></div>
+    </div>
+    <div>
+      <div class="row"><span>Последний Scanner</span><b id="last">—</b></div>
+      <div class="row"><span>A+ найдено</span><b id="found">—</b></div>
+      <div class="row"><span>Зарегистрировано</span><b id="registered">—</b></div>
+      <div class="row"><span>Telegram отправлено</span><b id="sent">—</b></div>
+    </div>
+  </div>
+</section>
+<section class="card">
+  <h3>Управление позицией</h3>
+  <div class="note"><b>TP1 → Stop в безубыток.</b> Новый Stop ставится в середину зоны входа. <b>TP2 → Stop на TP1.</b> Signal Monitor отслеживает Binance 1m high/low и отправляет отдельные сообщения ENTRY / TP1 / TP2 / TP3 / STOP.</div>
+</section>
+<section class="card">
+  <h3>Quality gate</h3>
+  <div id="quality" class="warning">Загрузка…</div>
+  <p class="small">LIVE включает публикацию только тех сигналов, которые проходят серверные quality-gates. 1H/4H SHORT остаются заблокированными до отдельного аудированного решения.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+const PROJECT_URL='https://txhzxbizjpinowepfjkm.supabase.co';
+const KEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
+const sb=supabase.createClient(PROJECT_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce',storageKey:'sb-txhzxbizjpinowepfjkm-auth-token'}});
+const $=id=>document.getElementById(id);let busy=false,state=null;
+function show(text,bad=false){const box=$('msg');box.textContent=String(text||'');box.className='msg show '+(bad?'bad':'ok');}
+async function session(force=false){let {data,error}=await sb.auth.getSession();if(error)throw error;let s=data?.session;if(!s)throw new Error('Сессия CRYPTO LAB не найдена');if(force){const r=await sb.auth.refreshSession();if(r.error)throw r.error;s=r.data?.session||s;}const u=await sb.auth.getUser(s.access_token);if(u.error)throw u.error;return s;}
+async function rpc(name,args={}){const s=await session(false);const r=await fetch(`${PROJECT_URL}/rest/v1/rpc/${name}`,{method:'POST',cache:'no-store',headers:{apikey:KEY,Authorization:`Bearer ${s.access_token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(args)});const body=await r.json().catch(()=>null);if(!r.ok)throw new Error(body?.message||body?.hint||`RPC ${r.status}`);return body;}
+function fmtDate(v){if(!v)return'—';try{return new Date(v).toLocaleString('ru-RU')}catch{return'—'}}
+function render(s){state=s;const live=s?.mode==='LIVE';$('modePill').textContent=live?'LIVE TELEGRAM':'SHADOW';$('modePill').className='pill '+(live?'ok':'warn');$('scanner').textContent=s?.scanner_active?'ONLINE':'OFF';$('scanner').style.color=s?.scanner_active?'#0ecb81':'#f6465d';$('monitor').textContent=s?.monitor_active?'ONLINE':'OFF';$('monitor').style.color=s?.monitor_active?'#0ecb81':'#98a2b3';$('telegram').textContent=s?.telegram_auto?'ON':'OFF';$('telegram').style.color=s?.telegram_auto?'#0ecb81':'#98a2b3';$('tfs').textContent=(s?.timeframes||[]).join(' · ')||'—';$('open').textContent=s?.open_signals??0;$('waiting').textContent=s?.waiting_signals??0;$('active').textContent=s?.active_signals??0;$('pending').textContent=s?.pending_notifications??0;const last=s?.last_run||{};$('last').textContent=fmtDate(last.finished_at);$('found').textContent=last.class_a_found??'—';$('registered').textContent=last.registered??'—';$('sent').textContent=last.telegram_sent??'—';$('quality').textContent=s?.quality_gate||'—';$('shadow').disabled=busy||!live;$('live').disabled=busy||live;}
+async function load(force=false){if(busy)return;busy=true;$('refresh').disabled=true;try{await session(force);const s=await rpc('get_crypto_signal_delivery_admin');render(s);show(`Admin control-plane загружен · ${s.mode}`);}catch(e){show(e.message||String(e),true);if(/session|jwt|auth/i.test(String(e.message||e)))setTimeout(()=>location.href='./app.html?route=account',1200);}finally{busy=false;$('refresh').disabled=false;if(state)render(state);}}
+async function setMode(mode){if(busy)return;if(mode==='LIVE'){if(!confirm('Включить LIVE TELEGRAM? Новые A+ сигналы начнут регистрироваться и отправляться в Telegram.'))return;const typed=prompt('Для подтверждения введи LIVE');if(String(typed||'').trim().toUpperCase()!=='LIVE')return;}busy=true;render(state||{});try{const s=await rpc('set_crypto_signal_delivery_admin',{p_mode:mode,p_ack:mode==='LIVE'?'ENABLE_LIVE_TELEGRAM':null});render(s);show(mode==='LIVE'?'LIVE TELEGRAM включён. Scanner публикует только прошедшие quality-gate сигналы.':'SHADOW включён. Новые Telegram-сигналы остановлены.');}catch(e){show(e.message||String(e),true);}finally{busy=false;if(state)render(state);}}
+$('shadow').onclick=()=>setMode('SHADOW');$('live').onclick=()=>setMode('LIVE');$('refresh').onclick=()=>load(true);$('admin').onclick=()=>location.href='./admin.html';$('site').onclick=()=>location.href='./app.html';load(false);
+</script>
+</body>
+</html>
