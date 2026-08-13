@@ -23,6 +23,9 @@ const CORS={
 async function stub(page){
   const requests=[];
   page.on('request',request=>requests.push(request.url()));
+  await page.addInitScript(()=>{
+    window.turnstile={render(_el,opts){setTimeout(()=>opts.callback('test-turnstile-token'),0);return 7;},reset(){}};
+  });
   await page.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({status:200,contentType:'application/javascript',headers:CORS,body:SUPABASE_STUB}));
   await page.route('https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover',async route=>{
     if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:CORS,body:''});
@@ -34,7 +37,6 @@ async function stub(page){
     expect(body.captcha_token).toBe('test-turnstile-token');
     return route.fulfill({status:202,contentType:'application/json',headers:CORS,body:JSON.stringify({ok:true,status:'request_received'})});
   });
-  await page.route('https://challenges.cloudflare.com/**',route=>route.fulfill({status:200,contentType:'application/javascript',headers:CORS,body:`window.turnstile={render(_el,opts){setTimeout(()=>opts.callback('test-turnstile-token'),0);return 7},reset(){}};`}));
   return requests;
 }
 
