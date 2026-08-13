@@ -36,6 +36,26 @@ Milestones:
 
 These counts are historical evidence, not a forecast of future results.
 
+## Quality-laboratory evidence
+
+The offline quality laboratory compared the previous baseline with stricter candidate filters on mature high-liquidity assets. This evidence prevented an unproven restrictive model from being promoted blindly.
+
+| TF / variant | Closed | TP3 | Protected TP1 | Breakeven | STOP | Avg R |
+|---|---:|---:|---:|---:|---:|---:|
+| 5M baseline | 40 | 5 | 5 | 16 | 14 | +0.0875R |
+| 5M tailored 2.2R | 4 | 0 | 0 | 2 | 2 | -0.50R |
+| 1H baseline | 31 | 1 | 3 | 6 | 21 | -0.50R |
+| 1H selective 2.2R | 1 | 0 | 1 | 0 | 0 | +1.00R |
+| 4H baseline | 28 | 3 | 7 | 3 | 15 | -0.0179R |
+| 4H tailored 2.2R | 6 | 0 | 3 | 0 | 3 | 0.00R |
+
+Interpretation:
+
+- 5M retains the more mature continuation/breakout structure and receives additional confirmation/news guards instead of replacing it with the under-sampled tailored variant.
+- 1H/4H evidence is not strong enough for broad live publication.
+- A one-trade or six-trade result is not statistically sufficient to claim improvement.
+- The purpose of v15 is controlled shadow evidence collection, not a promise of future profitability.
+
 ## v15 scanner changes
 
 The scanner now evaluates all three production research timeframes and applies timeframe-specific confirmation rather than one generic rule.
@@ -92,7 +112,7 @@ TP2 Telegram message explicitly states:
 - Scanner v15 dry-run completed successfully with 14 symbols and all three timeframes in about 6.4 seconds.
 - No candidates during the control run is an acceptable strict-filter result.
 - Monitor v8 control invocation returned HTTP 200 with zero open signals, zero queued notifications and zero failures.
-- 1H SHORT registration test returned `blocked=true` and inserted no row.
+- 1H SHORT and 4H SHORT registration tests returned `blocked=true` and inserted no rows.
 - No historical pending/failed Telegram notifications were claimable at monitor rollout.
 
 ## Activation gate
