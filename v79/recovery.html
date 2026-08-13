@@ -1,1 +1,39 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow"><title>CRYPTO LAB · Восстановление пароля</title><style>:root{--bg:#0b0e11;--p:#151a21;--p2:#1e2329;--line:#2b3139;--text:#eaecef;--m:#848e9c;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);font:14px system-ui}.card{width:min(520px,calc(100% - 28px));background:var(--p);border:1px solid var(--line);border-radius:14px;padding:20px}.brand{font-weight:950;letter-spacing:.08em;margin-bottom:18px}.brand span{color:var(--g)}h1{font-size:22px;margin:0 0 8px}.muted{color:var(--m);line-height:1.5}.field{margin-top:15px}.field label{display:block;color:var(--m);font-size:11px;margin-bottom:6px}input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--p2);color:#fff;outline:none}button{width:100%;margin-top:14px;padding:11px;border:1px solid #f0b90b55;border-radius:9px;background:#f0b90b10;color:#ffe58f;font-weight:800;cursor:pointer}button:disabled{opacity:.5}.msg{display:none;margin-top:12px;padding:10px;border-radius:8px}.msg.show{display:block}.msg.ok{background:#0ecb8110;border:1px solid #0ecb8145;color:#a7f3d0}.msg.bad{background:#f6465d10;border:1px solid #f6465d45;color:#ffc4cd}a{color:#ffe58f}</style></head><body><main class="card"><div class="brand"><span>CRYPTO</span> LAB</div><h1>Новый пароль</h1><p class="muted">Введите новый пароль. Он должен содержать минимум 10 символов, заглавную и строчную букву и цифру.</p><form id="form"><div class="field"><label>Новый пароль</label><input id="password" type="password" minlength="10" autocomplete="new-password" required></div><div class="field"><label>Повторите пароль</label><input id="confirm" type="password" minlength="10" autocomplete="new-password" required></div><button id="submit" type="submit">Сохранить новый пароль</button></form><div id="msg" class="msg"></div><p class="muted" style="margin-top:16px"><a href="./app.html?route=account">Вернуться к входу</a></p></main><script>'use strict';const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recovery-complete';let token='';try{const h=new URLSearchParams(location.hash.slice(1));token=h.get('token_hash')||'';history.replaceState(null,'',location.pathname);}catch{}const $=id=>document.getElementById(id);function strong(v){return v.length>=10&&v.length<=72&&/[a-z]/.test(v)&&/[A-Z]/.test(v)&&/\d/.test(v)}function show(t,bad=false){const m=$('msg');m.textContent=t;m.className='msg show '+(bad?'bad':'ok')}if(!token)show('Ссылка восстановления недействительна или устарела.',true);$('form').onsubmit=async e=>{e.preventDefault();if(!token)return show('Ссылка восстановления недействительна.',true);const p=$('password').value,c=$('confirm').value;if(p!==c)return show('Пароли не совпадают.',true);if(!strong(p))return show('Пароль не соответствует требованиям.',true);$('submit').disabled=true;try{const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token_hash:token,password:p})}),b=await r.json().catch(()=>({}));if(!r.ok)throw Error(b.error||'Не удалось изменить пароль.');token='';$('form').reset();show('Пароль изменён. Теперь можно войти в CRYPTO LAB.');setTimeout(()=>location.href='./app.html?route=account&auth=recovered',1200)}catch(err){show(err.message||String(err),true)}finally{$('submit').disabled=false}};</script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<title>CRYPTO LAB · Новый пароль</title>
+<style>
+:root{--bg:#0b0e11;--p:#151a21;--p2:#1e2329;--line:#2b3139;--text:#eaecef;--m:#98a2b3;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.card{width:min(540px,calc(100% - 28px));background:var(--p);border:1px solid var(--line);border-radius:14px;padding:22px}.brand{font-weight:950;letter-spacing:.08em;margin-bottom:18px}.brand span{color:var(--g)}h1{font-size:23px;margin:0 0 8px}.muted{color:var(--m);line-height:1.55}.field{margin-top:15px}.field label{display:block;color:var(--m);font-size:12px;margin-bottom:6px}input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--p2);color:#fff;outline:none}button{width:100%;margin-top:14px;padding:11px;border:1px solid #f0b90b66;border-radius:9px;background:#f0b90b12;color:#ffe58f;font-weight:850;cursor:pointer}button:disabled{opacity:.5}.msg{display:none;margin-top:12px;padding:10px;border-radius:8px;line-height:1.45}.msg.show{display:block}.msg.ok{background:#0ecb8110;border:1px solid #0ecb8145;color:#a7f3d0}.msg.bad{background:#f6465d10;border:1px solid #f6465d45;color:#ffc4cd}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:17px}.links a{color:#ffe58f;text-decoration:none}.links a:hover{text-decoration:underline}.hide{display:none!important}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand"><span>CRYPTO</span> LAB</div>
+  <h1>Новый пароль</h1>
+  <p class="muted">Введите новый пароль: минимум 10 символов, заглавная и строчная буква и цифра.</p>
+  <form id="form">
+    <div class="field"><label for="password">Новый пароль</label><input id="password" type="password" minlength="10" autocomplete="new-password" required></div>
+    <div class="field"><label for="confirm">Повторите пароль</label><input id="confirm" type="password" minlength="10" autocomplete="new-password" required></div>
+    <button id="submit" type="submit">Сохранить новый пароль</button>
+  </form>
+  <div id="msg" class="msg" role="status" aria-live="polite"></div>
+  <div class="links"><a href="./recovery-request.html">Запросить новую ссылку</a><a href="./app.html?route=account">Вернуться к входу</a></div>
+</main>
+<script>
+'use strict';
+const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recovery-complete';
+let token='';
+try{const hash=new URLSearchParams(location.hash.slice(1));token=hash.get('token_hash')||'';history.replaceState(null,'',location.pathname);}catch{}
+const $=id=>document.getElementById(id);
+function strong(value){return value.length>=10&&value.length<=72&&/[a-z]/.test(value)&&/[A-Z]/.test(value)&&/\d/.test(value);}
+function show(text,bad=false){const box=$('msg');box.textContent=String(text||'');box.className='msg show '+(bad?'bad':'ok');}
+if(!token){$('form').classList.add('hide');show('Ссылка восстановления недействительна или устарела. Запросите новое письмо и используйте только самую свежую ссылку.',true);}
+$('form').onsubmit=async event=>{event.preventDefault();if(!token)return show('Ссылка восстановления недействительна. Запросите новую.',true);const password=$('password').value,confirm=$('confirm').value;if(password!==confirm)return show('Пароли не совпадают.',true);if(!strong(password))return show('Пароль не соответствует требованиям.',true);$('submit').disabled=true;try{const response=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token_hash:token,password})});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body?.error||'Не удалось изменить пароль.');token='';$('form').reset();$('form').classList.add('hide');show('Пароль изменён. Теперь можно войти в CRYPTO LAB.');setTimeout(()=>location.href='./admin.html?auth=recovered',1400);}catch(error){show((error.message||String(error))+' Запросите новое письмо, если ссылка уже использована или истекла.',true);}finally{$('submit').disabled=false;}};
+</script>
+</body>
+</html>
