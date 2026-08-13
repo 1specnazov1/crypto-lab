@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://txhzxbizjpinowepfjkm.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>CRYPTO LAB v79 · Signal Quality</title>
+<style>
+:root{--bg:#0b0e11;--p:#151a21;--p2:#1e2329;--line:#2b3139;--t:#eaecef;--m:#98a2b3;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d;--blue:#4d9fff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:13px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.top{display:flex;gap:8px;align-items:center;padding:11px 14px;background:#101317;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.brand{font-weight:950}.brand span{color:var(--g)}.spacer{flex:1}.wrap{padding:14px;display:grid;gap:12px}.card{background:var(--p);border:1px solid var(--line);border-radius:11px;padding:14px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button,.top button{background:var(--p2);border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px 12px;cursor:pointer;font:inherit}.tabs button.active{border-color:#f0b90b88;color:#ffe58f;background:#f0b90b12}.muted{color:var(--m);line-height:1.5}.msg{display:none;padding:10px;border-radius:8px}.msg.show{display:block}.msg.ok{background:#0ecb8110;border:1px solid #0ecb8144;color:#a7f3d0}.msg.bad{background:#f6465d10;border:1px solid #f6465d44;color:#ffc4cd}.table{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1050px}th,td{padding:10px 9px;border-top:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}th{font-size:10px;text-transform:uppercase;color:var(--m);background:#171c23;position:sticky;top:0}.pos{color:var(--ok)}.neg{color:var(--bad)}.warn{color:#ffe58f}.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.stat{background:var(--p2);border:1px solid var(--line);border-radius:9px;padding:11px}.stat span{display:block;color:var(--m);font-size:11px}.stat b{display:block;margin-top:5px;font-size:20px}@media(max-width:850px){.summary{grid-template-columns:1fr 1fr}}@media(max-width:480px){.summary{grid-template-columns:1fr}.top{flex-wrap:wrap}.top .brand{width:100%}.top button{flex:1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><span>CRYPTO</span> LAB v79 · SHADOW QUALITY</div><div class="spacer"></div><button id="signals">Signals & Telegram</button><button id="admin">Admin</button><button id="refresh">Обновить</button></header>
+<main class="wrap">
+<div id="msg" class="msg" role="status"></div>
+<section class="card">
+  <div class="tabs"><button data-window="24h">24h</button><button data-window="7d" class="active">7d</button><button data-window="30d">30d</button></div>
+  <p class="muted">Forward-статистика SHADOW-кандидатов. Win Rate = TP3/защищённый плюс среди завершённых сделок; Profit Factor и Avg R считаются по закрытым сделкам. EXPIRED не считается убытком.</p>
+</section>
+<section class="summary" id="summary"></section>
+<section class="card table"><table><thead><tr><th>TF</th><th>Side</th><th>Signals</th><th>Entries</th><th>TP1</th><th>TP2</th><th>TP3</th><th>BE</th><th>Protected</th><th>STOP</th><th>Expired</th><th>Closed</th><th>Win Rate</th><th>PF</th><th>Avg R</th><th>Net R</th><th>Max DD R</th></tr></thead><tbody id="body"></tbody></table></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+const URL='https://txhzxbizjpinowepfjkm.supabase.co',KEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
+const sb=supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce',storageKey:'sb-txhzxbizjpinowepfjkm-auth-token'}});const $=id=>document.getElementById(id);let current='7d';
+function show(t,b=false){const x=$('msg');x.textContent=String(t||'');x.className='msg show '+(b?'bad':'ok')}
+async function session(){let {data,error}=await sb.auth.getSession();if(error)throw error;let s=data?.session;if(!s)throw new Error('Сессия CRYPTO LAB не найдена');const u=await sb.auth.getUser(s.access_token);if(u.error)throw u.error;return s}
+async function rpc(name,args){const s=await session();const r=await fetch(`${URL}/rest/v1/rpc/${name}`,{method:'POST',cache:'no-store',headers:{apikey:KEY,Authorization:`Bearer ${s.access_token}`,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(args||{})});const b=await r.json().catch(()=>null);if(!r.ok)throw new Error(b?.message||b?.hint||`RPC ${r.status}`);return b}
+const n=v=>v==null?'—':Number(v).toLocaleString('ru-RU',{maximumFractionDigits:2});const pct=v=>v==null?'—':`${n(v)}%`;
+function cls(v){if(v==null)return'';return Number(v)>0?'pos':Number(v)<0?'neg':''}
+function render(data){const rows=Array.isArray(data?.buckets)?data.buckets:[],all=rows.find(x=>x.timeframe==='ALL')||{};$('summary').innerHTML=[['Signals',all.signals],['Closed',all.closed],['Win Rate',all.win_rate_pct==null?'—':pct(all.win_rate_pct)],['Profit Factor',all.profit_factor],['Net R',all.net_r]].map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b??'—'}</b></div>`).join('');$('body').innerHTML=rows.length?rows.map(r=>`<tr><td>${r.timeframe}</td><td>${r.direction}</td><td>${r.signals}</td><td>${r.entries}</td><td>${r.tp1}</td><td>${r.tp2}</td><td>${r.tp3}</td><td>${r.breakeven}</td><td>${r.protected_profit}</td><td>${r.stops}</td><td>${r.expired}</td><td>${r.closed}</td><td>${pct(r.win_rate_pct)}</td><td class="${cls(r.profit_factor&&r.profit_factor-1)}">${n(r.profit_factor)}</td><td class="${cls(r.avg_r)}">${n(r.avg_r)}</td><td class="${cls(r.net_r)}">${n(r.net_r)}</td><td class="${Number(r.max_drawdown_r)>0?'neg':''}">${n(r.max_drawdown_r)}</td></tr>`).join(''):'<tr><td colspan="17" style="text-align:center;color:#98a2b3">SHADOW-сигналы ещё не накоплены.</td></tr>';}
+async function load(){try{const data=await rpc('get_crypto_shadow_quality_report',{p_window:current});render(data);show(`SHADOW quality · ${current} · ${new Date(data.generated_at||Date.now()).toLocaleString('ru-RU')}`)}catch(e){show(e.message||String(e),true)}}
+document.querySelectorAll('[data-window]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-window]').forEach(x=>x.classList.toggle('active',x===b));current=b.dataset.window;load()});$('refresh').onclick=load;$('signals').onclick=()=>location.href='./admin-signals.html';$('admin').onclick=()=>location.href='./admin.html';load();
+</script>
+</body></html>
