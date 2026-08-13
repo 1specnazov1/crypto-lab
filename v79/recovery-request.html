@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://txhzxbizjpinowepfjkm.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>CRYPTO LAB · Запрос восстановления</title>
+<style>
+:root{--bg:#0b0e11;--p:#151a21;--p2:#1e2329;--line:#2b3139;--text:#eaecef;--m:#98a2b3;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d;--blue:#4d9fff}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.card{width:min(560px,calc(100% - 28px));background:var(--p);border:1px solid var(--line);border-radius:14px;padding:22px}.brand{font-weight:950;letter-spacing:.08em;margin-bottom:18px}.brand span{color:var(--g)}h1{font-size:23px;margin:0 0 8px}.muted{color:var(--m);line-height:1.55}.field{margin-top:15px}.field label{display:block;color:var(--m);font-size:12px;margin-bottom:6px}input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--p2);color:#fff;outline:none}button{width:100%;margin-top:14px;padding:11px;border:1px solid #f0b90b66;border-radius:9px;background:#f0b90b12;color:#ffe58f;font-weight:850;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.turnstile{margin-top:13px;min-height:66px}.msg{display:none;margin-top:12px;padding:10px;border-radius:8px;line-height:1.45}.msg.show{display:block}.msg.ok{background:#0ecb8110;border:1px solid #0ecb8145;color:#a7f3d0}.msg.bad{background:#f6465d10;border:1px solid #f6465d45;color:#ffc4cd}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:17px}.links a{color:#ffe58f;text-decoration:none}.links a:hover{text-decoration:underline}.honeypot{position:absolute;left:-9999px;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand"><span>CRYPTO</span> LAB</div>
+  <h1>Восстановление пароля</h1>
+  <p class="muted">Введите email аккаунта CRYPTO LAB и пройдите проверку. Мы отправим новое письмо с правильной ссылкой на сайт. Используйте только самое последнее письмо.</p>
+  <form id="form">
+    <div class="field"><label for="email">Email CRYPTO LAB</label><input id="email" type="email" autocomplete="email" required></div>
+    <input id="website" class="honeypot" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div id="turnstile" class="turnstile" aria-label="Проверка безопасности"></div>
+    <button id="submit" type="submit" disabled>Отправить новую ссылку</button>
+  </form>
+  <div id="msg" class="msg" role="status" aria-live="polite"></div>
+  <div class="links"><a href="./admin.html">Вернуться в Admin</a><a href="./app.html?route=account">Открыть аккаунт</a></div>
+</main>
+<script>
+'use strict';
+const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover';
+const TURNSTILE_SCRIPT='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const $=id=>document.getElementById(id);
+let config=null,token='',widgetId=null;
+function show(text,bad=false){const box=$('msg');box.textContent=String(text||'');box.className='msg show '+(bad?'bad':'ok');}
+function validEmail(value){const v=String(value||'').trim();return v.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}
+function prefill(){try{const params=new URLSearchParams(location.search);const email=params.get('email')||'';if(validEmail(email))$('email').value=email;}catch{}}
+function loadTurnstile(){return new Promise((resolve,reject)=>{if(window.turnstile)return resolve(window.turnstile);const script=document.createElement('script');script.src=TURNSTILE_SCRIPT;script.async=true;script.defer=true;script.onload=()=>window.turnstile?resolve(window.turnstile):reject(new Error('Проверка безопасности недоступна.'));script.onerror=()=>reject(new Error('Не удалось загрузить проверку безопасности.'));document.head.appendChild(script);});}
+async function init(){prefill();try{const response=await fetch(ENDPOINT,{method:'GET',cache:'no-store'});const body=await response.json().catch(()=>({}));if(!response.ok||!body?.ok||!body?.enabled||!body?.site_key)throw new Error('Восстановление пароля временно недоступно.');config=body;const api=await loadTurnstile();widgetId=api.render($('turnstile'),{sitekey:body.site_key,action:body.captcha_action||'crypto_recover',theme:'dark',size:'flexible',callback:value=>{token=value;$('submit').disabled=false;},'expired-callback':()=>{token='';$('submit').disabled=true;},'error-callback':()=>{token='';$('submit').disabled=true;show('Проверка безопасности не выполнена.',true);}});}catch(error){show(error.message||String(error),true);}}
+$('form').onsubmit=async event=>{event.preventDefault();const email=$('email').value.trim();if(!validEmail(email))return show('Введите корректный email.',true);if(!config||!token)return show('Подтвердите, что вы не робот.',true);$('submit').disabled=true;try{const response=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,locale:'ru',captcha_token:token,website:$('website').value||''})});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body?.error||'Не удалось отправить письмо.');show('Новое письмо отправлено. Откройте самое последнее письмо CRYPTO LAB и нажмите ссылку восстановления.');}catch(error){show(error.message||String(error),true);}finally{token='';if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId);$('submit').disabled=true;}};
+init();
+</script>
+</body>
+</html>
