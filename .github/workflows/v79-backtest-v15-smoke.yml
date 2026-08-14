@@ -53,8 +53,9 @@ jobs:
           grep -F 'backtest-v15.html' v79/backtest-history.js
           grep -F 'SCANNER_V15_EXACT' v79/backtest-v15.html
           grep -F 'Production Decision Replay' v79/backtest-v15.html
-          grep -F 'Global TOP‑3' v79/backtest-v15.html
-          grep -F 'Production dedupe' v79/backtest-v15.html
+          grep -F 'id="top3"' v79/backtest-v15.html
+          grep -F 'id="dedupe"' v79/backtest-v15.html
+          grep -F 'id="monitor"' v79/backtest-v15.html
           grep -F 'id="classic"' v79/backtest-v15.html
           grep -F './backtest-v15.html' v79/service-worker.js
           grep -F './backtest-console.html' v79/service-worker.js
