@@ -6,7 +6,7 @@
     en: { title:'Recent server backtests', note:'Only parameters and summary statistics are stored; raw candles are not retained', refresh:'Refresh', date:'Date', status:'Status', market:'Market', trades:'Trades', net:'P&L', ret:'Return', duration:'Time', error:'Error', empty:'No history yet', auth:'Sign in is required', exact:'Scanner v15 EXACT', classic:'Classic', parity:'EXACT: actual production TOP‑3 decisions + dedupe + SHADOW lifecycle' }
   };
   const text = () => labels[typeof lang === 'string' ? lang : 'ru'] || labels.ru;
-  const safe = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]));
+  const safe = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const format = (value, digits = 2) => Number(value).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
   const when = value => new Intl.DateTimeFormat(lang === 'uk' ? 'uk-UA' : lang === 'en' ? 'en-GB' : 'ru-RU', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }).format(new Date(value));
   const money = value => (Number(value) >= 0 ? '+' : '') + '$' + format(value, 2);
