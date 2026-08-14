@@ -11,7 +11,7 @@ const mobileChrome = {
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: /v79-(?:mobile-smoke|intelligence-home-smoke|news-shell-smoke|news-filter-cycle-smoke|admin-recovery-smoke|admin-session-smoke)\.spec\.js/,
+  testMatch: /v79-(?:mobile-smoke|intelligence-home-smoke|news-shell-smoke|news-filter-cycle-smoke|admin-recovery-smoke|admin-session-smoke|public-user-e2e)\.spec\.js/,
   timeout: 45_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
