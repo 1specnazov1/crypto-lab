@@ -2,19 +2,21 @@ import { test, expect } from '@playwright/test';
 
 const SESSION={user:{id:'new-user-e2e',email:'new-user@example.invalid'},access_token:'new-user-token',refresh_token:'new-user-refresh',expires_at:4102444800};
 const ACCOUNT={effective_plan:'FREE',profile:{display_name:'New User',language:'ru',timezone:'Europe/Kyiv',role:'user'},subscription:{status:'active',current_period_end:null},limits:{daily_ai_requests:25,daily_backtests:50,daily_scanner_views:-1,max_portfolio_assets:-1,max_favorites:-1},usage_today:{ai_requests:0,backtests:0,scanner_views:0},counts:{portfolio_assets:0,favorites:0}};
+const DOCS=[{key:'terms',version:'2026-08-03',url:'./terms.html'},{key:'privacy',version:'2026-08-03',url:'./privacy.html'},{key:'risk',version:'2026-08-03',url:'./risk-disclosure.html'}];
 const SDK=`(()=>{let signed=false;const session=${JSON.stringify(SESSION)},account=${JSON.stringify(ACCOUNT)};const q={select(){return q},eq(){return q},order(){return q},limit(){return q},range(){return q},maybeSingle(){return Promise.resolve({data:null,error:null})},single(){return Promise.resolve({data:null,error:null})},then(r,j){return Promise.resolve({data:[],error:null}).then(r,j)}};window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:signed?session:null},error:null}),refreshSession:async()=>({data:{session:signed?session:null},error:null}),getUser:async()=>({data:{user:signed?session.user:null},error:signed?null:{message:'No session'}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signInWithPassword:async()=>{signed=true;return{data:{session},error:null}},signOut:async()=>{signed=false;return{error:null}},updateUser:async()=>({error:null})},rpc:async name=>name==='get_my_crypto_account'?{data:account,error:null}:name==='get_crypto_feature_status'?{data:{allowed:true,remaining:25,limit:25},error:null}:{data:{},error:null},functions:{invoke:async()=>({data:{free_access:true,signals:[],shadow_candidates:[],latest_run:{dry_run:true,telegram_sent:0},access:{quota:{remaining:null,limit:-1}}},error:null})},from:()=>q})};})();`;
 const CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization, apikey','Access-Control-Allow-Methods':'GET,POST,OPTIONS'};
 
 async function stub(page){
- // Playwright evaluates the most recently registered matching route first.
- // Register the broad Supabase fallback before the protected endpoint handlers.
  await page.route('https://txhzxbizjpinowepfjkm.supabase.co/**',r=>r.fulfill({status:200,headers:CORS,contentType:'application/json',body:'{}'}));
  await page.route('https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover**',async r=>{
   if(r.request().method()==='GET')return r.fulfill({status:200,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,site_key:'test',captcha_action:'crypto_recover'})});
   return r.fulfill({status:202,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,status:'request_received'})});
  });
  await page.route('https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register**',async r=>{
-  if(r.request().method()==='GET')return r.fulfill({status:200,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,registration_mode:'invite_only_free',invite_valid:true,invite_email_masked:'n***@example.invalid',site_key:'test',captcha_action:'crypto_register'})});
+  if(r.request().method()==='GET')return r.fulfill({status:200,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,registration_mode:'invite_only_free',invite_valid:true,invite_email_masked:'n***@example.invalid',site_key:'test',captcha_action:'crypto_register',required_legal_keys:['terms','privacy','risk'],documents:DOCS})});
+  const payload=JSON.parse(r.request().postData()||'{}');
+  const accepted=Array.isArray(payload.legal_acceptances)?payload.legal_acceptances.map(x=>x.key).sort().join(','):'';
+  if(accepted!=='privacy,risk,terms')return r.fulfill({status:409,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:false,error:'LEGAL_CONSENT_REQUIRED'})});
   return r.fulfill({status:202,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,status:'confirmation_sent'})});
  });
  await page.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({status:200,contentType:'application/javascript',headers:CORS,body:SDK}));
@@ -30,6 +32,8 @@ test('new invited user can register, login, use core modules, recover and relogi
  await page.locator('#signupTab').click();
  await page.locator('#signupName').fill('New User');
  await page.locator('#signupPassword').fill('StrongPass123');
+ await expect(page.locator('[data-registration-legal]')).toHaveCount(3);
+ await page.locator('[data-registration-legal]').check();
  await expect(page.locator('#signupBtn')).toBeEnabled();
  await page.locator('#signupBtn').click();
  await expect(page.locator('#message')).toContainText(/подтверд|confirm/i);
