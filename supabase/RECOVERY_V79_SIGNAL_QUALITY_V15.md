@@ -1,150 +1,185 @@
 # CRYPTO LAB v79 — Signal Quality v15 Recovery & Evidence
 
-Date: 2026-08-13  
+Updated: 2026-08-14  
 Supabase project: `txhzxbizjpinowepfjkm`  
-Scope: scanner/monitor only. Stable v78 is not modified.
+Scope: v79 scanner / SHADOW lifecycle / signal quality / Backtest parity. Stable v78 is not modified.
 
 ## Production state
 
-- `crypto-market-scanner`: Edge Function version 21, internal scanner version 15.
-- `crypto-signal-monitor`: Edge Function version 13, internal monitor version 8.
-- Scanner cron: active every 15 minutes.
-- Scanner execution mode: `dry_run=true` / SHADOW.
-- Scanner shadow coverage: `5M`, `1H`, `4H` on every run.
-- Telegram live publication: OFF.
-- Monitor every-minute cron exists as job 62 but is inactive until the quality gate is passed.
-- Open WAITING/ACTIVE signals at rollout: 0.
+- `crypto-market-scanner`: internal Scanner v15.
+- Scanner cron job 45: active every 15 minutes.
+- Scanner mode: `dry_run=true` / SHADOW.
+- Scanner coverage per run: `5M`, `1H`, `4H`.
+- Canonical SHADOW lifecycle source: `public.crypto_shadow_signals`.
+- `crypto-shadow-signal-monitor`: recovery-aware monitor v5; cron job 63 active every minute.
+- LIVE `crypto-signal-monitor`: cron job 62 exists but remains inactive.
+- Telegram LIVE publication: OFF.
+- Operational watchdog job 64: active every 5 minutes.
+- Research-only Scanner market-universe snapshot job 65: active every 15 minutes.
 
-## Baseline evidence before v15
+## Canonical SHADOW lifecycle
 
-Final Telegram/outbox outcomes for the recent measured period:
+Scanner v15 stores only its actual production `class_a` decisions after global ranking / TOP-3 selection and production dedupe into `public.crypto_shadow_signals`.
 
-| Timeframe | TP3 | STOP | TP3 share among TP3/STOP |
-|---|---:|---:|---:|
-| 5M | 12 | 23 | 34.3% |
-| 1H | 1 | 8 | 11.1% |
-| 4H | 0 | 1 | 0.0% |
-| Total | 13 | 32 | 28.9% |
+Lifecycle:
 
-Milestones:
+`WAITING → ACTIVE / ENTRY → TP1 → TP2 → TP3 / BREAKEVEN / PROTECTED_TP1 / STOP`
 
-| Timeframe | TP1 | TP2 | TP3 | STOP |
-|---|---:|---:|---:|---:|
-| 5M | 20 | 15 | 12 | 23 |
-| 1H | 7 | 3 | 1 | 8 |
-| 4H | 1 | 0 | 0 | 1 |
+If the entry zone is never reached before the timeframe-specific deadline, the signal becomes `EXPIRED` and is not counted as a losing trade.
 
-These counts are historical evidence, not a forecast of future results.
+Entry deadlines:
 
-## Quality-laboratory evidence
+- 5M: 6 hours.
+- 1H: 24 hours.
+- 4H: 72 hours.
 
-The offline quality laboratory compared the previous baseline with stricter candidate filters on mature high-liquidity assets. This evidence prevented an unproven restrictive model from being promoted blindly.
+The old `public.crypto_shadow_signal_monitors` table is deprecated and is not an authoritative source.
 
-| TF / variant | Closed | TP3 | Protected TP1 | Breakeven | STOP | Avg R |
-|---|---:|---:|---:|---:|---:|---:|
-| 5M baseline | 40 | 5 | 5 | 16 | 14 | +0.0875R |
-| 5M tailored 2.2R | 4 | 0 | 0 | 2 | 2 | -0.50R |
-| 1H baseline | 31 | 1 | 3 | 6 | 21 | -0.50R |
-| 1H selective 2.2R | 1 | 0 | 1 | 0 | 0 | +1.00R |
-| 4H baseline | 28 | 3 | 7 | 3 | 15 | -0.0179R |
-| 4H tailored 2.2R | 6 | 0 | 3 | 0 | 3 | 0.00R |
+## Recovery-aware Monitor v5
 
-Interpretation:
+Monitor v5 reads Binance 1-minute high/low history and is able to recover the complete lifecycle after downtime rather than expiring a signal solely because its scheduled check was missed.
 
-- 5M retains the more mature continuation/breakout structure and receives additional confirmation/news guards instead of replacing it with the under-sampled tailored variant.
-- 1H/4H evidence is not strong enough for broad live publication.
-- A one-trade or six-trade result is not statistically sufficient to claim improvement.
-- The purpose of v15 is controlled shadow evidence collection, not a promise of future profitability.
+Processing rules:
 
-## v15 scanner changes
+1. Reconstruct minute bars from the signal's prior checkpoint, or from the first full minute after signal creation when never checked.
+2. Detect actual entry-zone overlap before the entry deadline.
+3. Once an entry is possible, use conservative Stop-first handling for same-1m ambiguity.
+4. TP1 moves managed Stop to the midpoint of the entry zone (`BREAKEVEN`).
+5. TP2 moves managed Stop to TP1 (`LOCK_TP1`).
+6. TP3 closes the scenario successfully.
+7. Later protected exits are recorded as `BREAKEVEN` or `PROTECTED_TP1`.
 
-The scanner now evaluates all three production research timeframes and applies timeframe-specific confirmation rather than one generic rule.
+### Recovery proof
 
-Added metrics and guards:
+Two historical 5M SHORT SHADOW candidates that previously appeared stale were reset and replayed from Binance 1m data:
 
-- EMA 20/50/200 structure and slope.
-- RSI regime bounds by timeframe and direction.
-- ATR volatility floors/caps and risk-distance caps.
-- ADX plus `+DI/-DI` directional strength.
-- MACD histogram and histogram acceleration.
-- Relative volume.
-- Candle close-location, body/ATR and range/ATR quality.
-- BTC primary/context bias.
-- Multi-timeframe context:
-  - 5M → 1H + 4H.
-  - 1H → 4H + 1D.
-  - 4H → 1D.
-- Liquidity and 24-hour range filters.
-- Removal of stablecoins, gold-pegged assets, leveraged tokens and tokenized-stock heuristics.
-- Recent market-news filter from `crypto_market_news`:
-  - opposite high-impact or breaking news can block a candidate;
-  - aligned news can add a limited score bonus;
-  - news headline, direction and Impact are retained in candidate diagnostics.
+- MMT 5M SHORT: actual ENTRY was recovered, followed by STOP; realized result `-1R`.
+- BTC 5M SHORT: actual ENTRY, TP1, TP2 and TP3 were recovered; realized result approximately `+2.5R`.
 
-Target structure:
+This changed the sample from two artificial expirations to two evidence-backed completed trades.
 
-- 5M: conservative continuation/breakout model; TP3 remains 2.5R.
-- 1H LONG and 4H LONG: stricter ADX/MACD/volume/context confirmation; TP3 is 2.2R.
-- 1H SHORT and 4H SHORT: blocked from live registration by `public.register_crypto_signal` with reason `QUALITY_GATE_SHORT_DISABLED`.
+## Current forward evidence
 
-## Position management and Telegram wording
+At the latest verified 7-day snapshot:
 
-Database management remains authoritative:
+| Bucket | Signals | Entered | Closed | TP1 | TP2 | TP3 | STOP | Avg R | PF | Release |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 5M SHORT | 2 | 2 | 2 | 1 | 1 | 1 | 1 | +0.75R | 2.50 | NOT READY |
 
-1. ENTRY — original Stop remains active.
-2. TP1 — `managed_stop` moves to the midpoint of the entry zone (breakeven).
-3. TP2 — `managed_stop` moves to TP1.
-4. TP3 — scenario closes successfully.
-5. A later protected stop closes as `BREAKEVEN` or `PROTECTED_TP1`.
+The positive two-trade result is not statistically sufficient. The release blocker remains sample size: at least 30 completed observations are required in an enabled timeframe/direction bucket before the minimum statistical gate can pass.
 
-Monitor v8 uses recent Binance 1-minute high/low history with conservative Stop-first processing instead of relying only on the latest ticker price. It can sequentially register TP1 → TP2 → TP3 when multiple levels are crossed.
+## Admin quality report
 
-TP1 Telegram message explicitly states:
+`public.get_crypto_shadow_quality_admin(hours)` reads the canonical SHADOW table and powers Admin → Signals & Telegram windows for 24h / 7d / 30d.
 
-> ДЕЙСТВИЕ СЕЙЧАС: ПЕРЕНЕСИТЕ STOP В БЕЗУБЫТОК.
+Per timeframe/direction it reports:
 
-TP2 Telegram message explicitly states:
+- signals / entered / closed / expired;
+- TP1 / TP2 / TP3;
+- breakeven / protected-profit / STOP;
+- win rate;
+- average realized R;
+- Profit Factor;
+- aggregate max drawdown in R.
 
-> ДЕЙСТВИЕ СЕЙЧАС: ПЕРЕНЕСИТЕ STOP НА УРОВЕНЬ TP1.
+Minimum release criteria encoded in the current report:
 
-## Validation evidence
+- at least 30 closed trades in the bucket;
+- positive average R;
+- Profit Factor at least 1.15.
 
-- Scanner v15 dry-run completed successfully with 14 symbols and all three timeframes in about 6.4 seconds.
-- No candidates during the control run is an acceptable strict-filter result.
-- Monitor v8 control invocation returned HTTP 200 with zero open signals, zero queued notifications and zero failures.
-- 1H SHORT and 4H SHORT registration tests returned `blocked=true` and inserted no rows.
-- No historical pending/failed Telegram notifications were claimable at monitor rollout.
+These are minimum gates, not a guarantee of future profitability.
+
+## Scanner v15 signal model
+
+Scanner v15 evaluates:
+
+- EMA 20/50/200 structure and slope;
+- RSI regime by timeframe and direction;
+- ATR volatility / risk-distance caps;
+- ADX and `+DI/-DI`;
+- MACD histogram and acceleration;
+- relative volume;
+- candle close location, body/ATR and range/ATR;
+- BTC primary/context bias;
+- multi-timeframe context: 5M → 1H/4H, 1H → 4H/1D, 4H → 1D;
+- liquidity and 24-hour range filtering;
+- stablecoin / pegged / leveraged-token exclusions;
+- recent market-news direction and Impact.
+
+5M keeps the more mature continuation/breakout structure. 1H/4H use stricter confirmation. 1H SHORT and 4H SHORT may be observed in SHADOW but remain blocked from LIVE registration with `QUALITY_GATE_SHORT_DISABLED`.
+
+## Backtest modes
+
+### Scanner v15 EXACT
+
+`SCANNER_V15_EXACT` is deliberately implemented as **Production Decision Replay**, not as a reconstructed historical approximation.
+
+Source: canonical `public.crypto_shadow_signals`.
+
+Therefore it preserves:
+
+- the actual Scanner v15 global TOP-3 decisions;
+- production dedupe;
+- the real timeframe/direction/setup/strength selected at run time;
+- Monitor v5 Binance 1m lifecycle results.
+
+Exact coverage begins when production SHADOW decision capture was enabled. Requests for older windows are visibly truncated to the true coverage start. The engine does not invent pre-coverage Scanner decisions.
+
+The UI can model capital, risk, leverage and fees over those actual decisions. Slippage and funding are not modeled.
+
+### Classic
+
+Classic remains the configurable historical EMA/RSI/ATR simulation and is the appropriate mode for periods before exact production-decision coverage.
+
+The separate market-rank snapshot archive is retained for future research and historical simulation work, but it is **not** claimed as the authoritative source of Scanner v15 EXACT decisions.
+
+## Telegram management
+
+LIVE remains OFF.
+
+When LIVE is eventually authorized:
+
+- ENTRY message includes original Stop and management plan.
+- TP1 message explicitly instructs moving Stop to breakeven.
+- TP2 message explicitly instructs moving Stop to TP1.
+- TP3 / STOP / BREAKEVEN / PROTECTED_TP1 are separate lifecycle events.
+
+Telegram pre-flight exists in Admin and verifies bot API, chat access, monitor authentication and queue health. A TEST message is sent only by explicit admin action.
 
 ## Activation gate
 
-Do not enable live Telegram publication solely because v15 is deployed. Activation requires a separate owner decision after enough shadow evidence is accumulated. Minimum evidence should include:
+Do not enable LIVE Telegram solely because v15 is deployed or because an early sample is profitable.
 
-- at least 30–50 completed signals in each enabled timeframe/direction bucket;
-- positive expectancy after fees and modeled slippage;
-- Profit Factor above 1.0, with a safer release target above 1.15;
+Before enabling a timeframe/direction bucket, require at minimum:
+
+- 30 completed forward SHADOW trades; 50 is preferred for stronger confidence;
+- positive expectancy after fees;
+- Profit Factor ≥ 1.15;
 - acceptable maximum drawdown;
-- separate TP1/TP2/TP3, breakeven, protected-profit and STOP statistics;
-- no unresolved Binance/monitor delivery incidents.
+- no unresolved Binance / monitor / Telegram delivery incidents;
+- separate review of TP1, TP2, TP3, breakeven, protected-profit and STOP distributions.
 
-## Recovery
+## Fail-closed recovery
 
-To fail closed immediately:
+Ensure LIVE monitor remains off:
 
 ```sql
 select cron.alter_job(62, active := false);
 ```
 
-The production state at the end of this rollout already has job 62 inactive.
-
-To inspect status:
+Verify signal jobs:
 
 ```sql
 select jobid,jobname,schedule,active
 from cron.job
 where jobname in (
   'crypto-market-scanner-every-15-minutes',
-  'crypto-signal-monitor-every-minute'
-);
+  'crypto-signal-monitor-every-minute',
+  'crypto-shadow-signal-monitor-every-minute',
+  'crypto-ops-watchdog-5m'
+)
+order by jobid;
 ```
 
-Do not place Telegram tokens, service-role keys or `MONITOR_SECRET` in GitHub, browser code or recovery documents.
+Do not store Telegram tokens, service-role keys or runtime monitor secrets in GitHub, browser code or recovery documentation.
