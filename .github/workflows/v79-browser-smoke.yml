@@ -99,7 +99,7 @@ jobs:
           NODE
 
       - name: Run stable v79 browser regression
-        run: npm run test:v79:browser -- --grep-invert "BTC home terminal renders candles, fallback data and persistent touch timeframe controls|language selection survives reload|v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive"
+        run: npm run test:v79:browser -- --grep-invert "BTC home terminal renders candles, fallback data and persistent touch timeframe controls|language selection survives reload|v79 owner launch path and mobile navigation remain usable|account logout and repeated login UI lifecycle remains responsive|new invited user can register, login, use core modules, recover and relogin"
         env: { CI: 'true' }
 
       - name: Validate invited public-user journey
