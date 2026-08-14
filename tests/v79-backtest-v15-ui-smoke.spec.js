@@ -23,8 +23,8 @@ test('Scanner v15 EXACT visibly truncates requests before production replay cove
   await expect(page.locator('#notice')).toContainText('Classic');
   await expect(page.locator('#signals')).toHaveText('0');
   await expect(page.locator('#closed')).toHaveText('0');
-  await expect(page.locator('#top3')).toHaveText('YES');
-  await expect(page.locator('#dedupe')).toHaveText('YES');
+  await expect(page.locator('#source')).toHaveText('crypto_shadow_signals');
+  await expect(page.locator('#monitor')).toHaveText('v5');
 });
 
 test('Scanner v15 EXACT renders actual production decisions and SHADOW lifecycle outcomes',async({page})=>{
