@@ -7,7 +7,7 @@ const SECRET=Deno.env.get('MONITOR_SECRET')||'';
 const db=createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const BINANCE=['https://data-api.binance.vision','https://api.binance.com'];
 const TTL:Record<string,number>={'5M':6*60*60*1000,'1H':24*60*60*1000,'4H':72*60*60*1000};
-const MAX_BAR_PAGES=6;
+const MAX_BAR_PAGES=7;
 
 function json(body:unknown,status=200){return Response.json(body,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}})}
 function finite(value:unknown){const n=Number(value);return Number.isFinite(n)?n:null}
@@ -16,7 +16,7 @@ function iso(ms:number){return new Date(ms).toISOString()}
 
 async function fetchBars(symbol:string,start:number){
   let lastError:unknown;
-  const safeStart=Math.max(Date.now()-72*60*60*1000,start-60000);
+  const safeStart=Math.max(Date.now()-74*60*60*1000,start-60000);
   for(const base of BINANCE){
     try{
       const all:any[]=[];let cursor=safeStart;
@@ -42,28 +42,16 @@ async function fetchBars(symbol:string,start:number){
   throw lastError||new Error('Binance 1m history unavailable');
 }
 
-async function expireWaiting(){
-  const now=Date.now();let expired=0;
-  for(const [tf,ttl] of Object.entries(TTL)){
-    const cutoff=new Date(now-ttl).toISOString();
-    const {data,error}=await db.from('crypto_shadow_signals').update({status:'EXPIRED',close_type:'EXPIRED',closed_at:new Date().toISOString(),realized_r:null,last_checked_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('status','WAITING').eq('timeframe',tf).lt('created_at',cutoff).select('id');
-    if(error)throw error;expired+=(data||[]).length;
-  }
-  return expired;
-}
-
 Deno.serve(async req=>{
   if(req.method!=='POST')return json({error:'POST only'},405);
   if(!SECRET||req.headers.get('x-monitor-secret')!==SECRET)return json({error:'Unauthorized'},401);
   if(!URL||!KEY)return json({error:'Supabase configuration unavailable'},503);
   try{
-    const expired=await expireWaiting();
     const {data:signals,error}=await db.from('crypto_shadow_signals').select('*').in('status',['WAITING','ACTIVE']).order('created_at',{ascending:true}).limit(500);
     if(error)throw error;
-
     const groups=new Map<string,any[]>();
     for(const signal of signals||[]){const pair=`${signal.symbol}USDT`;if(!groups.has(pair))groups.set(pair,[]);groups.get(pair)!.push(signal)}
-    let checked=0,activated=0,tp1Count=0,tp2Count=0,tp3Count=0,stops=0,breakeven=0,protectedProfit=0,closed=0;
+    let checked=0,expired=0,activated=0,tp1Count=0,tp2Count=0,tp3Count=0,stops=0,breakeven=0,protectedProfit=0,closed=0,recovered=0;
     const errors:string[]=[];
 
     for(const [pair,list] of groups){
@@ -75,22 +63,25 @@ Deno.serve(async req=>{
 
       for(const signal of list){
         checked++;
+        const originalLastChecked=signal.last_checked_at;
         let status=String(signal.status),stage=String(signal.management_stage||'ORIGINAL');
         let entryAt=signal.entry_at,tp1At=signal.tp1_at,tp2At=signal.tp2_at,tp3At=signal.tp3_at,closedAt=signal.closed_at,closeType=signal.close_type;
         let realizedR=finite(signal.realized_r),managedStop=finite(signal.managed_stop)??Number(signal.initial_stop),lastPrice=finite(signal.last_price);
-        const long=signal.direction==='LONG',entryLow=Number(signal.entry_low),entryHigh=Number(signal.entry_high),mid=(entryLow+entryHigh)/2,initialStop=Number(signal.initial_stop),risk=Math.abs(mid-initialStop),tp1=finite(signal.tp1),tp2=finite(signal.tp2),tp3=finite(signal.tp3);
-        const since=new Date(signal.last_checked_at||signal.created_at).getTime();
-        const relevant=bars.filter(bar=>bar.closeTime>=since-1000&&bar.closeTime>=new Date(signal.created_at).getTime()-1000);
+        const long=signal.direction==='LONG',entryLow=Number(signal.entry_low),entryHigh=Number(signal.entry_high),mid=(entryLow+entryHigh)/2,initialStop=Number(signal.initial_stop),risk=Math.abs(mid-initialStop),tp1=finite(signal.tp1),tp2=finite(signal.tp2),tp3=finite(signal.tp3),createdMs=new Date(signal.created_at).getTime(),deadline=createdMs+(TTL[signal.timeframe]||72*60*60*1000);
+        const since=originalLastChecked?new Date(originalLastChecked).getTime()-1000:Math.ceil(createdMs/60000)*60000;
+        const relevant=bars.filter(bar=>originalLastChecked?bar.closeTime>=since:bar.openTime>=since);
 
         for(const bar of relevant){
           if(status!=='WAITING'&&status!=='ACTIVE')break;
           lastPrice=bar.close;
           if(status==='WAITING'){
+            if(bar.openTime>deadline)break;
             if(!overlap(bar.low,bar.high,entryLow,entryHigh))continue;
             status='ACTIVE';entryAt=entryAt||iso(bar.closeTime);managedStop=initialStop;activated++;
+            if(!originalLastChecked)recovered++;
           }
 
-          // Conservative processing: once entry is possible inside a 1m bar, Stop wins any same-bar ambiguity.
+          // After an entry is possible, Stop wins any same-1m ambiguity.
           const stopHit=long?bar.low<=managedStop:bar.high>=managedStop;
           if(stopHit){
             status='CLOSED';closedAt=iso(bar.closeTime);closed++;
@@ -106,26 +97,18 @@ Deno.serve(async req=>{
 
           const favorable=long?bar.high:bar.low;
           const reaches=(level:number|null)=>level!==null&&(long?favorable>=level:favorable<=level);
-          if(!tp1At&&reaches(tp1)){
-            tp1At=iso(bar.closeTime);managedStop=mid;stage='BREAKEVEN';tp1Count++;
-          }
-          if(!tp2At&&reaches(tp2)){
-            if(!tp1At){tp1At=iso(bar.closeTime);tp1Count++}
-            tp2At=iso(bar.closeTime);managedStop=tp1??mid;stage='LOCK_TP1';tp2Count++;
-          }
-          if(!tp3At&&reaches(tp3)){
-            if(!tp1At){tp1At=iso(bar.closeTime);tp1Count++}
-            if(!tp2At&&tp2!==null){tp2At=iso(bar.closeTime);tp2Count++}
-            tp3At=iso(bar.closeTime);status='CLOSED';closeType='TP3';closedAt=iso(bar.closeTime);realizedR=risk>0&&tp3!==null?Math.abs(tp3-mid)/risk:null;tp3Count++;closed++;break;
-          }
+          if(!tp1At&&reaches(tp1)){tp1At=iso(bar.closeTime);managedStop=mid;stage='BREAKEVEN';tp1Count++}
+          if(!tp2At&&reaches(tp2)){if(!tp1At){tp1At=iso(bar.closeTime);tp1Count++}tp2At=iso(bar.closeTime);managedStop=tp1??mid;stage='LOCK_TP1';tp2Count++}
+          if(!tp3At&&reaches(tp3)){if(!tp1At){tp1At=iso(bar.closeTime);tp1Count++}if(!tp2At&&tp2!==null){tp2At=iso(bar.closeTime);tp2Count++}tp3At=iso(bar.closeTime);status='CLOSED';closeType='TP3';closedAt=iso(bar.closeTime);realizedR=risk>0&&tp3!==null?Math.abs(tp3-mid)/risk:null;tp3Count++;closed++;break}
         }
 
+        if(status==='WAITING'&&Date.now()>deadline){status='EXPIRED';closeType='EXPIRED';closedAt=iso(deadline);realizedR=null;expired++}
         const update={status,management_stage:stage,entry_at:entryAt,tp1_at:tp1At,tp2_at:tp2At,tp3_at:tp3At,closed_at:closedAt,close_type:closeType,realized_r:realizedR,managed_stop:managedStop,last_price:lastPrice,last_checked_at:new Date().toISOString(),updated_at:new Date().toISOString()};
         const {error:updateError}=await db.from('crypto_shadow_signals').update(update).eq('id',signal.id);
         if(updateError)errors.push(`${signal.id}: ${updateError.message}`);
       }
     }
 
-    return json({success:true,monitor_version:4,source:'crypto_shadow_signals',price_engine:'binance_1m_paginated_stop_first',checked,expired,activated,tp1:tp1Count,tp2:tp2Count,tp3:tp3Count,stops,breakeven,protected_profit:protectedProfit,closed,errors:errors.slice(0,30)});
-  }catch(error){console.error('crypto-shadow-signal-monitor',error);return json({success:false,monitor_version:4,error:error instanceof Error?error.message:String(error)},500)}
+    return json({success:true,monitor_version:5,source:'crypto_shadow_signals',price_engine:'binance_1m_recovery_aware_stop_first',checked,recovered,expired,activated,tp1:tp1Count,tp2:tp2Count,tp3:tp3Count,stops,breakeven,protected_profit:protectedProfit,closed,errors:errors.slice(0,30)});
+  }catch(error){console.error('crypto-shadow-signal-monitor',error);return json({success:false,monitor_version:5,error:error instanceof Error?error.message:String(error)},500)}
 });
