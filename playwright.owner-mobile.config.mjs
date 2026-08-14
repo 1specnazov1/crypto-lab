@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ciChannel = process.env.CI ? 'chrome' : undefined;
 const mobileChrome = {
   browserName: 'chromium',
   userAgent: devices['Pixel 7'].userAgent,
@@ -19,6 +20,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['line']] : 'line',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    channel: ciChannel,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
