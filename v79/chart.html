@@ -20,7 +20,7 @@ button,input,select{font:inherit}.top{position:sticky;top:0;z-index:10;display:f
 <header class="top">
   <div class="brand"><span>CRYPTO</span> LAB v79</div>
   <input id="symbol" list="symbols" value="BTC" aria-label="Symbol"><datalist id="symbols"></datalist>
-  <select id="tf" aria-label="Timeframe"><option value="1m">1m</option><option value="5m">5m</option><option value="15m">15m</option><option value="1h" selected>1H</option><option value="4h">4H</option><option value="1d">1D</option><option value="1w">1W</option><option value="1M">1M</option></select>
+  <select id="tf" aria-label="Timeframe"><option value="5m">5m</option><option value="15m">15m</option><option value="1h" selected>1H</option><option value="4h">4H</option><option value="1d">1D</option><option value="1w">1W</option><option value="1M">1M</option></select>
   <button id="apply">Открыть</button>
   <select id="lang" aria-label="Language"><option value="ru">RU</option><option value="uk">UA</option><option value="en">EN</option></select>
   <div class="price"><b id="lastPrice">—</b><small id="change">—</small></div>
@@ -57,7 +57,7 @@ en:{open:'Open',subtitle:'Closed candles · EMA 20/50/200 · volume',live:'Binan
 };
 function storageGet(k){try{return localStorage.getItem(k)}catch{return null}}function storageSet(k,v){try{localStorage.setItem(k,v)}catch{}}
 function tr(){return T[lang]||T.ru}function txt(id,v){const e=$(id);if(e)e.textContent=v}function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
-function normalizeTf(v){const s=String(v||'1h');const m={'1M':'1M','1MO':'1M','5M':'5m','15M':'15m','1H':'1h','4H':'4h','1D':'1d','1W':'1w'};return m[s]||m[s.toUpperCase()]||s}
+function normalizeTf(v){const s=String(v||'1h');if(s==='1m')return'5m';const m={'1M':'1M','1MO':'1M','5M':'5m','15M':'15m','1H':'1h','4H':'4h','1D':'1d','1W':'1w'};return m[s]||m[s.toUpperCase()]||s}
 function fmt(v){const n=Number(v);if(!Number.isFinite(n))return '—';return n>=1000?n.toLocaleString('en-US',{maximumFractionDigits:2}):n>=1?n.toLocaleString('en-US',{maximumFractionDigits:5}):n.toLocaleString('en-US',{maximumFractionDigits:10})}
 function renderText(){document.documentElement.lang=lang;$('lang').value=lang;txt('apply',tr().open);txt('subtitle',tr().subtitle);txt('liveText',tr().live);txt('levelsTitle',tr().levels);txt('resLabel',tr().res);txt('supportLabel',tr().support);txt('rangeLabel',tr().range);txt('signalTitle',tr().signal);txt('noSignal',tr().none);txt('riskTitle',tr().risk);txt('directionLabel',tr().direction);txt('riskLabel',tr().riskStop);txt('loading',tr().loading);txt('notice',tr().notice)}
 function ema(values,period){const k=2/(period+1),out=[];let cur=values[0]||0;values.forEach((v,i)=>{cur=i===0?v:v*k+cur*(1-k);out.push(cur)});return out}
