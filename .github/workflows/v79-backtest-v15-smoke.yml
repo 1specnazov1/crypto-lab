@@ -27,14 +27,17 @@ permissions:
 jobs:
   exact-backtest-ui:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - run: npx playwright install chromium --with-deps
+      - name: Validate preinstalled Chrome
+        run: |
+          command -v google-chrome
+          google-chrome --version
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/v79-backtest-http.log 2>&1 &
