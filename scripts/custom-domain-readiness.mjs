@@ -15,6 +15,10 @@ if(!target){console.log('No CRYPTO_TARGET_DOMAIN supplied: inventory-only mode.'
 if(!/^[a-z0-9.-]+$/.test(target)||!target.includes('.'))throw new Error('CRYPTO_TARGET_DOMAIN is invalid');
 const cname=fs.existsSync('CNAME')?fs.readFileSync('CNAME','utf8').trim().toLowerCase():'';
 if(cname!==target)throw new Error(`CNAME mismatch: expected ${target}, got ${cname||'<missing>'}`);
-const runtime=hits.filter(h=>h.file.startsWith('v79/')||h.file.startsWith('supabase/functions/')||h.file.startsWith('supabase/migrations/'));
-if(runtime.length)throw new Error(`Custom-domain cutover blocked: ${runtime.length} legacy runtime references remain`);
-console.log(`Custom-domain runtime audit passed for ${target}`);
+// Historical migrations are immutable audit history. A cutover is performed with a new
+// migration, so only currently served browser assets and active Edge Function sources
+// are blockers. Old migrations remain in the inventory for human review but never need
+// to be rewritten.
+const runtime=hits.filter(h=>h.file.startsWith('v79/')||h.file.startsWith('supabase/functions/'));
+if(runtime.length)throw new Error(`Custom-domain cutover blocked: ${runtime.length} active runtime references remain`);
+console.log(`Custom-domain active-runtime audit passed for ${target}`);
