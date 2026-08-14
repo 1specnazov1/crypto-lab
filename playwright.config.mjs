@@ -8,6 +8,7 @@ const mobileChrome = {
   isMobile: true,
   hasTouch: true
 };
+const ciChannel = process.env.CI ? 'chrome' : undefined;
 
 export default defineConfig({
   testDir: './tests',
@@ -20,6 +21,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['line'], ['html', { outputFolder: 'playwright-report', open: 'never' }]] : 'line',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    channel: ciChannel,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
