@@ -7,6 +7,9 @@ const SDK=`(()=>{let signed=localStorage.getItem('crypto-e2e-auth')==='1',authCa
 const CORS={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization, apikey','Access-Control-Allow-Methods':'GET,POST,OPTIONS'};
 
 async function stub(page){
+ await page.addInitScript(()=>{
+   window.turnstile={render(_el,opts){setTimeout(()=>opts.callback('e2e-captcha'),0);return 7;},reset(){}};
+ });
  await page.route('https://txhzxbizjpinowepfjkm.supabase.co/**',r=>r.fulfill({status:200,headers:CORS,contentType:'application/json',body:'{}'}));
  await page.route('https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-recover**',async r=>{
   if(r.request().method()==='GET')return r.fulfill({status:200,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,enabled:true,site_key:'test',captcha_action:'crypto_recover'})});
@@ -20,7 +23,6 @@ async function stub(page){
   return r.fulfill({status:202,headers:CORS,contentType:'application/json',body:JSON.stringify({ok:true,status:'confirmation_sent'})});
  });
  await page.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({status:200,contentType:'application/javascript',headers:CORS,body:SDK}));
- await page.route('https://challenges.cloudflare.com/**',r=>r.fulfill({status:200,contentType:'application/javascript',headers:CORS,body:`window.turnstile={render(_e,o){setTimeout(()=>o.callback('e2e-captcha'),0);return 1},reset(){}};`}));
  await page.route('https://api.binance.com/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
  await page.route('https://data-api.binance.vision/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
 }
