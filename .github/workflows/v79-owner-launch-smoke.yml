@@ -49,8 +49,10 @@ jobs:
       - name: Install pinned Playwright test runner
         run: npm install --no-save --ignore-scripts @playwright/test@1.55.0
 
-      - name: Install Chromium and Linux dependencies
-        run: npx playwright install --with-deps chromium
+      - name: Validate preinstalled Chrome
+        run: |
+          command -v google-chrome
+          google-chrome --version
 
       - name: Start local static server
         run: |
@@ -64,11 +66,13 @@ jobs:
           exit 1
 
       - name: Run required owner launch path
+        env:
+          CI: 'true'
         run: npx playwright test --config=playwright.owner-launch.config.mjs
 
       - name: Upload owner launch evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: v79-owner-launch-smoke-${{ github.run_id }}
           path: |
