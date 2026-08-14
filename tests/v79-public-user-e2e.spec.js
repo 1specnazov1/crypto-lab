@@ -37,7 +37,7 @@ test('new invited user can register, login, use core modules, recover and relogi
  for(let i=0;i<3;i++)await legal.nth(i).check();
  await expect(page.locator('#signupBtn')).toBeEnabled();
  await page.locator('#signupBtn').click();
- await expect(page.locator('#message')).toContainText(/подтверд|confirm/i);
+ await expect(page.locator('#message')).toContainText(/подтверж|confirm|confirmation/i);
 
  await page.locator('#loginTab').click();
  await page.locator('#loginEmail').fill('new-user@example.invalid');
