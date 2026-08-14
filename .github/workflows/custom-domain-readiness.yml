@@ -1,0 +1,30 @@
+name: CRYPTO LAB Custom Domain Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_domain:
+        description: 'Target canonical host, e.g. app.example.com. Leave empty for inventory-only audit.'
+        required: false
+        type: string
+  push:
+    paths:
+      - 'scripts/custom-domain-readiness.mjs'
+      - 'docs/CUSTOM_DOMAIN_CUTOVER.md'
+      - '.github/workflows/custom-domain-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Inventory or validate custom-domain cutover
+        env:
+          CRYPTO_TARGET_DOMAIN: ${{ inputs.target_domain }}
+        run: node scripts/custom-domain-readiness.mjs
