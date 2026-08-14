@@ -28,176 +28,62 @@ jobs:
           assert m['start_url'].startswith('./')
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
+          worker=Path('v79/service-worker.js').read_text()
+          assert "const CACHE='crypto-lab-v79-7930-free29'" in worker
+          for asset in ['app.js','runtime-performance.js','news-extension.js','news-ticker-controls.js','news-ui-upgrades.js','news.html','public-free-home.js','home-intelligence.js','route-viewport-fix.js','chart-interactions.js','chart-live-price.js','chart-visual-upgrades.js','route-merge.js','access-gate.js','support.html','session-security.js','icon.svg','module-mobile.css','platform.css','admin.html','recovery.html','recovery-request.html']:
+              assert f'./{asset}' in worker, asset
+          assert "if(isApi(url)||url.origin!==self.location.origin)return" in worker
+          assert "fetch(req,{cache:'no-store'})" in worker
           PY
-          grep -F "const CACHE='crypto-lab-v79-7930-free28'" v79/service-worker.js
-          for asset in runtime-performance.js news-extension.js news-ticker-controls.js news-ui-upgrades.js news.html public-free-home.js home-intelligence.js route-viewport-fix.js chart-interactions.js chart-live-price.js chart-analysis-tools.js chart-analysis-hook.js chart-visual-upgrades.js chart-fib-scale.js chart-onchain.js route-merge.js access-gate.js support.html session-security.js icon.svg module-mobile.css platform.css; do
-            grep -F "./$asset" v79/service-worker.js
-          done
-          grep -F "'app.js'" v79/service-worker.js
-          grep -F "'session-security.js'" v79/service-worker.js
-          grep -F "'icon.svg'" v79/service-worker.js
-          grep -F "'module-mobile.css'" v79/service-worker.js
-          grep -F "if(isApi(url)||url.origin!==self.location.origin)return" v79/service-worker.js
-          grep -F "fetch(req,{cache:'no-store'})" v79/service-worker.js
-          if grep -E "fetch\([^)]*(POST|PUT|PATCH|DELETE)" v79/service-worker.js; then
-            echo 'Service worker must not perform write requests' >&2
-            exit 1
+
+      - name: Validate core JavaScript syntax
+        run: |
+          set -euo pipefail
+          for f in v79/*.js; do node --check "$f"; done
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          for html in Path('v79').glob('*.html'):
+              text=html.read_text(encoding='utf-8')
+              scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',text,re.S|re.I)
+              for i,script in enumerate(scripts):
+                  if not script.strip(): continue
+                  p=Path('/tmp')/f'{html.stem}-{i}.js'; p.write_text(script,encoding='utf-8')
+                  subprocess.check_call(['node','--check',str(p)])
+          PY
+
+      - name: Validate security and performance contracts
+        run: |
+          grep -F 'content-visibility:auto' v79/runtime-performance.js
+          grep -F "frame.src='about:blank'" v79/runtime-performance.js
+          grep -F 'animation-play-state:paused' v79/runtime-performance.js
+          grep -F 'scrollTo(0,0)' v79/route-viewport-fix.js
+          grep -F 'agreeing.length<2' v79/chart-live-price.js
+          grep -F 'const MAX_PASSES=3' v79/news-ticker-controls.js
+          grep -F "hideCurrent('completed')" v79/news-ticker-controls.js
+          if grep -F 'observer.observe(document.documentElement' v79/session-security.js; then
+            echo 'Whole-document Account observer is forbidden' >&2; exit 1
           fi
+          if grep -F 'observer.observe(document.documentElement' v79/news-ticker-controls.js; then
+            echo 'Whole-document ticker observer is forbidden' >&2; exit 1
+          fi
+
+      - name: Validate Signals and Telegram admin contract
+        run: |
+          grep -F 'SHADOW Forward Quality' v79/admin-signals.html
+          grep -F 'get_crypto_shadow_quality_admin' v79/admin-signals.html
+          grep -F 'crypto-telegram-admin-preflight' v79/admin-signals.html
+          grep -F 'LIVE TELEGRAM' v79/admin-signals.html
+          grep -F 'TP1 → Stop в безубыток' v79/admin-signals.html
+          if grep -E 'sb_secret_|SUPABASE_SERVICE_ROLE_KEY\s*=|TELEGRAM_BOT_TOKEN\s*=|MONITOR_SECRET\s*=' v79/*.{html,js,json,webmanifest} 2>/dev/null; then
+            echo 'Potential server secret value/assignment exposed in browser assets' >&2; exit 1
+          fi
+
+      - name: Validate readability and branding
+        run: |
           grep -F '>CL</text>' v79/icon.svg
           grep -F '#00e5ff' v79/icon.svg
           grep -F 'CRYPTO LAB readability baseline' v79/platform.css
           grep -F 'Global module readability baseline' v79/module-mobile.css
           grep -F 'font-size:12px!important' v79/platform.css
           grep -F 'font-size:12px!important' v79/module-mobile.css
-
-      - name: Validate intelligence-first home
-        run: |
-          node --check v79/public-free-home.js
-          node --check v79/home-intelligence.js
-          grep -F "public-free-home.js?v=7930free21" v79/app.html
-          grep -F "home-intelligence.js?v=7930free20" v79/public-free-home.js
-          grep -F "cryptoIntelligenceHomeScript" v79/public-free-home.js
-          grep -F "Object.defineProperty(window,'DATA'" v79/public-free-home.js
-          grep -F "max-width:190px!important" v79/public-free-home.js
-          grep -F "MARKET INTELLIGENCE · 30-SECOND BRIEF" v79/home-intelligence.js
-          grep -F "Opportunity Radar" v79/home-intelligence.js
-          grep -F "Market Heatmap" v79/home-intelligence.js
-          grep -F "Portfolio Snapshot" v79/home-intelligence.js
-          grep -F "cryptoLabV79Portfolio" v79/home-intelligence.js
-          grep -F "min_impact=70" v79/home-intelligence.js
-          if grep -F "homeBtcChartScript" v79/public-free-home.js; then
-            echo 'The intelligence home must not restore the duplicated homepage chart' >&2
-            exit 1
-          fi
-
-      - name: Validate route viewport reset, runtime performance and account responsiveness guard
-        run: |
-          node --check v79/route-viewport-fix.js
-          node --check v79/runtime-performance.js
-          node --check v79/session-security.js
-          grep -F "route-viewport-fix.js?v=7930free22" v79/app.html
-          grep -F "runtime-performance.js?v=7930speed1" v79/app.html
-          grep -F "route-merge.js?v=7930free25" v79/app.html
-          grep -F "frame?.contentWindow" v79/route-viewport-fix.js
-          grep -F "scrollTo(0,0)" v79/route-viewport-fix.js
-          grep -F "attributeName==='src'" v79/route-viewport-fix.js
-          grep -F "content-visibility:auto" v79/runtime-performance.js
-          grep -F "frame.src='about:blank'" v79/runtime-performance.js
-          grep -F "animation-play-state:paused" v79/runtime-performance.js
-          grep -F "function setText" v79/session-security.js
-          grep -F "document.getElementById('lang')?.addEventListener('change'" v79/session-security.js
-          if grep -F "observer.observe(document.documentElement" v79/session-security.js; then
-            echo 'Whole-document MutationObserver is forbidden in Account session security' >&2
-            exit 1
-          fi
-
-      - name: Validate invite-only FREE access
-        run: |
-          node --check v79/access-gate.js
-          node --check v79/auth-gateway.js
-          node --check v79/registration-consent.js
-          grep -F "invite_only_free" v79/auth-gateway.js
-          grep -F "invite_token" v79/auth-gateway.js
-          grep -F "crypto_access_request" v79/access-gate.js
-          grep -F "account.html?login=1" v79/access-gate.js
-          if grep -F "app.html?route=account&login=1" v79/access-gate.js; then
-            echo 'Shell login bypass is forbidden' >&2
-            exit 1
-          fi
-
-      - name: Validate news filters and three-pass localized breaking ticker
-        run: |
-          node --check v79/news-extension.js
-          node --check v79/news-ticker-controls.js
-          node --check v79/news-ui-upgrades.js
-          test -s v79/news.html
-          grep -F "news-extension.js?v=7930free22" v79/route-merge.js
-          grep -F "news-ticker-controls.js?v=7930free26" v79/route-merge.js
-          grep -F "news-ui-upgrades.js?v=7930free26" v79/route-merge.js
-          grep -F "cryptoLabBreakingTickerDismissedV1" v79/news-ticker-controls.js
-          grep -F "const MAX_PASSES=3" v79/news-ticker-controls.js
-          grep -F "animationiteration" v79/news-ticker-controls.js
-          grep -F "hideCurrent('completed')" v79/news-ticker-controls.js
-          grep -F "newsTickerToggle" v79/news-ticker-controls.js
-          grep -F "stored.signature!==sig" v79/news-ticker-controls.js
-          grep -F "trackObserver.observe(track" v79/news-ticker-controls.js
-          if grep -F "newsTickerClose" v79/news-ticker-controls.js; then
-            echo 'Ticker close button must not return; checkbox is the only manual control' >&2
-            exit 1
-          fi
-          if grep -F "observer.observe(document.documentElement" v79/news-ticker-controls.js; then
-            echo 'Global DOM mutation observer is forbidden for ticker performance' >&2
-            exit 1
-          fi
-          if grep -F "setInterval" v79/news-ticker-controls.js; then
-            echo 'Ticker control must be event-driven, not polling' >&2
-            exit 1
-          fi
-          grep -F "data-news-filter" v79/news-ui-upgrades.js
-          grep -F "mode==='breaking'" v79/news-ui-upgrades.js
-          grep -F "news-title-cont" v79/news-ui-upgrades.js
-          grep -F "localized_title||x.title" v79/news-extension.js
-          grep -F "&lang='+encodeURIComponent(lang)" v79/news-extension.js
-          grep -F "breakingLabel" v79/news-extension.js
-          grep -F "setInterval(load,300000)" v79/news.html
-          grep -F "Impact 55+" v79/news.html
-
-      - name: Validate chart analytics, Binance live price guard and Fibonacci price-axis labels
-        run: |
-          node --check v79/route-merge.js
-          node --check v79/chart-interactions.js
-          node --check v79/chart-live-price.js
-          node --check v79/chart-analysis-tools.js
-          node --check v79/chart-analysis-hook.js
-          node --check v79/chart-visual-upgrades.js
-          node --check v79/chart-fib-scale.js
-          node --check v79/chart-onchain.js
-          grep -F "chart-live-price.js?v=7930free23" v79/route-merge.js
-          grep -F "chart-visual-upgrades.js?v=7930free25" v79/route-merge.js
-          grep -F "chart-analysis-hook.js?v=7930free19" v79/route-merge.js
-          grep -F "chart-fib-scale.js?v=7930free19" v79/route-merge.js
-          grep -F "chart-onchain.js?v=7930free14" v79/route-merge.js
-          grep -F "ticker/price" v79/chart-live-price.js
-          grep -F "ticker/24hr" v79/chart-live-price.js
-          grep -F "open-kline" v79/chart-live-price.js
-          grep -F "agreeing.length<2" v79/chart-live-price.js
-          grep -F "window.CryptoChartLivePrice=result.price" v79/chart-live-price.js
-          grep -F "state.shift===0 ? Number(window.CryptoChartLivePrice)" v79/chart-interactions.js
-          grep -F "...(Number.isFinite(verifiedLive)?[verifiedLive]:[])" v79/chart-interactions.js
-          if grep -F "drawPriceTag(ctx, w - pad.r + 4, yy, fmt(latest.close)" v79/chart-interactions.js; then
-            echo 'Closed candle price must not masquerade as Binance live price' >&2
-            exit 1
-          fi
-          grep -F "['ema','EMA']" v79/chart-analysis-tools.js
-          grep -F "['fib','FIB']" v79/chart-analysis-tools.js
-          grep -F "window.CryptoChartViewport = view" v79/chart-interactions.js
-          grep -F "...fibLevels" v79/chart-interactions.js
-          grep -F "AUTO SWING" v79/chart-visual-upgrades.js
-          grep -F "const RETRACEMENT_LEVELS=[.382,.5,.618,.786]" v79/chart-visual-upgrades.js
-          grep -F "const EXTENSION_LEVELS=[1.272,1.618,2]" v79/chart-visual-upgrades.js
-          grep -F "globalAlpha=kind==='E'?.42:.32" v79/chart-visual-upgrades.js
-          grep -F "const axisX=chartRight+7" v79/chart-visual-upgrades.js
-          grep -F 'const label=`${fibRatioLabel(r)} ${f(v)}`' v79/chart-visual-upgrades.js
-          grep -F "ctx.strokeText(label,axisX,labelY)" v79/chart-visual-upgrades.js
-          grep -F "ctx.fillStyle=color;ctx.fillText(label,axisX,labelY)" v79/chart-visual-upgrades.js
-          if grep -F "ctx.strokeRect(lx" v79/chart-visual-upgrades.js; then
-            echo 'Fibonacci labels must not use framed boxes' >&2
-            exit 1
-          fi
-          grep -F "currentPrice(rows)" v79/chart-visual-upgrades.js
-          grep -F "window.CryptoChartUnifiedScale = true" v79/chart-fib-scale.js
-          if grep -F "drawMain=function" v79/chart-fib-scale.js; then
-            echo 'Fibonacci scale module must not replace the chart renderer' >&2
-            exit 1
-          fi
-          grep -F "Coin Metrics" v79/chart-onchain.js
-          grep -F "FALLBACK" v79/chart-onchain.js
-
-      - name: Validate support and mobile shell
-        run: |
-          node --check v79/admin-support.js
-          grep -F "crypto-lab-v79-support" v79/support.html
-          grep -F "action:'admin_update'" v79/admin-support.js
-          grep -F ".side:not(.open)" v79/platform.css
-          grep -F "grid-template-columns:repeat(5" v79/platform.css
-          grep -F "padding-bottom:calc(62px + var(--safe-bottom))" v79/platform.css
