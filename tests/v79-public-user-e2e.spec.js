@@ -32,8 +32,9 @@ test('new invited user can register, login, use core modules, recover and relogi
  await page.locator('#signupTab').click();
  await page.locator('#signupName').fill('New User');
  await page.locator('#signupPassword').fill('StrongPass123');
- await expect(page.locator('[data-registration-legal]')).toHaveCount(3);
- await page.locator('[data-registration-legal]').check();
+ const legal=page.locator('[data-registration-legal]');
+ await expect(legal).toHaveCount(3);
+ for(let i=0;i<3;i++)await legal.nth(i).check();
  await expect(page.locator('#signupBtn')).toBeEnabled();
  await page.locator('#signupBtn').click();
  await expect(page.locator('#message')).toContainText(/подтверд|confirm/i);
