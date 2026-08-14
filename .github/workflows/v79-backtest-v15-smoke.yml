@@ -1,0 +1,58 @@
+name: V79 Scanner v15 Exact Backtest Smoke
+
+on:
+  push:
+    paths:
+      - 'v79/backtest-v15.html'
+      - 'v79/backtest-console.html'
+      - 'v79/backtest-history.js'
+      - 'v79/service-worker.js'
+      - 'tests/v79-backtest-v15-ui-smoke.spec.js'
+      - 'playwright.config.mjs'
+      - '.github/workflows/v79-backtest-v15-smoke.yml'
+  pull_request:
+    paths:
+      - 'v79/backtest-v15.html'
+      - 'v79/backtest-console.html'
+      - 'v79/backtest-history.js'
+      - 'v79/service-worker.js'
+      - 'tests/v79-backtest-v15-ui-smoke.spec.js'
+      - 'playwright.config.mjs'
+      - '.github/workflows/v79-backtest-v15-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-backtest-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install chromium --with-deps
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/v79-backtest-http.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:4173/v79/backtest-v15.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/v79-backtest-http.log
+          exit 1
+      - name: Validate exact/classic UI contract
+        run: |
+          grep -F 'Scanner v15 EXACT' v79/backtest-history.js
+          grep -F 'backtest-v15.html' v79/backtest-history.js
+          grep -F 'SCANNER_V15_EXACT' v79/backtest-v15.html
+          grep -F 'PARITY_DATA_INSUFFICIENT' v79/backtest-v15.html
+          grep -F './backtest-v15.html' v79/service-worker.js
+          grep -F './backtest-console.html' v79/service-worker.js
+      - name: Run exact Backtest browser regression
+        env:
+          CI: 'true'
+        run: npx playwright test tests/v79-backtest-v15-ui-smoke.spec.js --config=playwright.config.mjs
