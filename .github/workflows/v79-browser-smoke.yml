@@ -51,7 +51,7 @@ concurrency:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -64,20 +64,11 @@ jobs:
       - name: Install pinned Playwright test runner
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Install Chromium and Linux dependencies
-        shell: bash
+      - name: Validate preinstalled Chrome
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            echo "Playwright install attempt ${attempt}/3"
-            if timeout 180s npx playwright install chromium --with-deps; then
-              exit 0
-            fi
-            echo "Playwright install attempt ${attempt} timed out or failed; retrying..." >&2
-            sleep $((attempt * 5))
-          done
-          echo "Playwright browser installation failed after 3 bounded attempts" >&2
-          exit 1
+          command -v google-chrome
+          google-chrome --version
 
       - name: Start local static server
         run: |
