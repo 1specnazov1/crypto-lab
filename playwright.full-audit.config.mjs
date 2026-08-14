@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ciChannel = process.env.CI ? 'chrome' : undefined;
+
 export default defineConfig({
   testDir: './tests',
   testMatch: /v79-public-launch-audit\.spec\.js/,
@@ -11,6 +13,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['line'], ['html', { outputFolder: 'playwright-report-full-audit', open: 'never' }]] : 'line',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    channel: ciChannel,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
