@@ -30,7 +30,7 @@ jobs:
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           worker=Path('v79/service-worker.js').read_text()
           assert "const CACHE='crypto-lab-v79-7930-free30'" in worker
-          for asset in ['app.js','runtime-performance.js','news-extension.js','news-ticker-controls.js','news-ui-upgrades.js','news.html','public-free-home.js','home-intelligence.js','route-viewport-fix.js','chart-interactions.js','chart-live-price.js','chart-visual-upgrades.js','route-merge.js','access-gate.js','access-verify.html','support.html','session-security.js','icon.svg','module-mobile.css','platform.css','admin.html','recovery.html','recovery-request.html']:
+          for asset in ['app.js','runtime-performance.js','news-extension.js','news-ticker-controls.js','news-ui-upgrades.js','news.html','public-free-home.js','home-intelligence.js','route-viewport-fix.js','chart-interactions.js','chart-live-price.js','chart-visual-upgrades.js','route-merge.js','access-gate.js','access-verify.html','access-verify.js','support.html','session-security.js','icon.svg','module-mobile.css','platform.css','admin.html','recovery.html','recovery-request.html']:
               assert f'./{asset}' in worker, asset
           assert "if(isApi(url)||url.origin!==self.location.origin)return" in worker
           assert "fetch(req,{cache:'no-store'})" in worker
@@ -73,12 +73,22 @@ jobs:
           grep -F "const DEVICE_KEY='cryptoLabEmailAccessDeviceV1'" v79/access-gate.js
           grep -F 'device_hash:deviceHash' v79/access-gate.js
           grep -F 'legal_acceptances:legalAcceptances()' v79/access-gate.js
-          grep -F "const DEVICE_KEY='cryptoLabEmailAccessDeviceV1'" v79/access-verify.html
-          grep -F 'device_secret:device' v79/access-verify.html
-          grep -F "history.replaceState(null,'',location.pathname+location.search)" v79/access-verify.html
-          grep -F "verifyOtp({token_hash:b.token_hash,type:'email'})" v79/access-verify.html
-          grep -F "action:'claim'" v79/access-verify.html
+          grep -F "const DEVICE_KEY='cryptoLabEmailAccessDeviceV1'" v79/access-verify.js
+          grep -F 'device_secret:device' v79/access-verify.js
+          grep -F "history.replaceState(null,'',location.pathname+location.search)" v79/access-verify.js
+          grep -F "verifyOtp({token_hash:b.token_hash,type:'email'})" v79/access-verify.js
+          grep -F "action:'claim'" v79/access-verify.js
+          grep -F '<script src="./access-verify.js"></script>' v79/access-verify.html
           grep -F "meta name=\"referrer\" content=\"no-referrer\"" v79/access-verify.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          page=Path('v79/access-verify.html').read_text(encoding='utf-8')
+          inline=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',page,re.S|re.I)
+          assert not any(script.strip() for script in inline), 'access verification logic must stay external under CSP'
+          assert "script-src 'self' https://cdn.jsdelivr.net" in page
+          print('CSP-safe external email verification runtime: OK')
+          PY
 
       - name: Validate Signals and Telegram admin contract
         run: |
