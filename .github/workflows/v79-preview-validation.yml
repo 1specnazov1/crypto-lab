@@ -145,7 +145,7 @@ jobs:
             'admin-ops-summary.js':['get_crypto_admin_operational_summary','operationalSummary'],
             'service-worker.js':['public-free-home.js','access-gate.js','admin-access.js','free-access-ui.js','recovery.html','admin-drift.js','admin-integrity.js','admin-ops-summary.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
             'app.html':['Content-Security-Policy','public-free-home.js?v=7930free2','commercial-extension.js?v=7930','accessibility.js?v=7930','access-gate.js?v=7930free6','FREE INVITE ACCESS'],
-            'access-gate.js':['crypto-lab-v79-access','account.html?login=1','accessGatePrivacyLink'],
+            'access-gate.js':['crypto-lab-v79-access','account.html?login=1','accessGatePrivacy'],
             'auth-gateway.js':['invite_only_free','invite_token'],
             'admin-access.js':['crypto-lab-v79-access-admin','Перевыпустить ссылку'],
             'manifest.webmanifest':['"display": "standalone"','icon.svg']
