@@ -34,6 +34,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Playwright ffmpeg runtime
+        run: npx playwright install ffmpeg
       - name: Validate preinstalled Chrome
         run: |
           command -v google-chrome
