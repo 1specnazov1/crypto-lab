@@ -68,6 +68,9 @@ jobs:
       - name: Install pinned Playwright test runner
         run: npm install --ignore-scripts --no-audit --no-fund
 
+      - name: Install Playwright ffmpeg runtime
+        run: npx playwright install ffmpeg
+
       - name: Validate preinstalled Chrome
         run: |
           set -euo pipefail
