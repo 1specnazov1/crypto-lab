@@ -23,7 +23,7 @@ test('forwarded email access link is rejected when browser secret is absent',asy
 
 test('requesting browser redeems once, creates session, claims grant and enters app',async({page})=>{
   await stubSdk(page);
-  await page.addInitScript(({device})=>localStorage.setItem('cryptoLabEmailAccessDeviceV1',device),{device:DEVICE});
+  await page.addInitScript(({device})=>{if(location.pathname.endsWith('/access-verify.html'))localStorage.setItem('cryptoLabEmailAccessDeviceV1',device)},{device:DEVICE});
   let redeemPayload=null,claimPayload=null,claimAuth='';
   await page.route('https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-access',async r=>{
     const req=r.request();
