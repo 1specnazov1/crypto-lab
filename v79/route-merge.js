@@ -34,6 +34,13 @@
             const onchain=doc.createElement('script');
             onchain.id='cryptoOnchainScript';
             onchain.src='./chart-onchain.js?v=7930free14';
+            onchain.onload=()=>{
+              if(doc.getElementById('cryptoSmartMoneyScript'))return;
+              const smart=doc.createElement('script');
+              smart.id='cryptoSmartMoneyScript';
+              smart.src='./chart-smart-money.js?v=7930smart1';
+              doc.body.appendChild(smart);
+            };
             doc.body.appendChild(onchain);
           };
           doc.body.appendChild(hook);
