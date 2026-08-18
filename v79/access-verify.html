@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e11">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-store">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://txhzxbizjpinowepfjkm.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>CRYPTO LAB · Проверка доступа</title>
+<style>
+:root{--b:#0b0e11;--p:#151a21;--l:#2b3139;--t:#eaecef;--m:#848e9c;--g:#f0b90b;--ok:#0ecb81;--bad:#f6465d}*{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:var(--b);color:var(--t);font:13px system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:18px}.card{width:min(520px,100%);background:var(--p);border:1px solid var(--l);border-radius:16px;padding:26px;box-shadow:0 26px 80px #000a}.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}.logo{width:42px;height:42px;border-radius:11px;background:var(--g);color:#111;display:grid;place-items:center;font-weight:1000}.brand b{letter-spacing:.08em}.brand small{display:block;color:var(--m);margin-top:2px}.state{border:1px solid var(--l);border-radius:10px;background:#10151b;padding:13px 14px;line-height:1.55}.state.ok{border-color:#0ecb8144;background:#0ecb8110;color:#b9f4d9}.state.bad{border-color:#f6465d44;background:#f6465d10;color:#ffc4cd}.spinner{display:inline-block;width:12px;height:12px;border:2px solid #66717e;border-top-color:var(--g);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:-2px}@keyframes spin{to{transform:rotate(360deg)}}button{width:100%;margin-top:12px;border:1px solid #f0b90b55;background:#f0b90b10;color:#ffe58f;border-radius:9px;padding:11px;font:inherit;font-weight:800;cursor:pointer}.note{margin-top:12px;color:var(--m);font-size:10px;line-height:1.5}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand"><div class="logo">₿</div><div><b>CRYPTO LAB</b><small>v79 · EMAIL ACCESS</small></div></div>
+  <h1 style="font-size:23px;margin:0 0 14px">Проверка доступа</h1>
+  <div id="state" class="state"><span class="spinner"></span>Проверяю персональную ссылку и этот браузер…</div>
+  <button id="retry" type="button" hidden>Запросить новую ссылку</button>
+  <div class="note">Защита CRYPTO LAB: ссылка работает только в браузере, где был введён email. Пересланная ссылка на другом устройстве не создаёт сессию.</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+const ENDPOINT='https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-access';
+const PROJECT='https://txhzxbizjpinowepfjkm.supabase.co';
+const KEY='sb_publishable_Kto-qK3BBI21ZxwGzxAmKg_A01NLpdZ';
+const DEVICE_KEY='cryptoLabEmailAccessDeviceV1';
+const EMAIL_KEY='cryptoLabEmailAccessEmailV1';
+const sb=supabase.createClient(PROJECT,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const box=document.getElementById('state'),retry=document.getElementById('retry');
+function setState(text,type=''){box.textContent=text;box.className='state'+(type?' '+type:'')}
+function tokenFromHash(){const raw=location.hash.startsWith('#')?location.hash.slice(1):location.hash;const p=new URLSearchParams(raw);return p.get('t')||''}
+function errorText(code,fallback){if(code==='DEVICE_MISMATCH')return 'Эта ссылка открыта не в том браузере. Вернитесь на устройство и браузер, где вводили email, или запросите новую ссылку.';if(code==='LINK_EXPIRED'||code==='INVALID_LINK')return 'Ссылка уже использована, недействительна или истекла. Запросите новую.';if(code==='LINK_LOCKED')return 'Ссылка заблокирована после нескольких неверных попыток. Запросите новую.';if(code==='LEGAL_UPDATED')return 'Условия доступа обновились. Запросите новую ссылку и подтвердите актуальные документы.';return fallback||'Не удалось подтвердить доступ.'}
+async function run(){const token=tokenFromHash();history.replaceState(null,'',location.pathname+location.search);const device=localStorage.getItem(DEVICE_KEY)||'';if(!token){setState('В ссылке отсутствует одноразовый токен. Запросите новую ссылку.','bad');retry.hidden=false;return}if(!device){setState('Этот браузер не запрашивал доступ. Пересланная ссылка здесь не работает. Откройте письмо в исходном браузере или запросите новую ссылку.','bad');retry.hidden=false;return}
+ try{
+  const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token,device_secret:device}),cache:'no-store'}),b=await r.json().catch(()=>({}));
+  if(!r.ok)throw Object.assign(new Error(b?.error||'Access verification failed'),{code:b?.code});
+  if(!b?.token_hash||!b?.grant_id)throw new Error('Access token unavailable');
+  setState('Браузер подтверждён. Создаю защищённую сессию…');
+  const {data,error}=await sb.auth.verifyOtp({token_hash:b.token_hash,type:'email'});if(error||!data?.session)throw error||new Error('Session unavailable');
+  const cr=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${data.session.access_token}`},body:JSON.stringify({action:'claim',grant_id:b.grant_id}),cache:'no-store'}),cb=await cr.json().catch(()=>({}));if(!cr.ok||!cb?.ok)throw Object.assign(new Error(cb?.error||'Access activation failed'),{code:cb?.code});
+  localStorage.removeItem(DEVICE_KEY);localStorage.removeItem(EMAIL_KEY);setState('Доступ подтверждён. Открываю CRYPTO LAB…','ok');setTimeout(()=>location.replace('./app.html'),350);
+ }catch(e){console.warn('email access verification failed',e);setState(errorText(e?.code,e?.message),'bad');retry.hidden=false}}
+retry.onclick=()=>{localStorage.removeItem(DEVICE_KEY);location.replace('./app.html')};run();
+</script>
+</body>
+</html>
