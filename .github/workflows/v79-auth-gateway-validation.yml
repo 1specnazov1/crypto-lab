@@ -7,6 +7,7 @@ on:
       - 'v79/auth-gateway.js'
       - 'v79/access-gate.js'
       - 'v79/access-verify.html'
+      - 'v79/access-verify.js'
       - 'v79/registration-consent.js'
       - 'v79/free-access-ui.js'
       - 'v79/recovery.html'
@@ -32,6 +33,7 @@ jobs:
         run: |
           node --check v79/auth-gateway.js
           node --check v79/access-gate.js
+          node --check v79/access-verify.js
           node --check v79/registration-consent.js
           node --check v79/free-access-ui.js
           node --check v79/commercial-extension.js
@@ -40,6 +42,7 @@ jobs:
           grep -F "publicFreeAccessScript" v79/commercial-extension.js
           grep -F "./auth-gateway.js" v79/service-worker.js
           grep -F "./access-verify.html" v79/service-worker.js
+          grep -F "./access-verify.js" v79/service-worker.js
           grep -F "crypto-lab-v79-7930-free30" v79/service-worker.js
           grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
           grep -F "email_bound_signup:!INVITE_TOKEN" v79/auth-gateway.js
@@ -49,8 +52,9 @@ jobs:
           grep -F "crypto_recover" v79/auth-gateway.js
           grep -F "const DEVICE_KEY='cryptoLabEmailAccessDeviceV1'" v79/access-gate.js
           grep -F "device_hash:deviceHash" v79/access-gate.js
-          grep -F "device_secret:device" v79/access-verify.html
-          grep -F "verifyOtp({token_hash:b.token_hash,type:'email'})" v79/access-verify.html
+          grep -F "device_secret:device" v79/access-verify.js
+          grep -F "verifyOtp({token_hash:b.token_hash,type:'email'})" v79/access-verify.js
+          grep -F '<script src="./access-verify.js"></script>' v79/access-verify.html
           grep -F "free-access-ui.js" v79/registration-consent.js
           ! grep -F "new MutationObserver(render)" v79/registration-consent.js
           ! grep -F "friendsFamilyAccountScript" v79/commercial-extension.js
@@ -149,12 +153,13 @@ jobs:
           import pathlib,re
           gateway=pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
           access=pathlib.Path('v79/access-gate.js').read_text(encoding='utf-8')
-          verify=pathlib.Path('v79/access-verify.html').read_text(encoding='utf-8')
+          verify_page=pathlib.Path('v79/access-verify.html').read_text(encoding='utf-8')
+          verify_runtime=pathlib.Path('v79/access-verify.js').read_text(encoding='utf-8')
           consent=pathlib.Path('v79/registration-consent.js').read_text(encoding='utf-8')
           extension=pathlib.Path('v79/commercial-extension.js').read_text(encoding='utf-8')
           sw=pathlib.Path('v79/service-worker.js').read_text(encoding='utf-8')
           recovery=pathlib.Path('v79/recovery.html').read_text(encoding='utf-8')
-          text='\n'.join([gateway,access,verify,consent,extension,sw,recovery])
+          text='\n'.join([gateway,access,verify_page,verify_runtime,consent,extension,sw,recovery])
           forbidden=[r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'Bearer\s+eyJ']
           for pattern in forbidden:
               assert not re.search(pattern,text,re.I),pattern
@@ -167,6 +172,9 @@ jobs:
           assert "invite_only_free" in gateway
           assert "crypto-lab-v79-7930-free30" in sw
           assert "referrer" in recovery.lower() and "no-referrer" in recovery.lower()
-          assert "referrer" in verify.lower() and "no-referrer" in verify.lower()
+          assert "referrer" in verify_page.lower() and "no-referrer" in verify_page.lower()
+          assert '<script src="./access-verify.js"></script>' in verify_page
+          inline=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',verify_page,re.S|re.I)
+          assert not any(script.strip() for script in inline)
           print('Email-bound FREE auth/payment boundaries: OK')
           PY
