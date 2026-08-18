@@ -5,11 +5,15 @@ on:
     branches: [main]
     paths:
       - 'v79/auth-gateway.js'
+      - 'v79/access-gate.js'
+      - 'v79/access-verify.html'
       - 'v79/registration-consent.js'
       - 'v79/free-access-ui.js'
       - 'v79/recovery.html'
       - 'v79/commercial-extension.js'
       - 'v79/service-worker.js'
+      - 'supabase/functions/crypto-lab-v79-access/**'
+      - 'supabase/migrations/*email_bound_access*'
       - 'docs/AUTH_GATEWAY_HARDENING_7930.md'
       - '.github/workflows/v79-auth-gateway-validation.yml'
   workflow_dispatch:
@@ -27,6 +31,7 @@ jobs:
       - name: Validate static auth gateway
         run: |
           node --check v79/auth-gateway.js
+          node --check v79/access-gate.js
           node --check v79/registration-consent.js
           node --check v79/free-access-ui.js
           node --check v79/commercial-extension.js
@@ -34,19 +39,59 @@ jobs:
           grep -F "protectedAuthGatewayScript" v79/commercial-extension.js
           grep -F "publicFreeAccessScript" v79/commercial-extension.js
           grep -F "./auth-gateway.js" v79/service-worker.js
-          grep -F "crypto-lab-v79-7930-free1" v79/service-worker.js
+          grep -F "./access-verify.html" v79/service-worker.js
+          grep -F "crypto-lab-v79-7930-free30" v79/service-worker.js
           grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
+          grep -F "email_bound_signup:!INVITE_TOKEN" v79/auth-gateway.js
           grep -F "invite_only_free" v79/auth-gateway.js
           grep -F "invite_token" v79/auth-gateway.js
           grep -F "crypto_register" v79/auth-gateway.js
           grep -F "crypto_recover" v79/auth-gateway.js
+          grep -F "const DEVICE_KEY='cryptoLabEmailAccessDeviceV1'" v79/access-gate.js
+          grep -F "device_hash:deviceHash" v79/access-gate.js
+          grep -F "device_secret:device" v79/access-verify.html
+          grep -F "verifyOtp({token_hash:b.token_hash,type:'email'})" v79/access-verify.html
           grep -F "free-access-ui.js" v79/registration-consent.js
           ! grep -F "new MutationObserver(render)" v79/registration-consent.js
           ! grep -F "friendsFamilyAccountScript" v79/commercial-extension.js
           ! grep -F "adminBillingEventsScript" v79/commercial-extension.js
 
-      - name: Verify live protected invite-only auth lifecycle
+      - name: Validate email-bound server source
         run: |
+          set -euo pipefail
+          SRC='supabase/functions/crypto-lab-v79-access/index.ts'
+          MIG='supabase/migrations/202608181700_email_bound_access_grants.sql'
+          test -f "$SRC"
+          test -f "$MIG"
+          grep -F 'const TTL_MINUTES=30' "$SRC"
+          grep -F 'deviceHash!==grant.device_hash' "$SRC"
+          grep -F '.is("redeem_started_at",null)' "$SRC"
+          grep -F 'admin.auth.admin.generateLink({type:"magiclink"' "$SRC"
+          grep -F 'admin.auth.getUser(jwt)' "$SRC"
+          grep -F 'grant.email!==user.email.toLowerCase()' "$SRC"
+          grep -F 'token_hash text not null unique' "$MIG"
+          grep -F 'device_hash text not null' "$MIG"
+          grep -F 'enable row level security' "$MIG"
+          python - <<'PY'
+          import pathlib,re
+          migration=pathlib.Path('supabase/migrations/202608181700_email_bound_access_grants.sql').read_text(encoding='utf-8')
+          assert not re.search(r'\btoken\s+text\b',migration,re.I), 'plaintext token column is forbidden'
+          assert 'token_hash text not null unique' in migration
+          assert 'device_hash text not null' in migration
+          source=pathlib.Path('supabase/functions/crypto-lab-v79-access/index.ts').read_text(encoding='utf-8')
+          assert 'LINK_IN_PROGRESS' in source
+          assert 'redeem_started_at:reservedAt' in source
+          assert 'type:"magiclink"' in source
+          assert 'p_source:"registration"' in source
+          print('Device-bound email access source contract: OK')
+          PY
+
+      - name: Verify live protected auth lifecycle
+        run: |
+          curl --fail --silent --show-error \
+            -H 'Origin: https://1specnazov1.github.io' \
+            'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-access' \
+            -o /tmp/access.json
           curl --fail --silent --show-error \
             -H 'Origin: https://1specnazov1.github.io' \
             'https://txhzxbizjpinowepfjkm.supabase.co/functions/v1/crypto-lab-v79-register' \
@@ -57,25 +102,34 @@ jobs:
             -o /tmp/recover.json
           python - <<'PY'
           import json
+          access=json.load(open('/tmp/access.json'))
           register=json.load(open('/tmp/register.json'))
           recover=json.load(open('/tmp/recover.json'))
 
-          # Owner boundary: public registration stays closed. A protected invite may
-          # enable one specific request, but the public endpoint must remain fail-closed.
+          assert access.get('ok') is True
+          assert access.get('mode')=='email_bound'
+          assert access.get('request_enabled') is True
+          assert access.get('device_bound') is True
+          assert access.get('captcha_action')=='crypto_access_request'
+          assert int(access.get('expires_minutes',0))==30
+          legal=set(access.get('required_legal_keys') or [])
+          assert {'terms','privacy','risk'}.issubset(legal)
+          docs=access.get('documents') or []
+          assert len(docs)>=3
+
+          # Legacy invite endpoint remains fail-closed for backward compatibility.
           assert register.get('ok') is True
           assert register.get('enabled') is False
           assert register.get('registration_mode') in {'invite_only_free','disabled'}
           assert register.get('captcha_provider')=='turnstile'
           assert register.get('captcha_action')=='crypto_register'
           assert int(register.get('password_min_length',0))>=10
-          legal=set(register.get('required_legal_keys') or [])
-          assert {'terms','privacy','risk'}.issubset(legal)
-          assert isinstance(register.get('documents'),list)
+          legacy_legal=set(register.get('required_legal_keys') or [])
+          assert {'terms','privacy','risk'}.issubset(legacy_legal)
           readiness=register.get('readiness') or {}
           assert readiness.get('turnstile') is True
           assert readiness.get('mail_provider') is True
           assert readiness.get('legal_documents') is True
-          assert register.get('site_key') in (None,'') or isinstance(register.get('site_key'),str)
 
           assert recover.get('ok') is True
           assert isinstance(recover.get('enabled'),bool)
@@ -85,8 +139,7 @@ jobs:
           recover_readiness=recover.get('readiness') or {}
           assert recover_readiness.get('turnstile') is True
           assert recover_readiness.get('mail_provider') is True
-          assert recover.get('site_key') in (None,'') or isinstance(recover.get('site_key'),str)
-          print('Protected invite-only registration and recovery boundary: OK')
+          print('Live email-bound access + legacy/recovery boundaries: OK')
           PY
 
       - name: Verify free auth and payment boundaries
@@ -95,21 +148,25 @@ jobs:
           python - <<'PY'
           import pathlib,re
           gateway=pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
+          access=pathlib.Path('v79/access-gate.js').read_text(encoding='utf-8')
+          verify=pathlib.Path('v79/access-verify.html').read_text(encoding='utf-8')
           consent=pathlib.Path('v79/registration-consent.js').read_text(encoding='utf-8')
           extension=pathlib.Path('v79/commercial-extension.js').read_text(encoding='utf-8')
           sw=pathlib.Path('v79/service-worker.js').read_text(encoding='utf-8')
           recovery=pathlib.Path('v79/recovery.html').read_text(encoding='utf-8')
-          text='\n'.join([gateway,consent,extension,sw,recovery])
+          text='\n'.join([gateway,access,verify,consent,extension,sw,recovery])
           forbidden=[r'sb_secret_',r'sk_live_',r'sk_test_',r'whsec_',r'-----BEGIN (?:RSA |EC |)PRIVATE KEY-----',r'Bearer\s+eyJ']
           for pattern in forbidden:
               assert not re.search(pattern,text,re.I),pattern
           assert 'CRYPTO_TURNSTILE_SECRET_KEY' not in gateway
+          assert 'CRYPTO_TURNSTILE_SECRET_KEY' not in access
           assert "new Set(['terms','privacy','risk'])" in consent
           assert 'friendsFamilyAccountScript' not in extension
           assert 'adminBillingEventsScript' not in extension
           assert "publicFreeAccessScript" in extension
           assert "invite_only_free" in gateway
-          assert "crypto-lab-v79-7930-free20" in sw
+          assert "crypto-lab-v79-7930-free30" in sw
           assert "referrer" in recovery.lower() and "no-referrer" in recovery.lower()
-          print('Invite-only FREE auth/payment boundaries: OK')
+          assert "referrer" in verify.lower() and "no-referrer" in verify.lower()
+          print('Email-bound FREE auth/payment boundaries: OK')
           PY
