@@ -2,16 +2,16 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-access v79 launch hardening. New access uses device-bound single-use email links. FREE fair-use quotas are now independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Chart navigation and direct production chart URLs are routed through an authenticated quota gate; internal chart refresh does not consume additional daily quota. EXACT consumes its own counter and no longer consumes Classic Backtest quota. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include the Chart quota gate and direct guard. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-access compatibility release with follower-only launch hardening. CRYPTO LAB is English-first for new visitors. Email remains the CRYPTO LAB account identity step; terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, FREE launch information, feedback, Chart quota gate and direct guard. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free30",
+  "pwa_cache": "crypto-lab-v79-7930-free31",
   "asset_overrides": {
     "v79/index.html": {
-      "sha": "a71cf240bca4bcf6601b5fdb2db98f583cb3bb1d",
+      "sha": "8d7009fe20d82e84409f2aafd74729d9cb2b4032",
       "marker": "CRYPTO LAB — Crypto Market Intelligence"
     },
     "v79/app.html": {
@@ -27,8 +27,8 @@
       "marker": "invite_only_free"
     },
     "v79/service-worker.js": {
-      "sha": "8fc6b0747e537bb8f986a58a056a8efff6642b48",
-      "marker": "crypto-lab-v79-7930-free30"
+      "sha": "7f6c70b28ca8a767ffe9f7fe79ed5a84bc776bb5",
+      "marker": "crypto-lab-v79-7930-free31"
     }
   }
 }
