@@ -6,8 +6,10 @@ const PRICES=[65123.45,1927.2,76.9,1.033,612.4,0.152,16.8,1.92,0.61,31.2,0.91,0.
 const TICKERS=BASES.map((base,index)=>({symbol:base+'USDT',lastPrice:String(PRICES[index]),priceChangePercent:String(CHANGES[index]),quoteVolume:String(2500000000-index*125000000)}));
 
 async function stub(page){
+  await page.addInitScript(()=>localStorage.setItem('sb-txhzxbizjpinowepfjkm-auth-token',JSON.stringify({access_token:'intelligence-test-token'})));
   await page.route('https://**/*',async route=>{
     const url=route.request().url();
+    if(url.includes('/functions/v1/crypto-lab-v79-chart'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,feature:'chart',quota:{allowed:true,feature:'chart',plan:'FREE',limit:100,used:1,remaining:99},rate:{remaining:29,window_seconds:60}})});
     if(url.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,server_time:new Date().toISOString(),latest_run:{finished_at:new Date().toISOString(),class_a_found:3,class_a:[],symbols_checked:20,timeframes:['5M','1H','4H']},signal_counts:{waiting:0,active:0,closed:0},scanner_job:{active:true},monitor_job:{active:false},signals:[],runs:[]})});
     if(url.includes('/functions/v1/crypto-lab-v79-news'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,items:[],breaking:[],state:{status:'ok',accepted_count:0,last_finished_at:new Date().toISOString()},server_time:new Date().toISOString()})});
     if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'invite_only_free',invite_valid:false,site_key:null,captcha_provider:'turnstile',captcha_action:'crypto_register',password_min_length:10,required_legal_keys:['terms','privacy','risk'],documents:[],readiness:{feature_flag:false,turnstile:true,mail_provider:true,legal_documents:true}})});
@@ -19,12 +21,13 @@ async function stub(page){
       if(url.includes('/api/v3/exchangeInfo'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({symbols:[]})});
       return route.fulfill({status:404,contentType:'application/json',body:'{}'});
     }
-    if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase=window.supabase||{createClient(){return {auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}}}};'});
+    if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient(){return {auth:{getSession:async()=>({data:{session:{access_token:'intelligence-test-token',user:{id:'intelligence-user',email:'intelligence@example.invalid'}}},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}}}};`});
     return route.abort();
   });
 }
 
 async function open(page){await stub(page);await page.goto('/v79/app.html?intelligence-home-smoke=1',{waitUntil:'domcontentloaded'});await expect(page.locator('#homeView')).toHaveClass(/ih/);await expect(page.locator('#ihReg')).toBeVisible();}
+async function waitForChart(page){await expect.poll(()=>page.frames().some(frame=>{try{return new URL(frame.url()).pathname.endsWith('/v79/chart.html')}catch{return false}}),{timeout:6000}).toBe(true);}
 async function expectCurrentLanguageTitle(page){const selected=await page.locator('#lang').inputValue();const expected=selected==='uk'?'Ринок за 30 секунд':selected==='en'?'Market in 30 seconds':'Рынок за 30 секунд';await expect(page.locator('#title')).toContainText(expected);}
 async function noOverflow(page){const d=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,body:document.body.scrollWidth,doc:document.documentElement.scrollWidth,home:document.getElementById('homeView')?.scrollWidth||0}));expect(Math.max(d.body,d.doc,d.home)).toBeLessThanOrEqual(d.viewport+3);}
 
@@ -32,12 +35,12 @@ test('intelligence home replaces duplicate chart with decision dashboard',async(
   await open(page);await expect(page.locator('#homeBtcCanvas')).toHaveCount(0);await expectCurrentLanguageTitle(page);await expect(page.locator('#statBtc')).toHaveText('$65,123.45');await expect(page.locator('#ihBreadth')).not.toHaveText('—');await expect(page.locator('#ihRisk')).not.toHaveText('—');await expect(page.locator('#ihOpp .ih-row')).toHaveCount(5);await expect(page.locator('#ihHeat .ih-tile')).toHaveCount(12);await expect(page.locator('#ihData')).toHaveText('ONLINE');await expect(page.locator('#serverText')).toContainText('FREE Scanner');await expect(page.locator('#serverBox')).not.toHaveClass(/bad/);const primary=await page.locator('.ih-actions>.ih-btn.main').boundingBox();expect(primary).not.toBeNull();expect(primary.width).toBeLessThanOrEqual(190);expect(primary.height).toBeLessThanOrEqual(40);await noOverflow(page);
 });
 
-test('intelligence home actions open the existing analytical modules',async({page})=>{await open(page);await page.locator('[data-r="analytics"]').first().click();await expect(page.locator('#frameView')).toBeVisible();await expect(page.locator('#frame')).toHaveAttribute('src',/chart\.html/);});
+test('intelligence home actions open the existing analytical modules',async({page})=>{await open(page);await page.locator('[data-r="analytics"]').first().click();await expect(page.locator('#frameView')).toBeVisible();await expect(page.locator('#frame')).toHaveAttribute('src',/chart-gate\.html/);await waitForChart(page);await expect(page.frameLocator('#frame').locator('#chart')).toBeVisible();});
 
 test('module navigation always resets shared iframe to the top',async({page})=>{
   await open(page);
   await page.locator('[data-r="analytics"]').first().click();
-  await expect(page.locator('#frame')).toHaveAttribute('src',/chart\.html/);
+  await waitForChart(page);
   await expect(page.frameLocator('#frame').locator('#chart')).toBeVisible();
   await page.locator('#frame').evaluate(frame=>frame.contentWindow.scrollTo(0,700));
   await page.locator('#nav [data-route="news"]').click();
