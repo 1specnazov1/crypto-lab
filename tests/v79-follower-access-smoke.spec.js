@@ -10,7 +10,7 @@ async function quietExternal(page){
     if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient(){return {functions:{invoke:async()=>({data:{ok:true},error:null})}}}};`});
     if(url.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,server_time:new Date().toISOString(),latest_run:null,signal_counts:{},scanner_job:{active:false},monitor_job:{active:false},signals:[],runs:[]})});
     if(url.includes('/functions/v1/crypto-lab-v79-access'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'email_access'})});
-    if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'invite_only_free',documents:[]})});
+    if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'x_follower_free',documents:[]})});
     if(url.includes('/functions/v1/crypto-lab-v79-recover'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false})});
     if(url.includes('api.binance.com')||url.includes('data-api.binance.vision'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
     return route.abort();
@@ -32,6 +32,9 @@ test('first launch defaults to English and exposes the exact FREE package',async
   await expect(info).toContainText('Scanner EXACT Replay');
   await expect(info).toContainText('25 runs / day');
   await expect(info).toContainText('Suggest an improvement');
+  await expect(page.locator('#accessGateSignup')).toHaveText('Create FREE account');
+  await page.locator('#accessGateSignup').click();
+  await expect(page).toHaveURL(/\/v79\/account\.html\?signup=1$/);
 });
 
 test('signed-in non-verified user is blocked behind X follower verification',async({page})=>{
