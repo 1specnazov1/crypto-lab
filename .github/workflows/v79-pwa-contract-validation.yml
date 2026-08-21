@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'v79/**'
+      - 'docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json'
       - '.github/workflows/v79-pwa-contract-validation.yml'
   workflow_dispatch:
 
@@ -29,8 +30,10 @@ jobs:
           assert m['name'].startswith('CRYPTO LAB')
           assert m['icons'] and all(i['src'].startswith('./') for i in m['icons'])
           worker=Path('v79/service-worker.js').read_text()
-          assert "const CACHE='crypto-lab-v79-7930-free30'" in worker
-          for asset in ['app.js','runtime-performance.js','news-extension.js','news-ticker-controls.js','news-ui-upgrades.js','news.html','public-free-home.js','home-intelligence.js','route-viewport-fix.js','chart-interactions.js','chart-live-price.js','chart-visual-upgrades.js','route-merge.js','access-gate.js','access-verify.html','access-verify.js','support.html','session-security.js','icon.svg','module-mobile.css','platform.css','admin.html','recovery.html','recovery-request.html']:
+          overlay=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json').read_text())
+          expected_cache=overlay['pwa_cache']
+          assert f"const CACHE='{expected_cache}'" in worker, f'PWA cache drift: expected {expected_cache}'
+          for asset in ['app.js','runtime-performance.js','news-extension.js','news-ticker-controls.js','news-ui-upgrades.js','news.html','public-free-home.js','home-intelligence.js','route-viewport-fix.js','chart-interactions.js','chart-live-price.js','chart-visual-upgrades.js','route-merge.js','access-gate.js','access-verify.html','access-verify.js','follower-access-guard.js','free-launch-info.js','feedback.html','chart-gate.html','chart-gate.js','chart-direct-guard.js','support.html','session-security.js','icon.svg','module-mobile.css','platform.css','admin.html','recovery.html','recovery-request.html']:
               assert f'./{asset}' in worker, asset
           assert "if(isApi(url)||url.origin!==self.location.origin)return" in worker
           assert "fetch(req,{cache:'no-store'})" in worker
@@ -61,6 +64,8 @@ jobs:
           grep -F 'agreeing.length<2' v79/chart-live-price.js
           grep -F 'const MAX_PASSES=3' v79/news-ticker-controls.js
           grep -F "hideCurrent('completed')" v79/news-ticker-controls.js
+          grep -F "const TARGET='@CryptoLabPulse'" v79/follower-access-guard.js
+          grep -F "code==='X_NOT_CONNECTED'" v79/follower-access-guard.js
           if grep -F 'observer.observe(document.documentElement' v79/session-security.js; then
             echo 'Whole-document Account observer is forbidden' >&2; exit 1
           fi
