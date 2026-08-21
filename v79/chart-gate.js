@@ -14,7 +14,7 @@
   const tr=()=>T[lang]||T.ru;
   function token(){try{const raw=localStorage.getItem(AUTH_KEY);if(!raw)return'';const v=JSON.parse(raw);return String(v?.access_token||v?.currentSession?.access_token||v?.session?.access_token||'')}catch{return''}}
   function fail(text){$('state').textContent=text;$('state').className='state bad';$('back').hidden=false}
-  function target(){const p=new URLSearchParams(location.search);return './chart.html'+(p.toString()?'?'+p.toString():'')}
+  function target(){const p=new URLSearchParams(location.search);p.delete('quotaTarget');return './chart.html'+(p.toString()?'?'+p.toString():'')}
   async function run(){document.documentElement.lang=lang;$('title').textContent=tr().title;$('text').textContent=tr().checking;$('state').textContent=tr().preparing;$('back').textContent=tr().back;const jwt=token();if(!jwt)return fail(tr().auth);try{const r=await fetch(ENDPOINT,{method:'POST',headers:{Authorization:`Bearer ${jwt}`,apikey:APIKEY,'Content-Type':'application/json'},body:'{}',cache:'no-store'}),b=await r.json().catch(()=>({}));if(r.status===401)return fail(tr().auth);if(r.status===429&&b?.code==='QUOTA_EXCEEDED')return fail(tr().limit);if(r.status===429)return fail(tr().rate);if(!r.ok||!b?.ok)return fail(tr().failed);sessionStorage.setItem('cryptoLabChartQuota',JSON.stringify({at:Date.now(),quota:b.quota||null}));location.replace(target())}catch{return fail(tr().failed)}}
   $('back').onclick=()=>{try{parent.postMessage({type:'crypto-lab-chart-gate-back'},location.origin)}catch{}history.back()};
   run();
