@@ -6,7 +6,8 @@
   const TARGET='@CryptoLabPulse';
   const TARGET_URL='https://x.com/CryptoLabPulse';
   const onApp=/\/app\.html$/.test(location.pathname)||/\/v79\/?$/.test(location.pathname);
-  if(location.hostname==='127.0.0.1'||location.hostname==='localhost'){
+  const smoke=new URLSearchParams(location.search).get('follower-gate-smoke')==='1';
+  if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&!smoke){
     if(!localStorage.getItem('cryptoLabLanguage'))localStorage.setItem('cryptoLabLanguage','en');
     return;
   }
