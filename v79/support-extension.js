@@ -1,6 +1,15 @@
 'use strict';
 (() => {
-  const BUILD='7930free6';
+  const BUILD='7930x1';
+  try{
+    const saved=localStorage.getItem('cryptoLabLanguage');
+    if(!['ru','uk','en'].includes(saved||'')){localStorage.setItem('cryptoLabLanguage','en');lang='en';}
+    else if(typeof lang==='string'&&!['ru','uk','en'].includes(lang))lang='en';
+  }catch{if(typeof lang==='string')lang='en'}
+  function loadRootScript(id,file){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=`./${file}?v=${BUILD}`;s.async=false;document.head.appendChild(s)}
+  loadRootScript('cryptoFollowerAccessGuard','follower-access-guard.js');
+  loadRootScript('freeLaunchInfoScript','free-launch-info.js');
+
   if (!ROUTES.some(route => route[0] === 'support')) ROUTES.push(['support', '❓']);
   if (!T.ru.nav.includes('Поддержка')) T.ru.nav.push('Поддержка');
   if (!T.uk.nav.includes('Підтримка')) T.uk.nav.push('Підтримка');
@@ -47,7 +56,6 @@
   });
 
   document.getElementById('refundLink')?.remove();
-
   translate();
   const requested = outerParams.get('route');
   if (handled.has(requested)) setTimeout(() => open(requested), 0);
