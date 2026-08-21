@@ -1,5 +1,17 @@
 'use strict';
 (() => {
+  const SIGNUP_TEXT={ru:'Создать FREE аккаунт',uk:'Створити FREE акаунт',en:'Create FREE account'};
+  const locale=()=>{try{const saved=localStorage.getItem('cryptoLabLanguage');if(saved&&SIGNUP_TEXT[saved])return saved}catch{}return typeof lang==='string'&&SIGNUP_TEXT[lang]?lang:'en'};
+  function injectSignup(){
+    const actions=document.querySelector('#accessGateForm .access-gate-actions');
+    if(!actions||document.getElementById('accessGateSignup'))return false;
+    const button=document.createElement('button');button.id='accessGateSignup';button.type='button';button.className='access-gate-submit';button.textContent=SIGNUP_TEXT[locale()];button.onclick=()=>{location.href='./account.html?signup=1';};actions.prepend(button);
+    return true;
+  }
+  injectSignup();
+  const observer=new MutationObserver(()=>{if(injectSignup())setTimeout(()=>observer.disconnect(),500)});observer.observe(document.documentElement,{childList:true,subtree:true});setTimeout(()=>{injectSignup();observer.disconnect()},6000);
+  document.getElementById('lang')?.addEventListener('change',()=>setTimeout(()=>{const b=document.getElementById('accessGateSignup');if(b)b.textContent=SIGNUP_TEXT[locale()]},0));
+
   const home=document.getElementById('homeView');
   if(!home||document.getElementById('freeLaunchInfo'))return;
   const style=document.createElement('style');style.id='freeLaunchInfoStyles';style.textContent=`
