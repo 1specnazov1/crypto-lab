@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-access compatibility release with follower-only launch hardening. CRYPTO LAB is English-first for new visitors. Email remains the CRYPTO LAB account identity step; terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, FREE launch information, feedback, Chart quota gate and direct guard. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-access compatibility release upgraded to self-service follower launch. CRYPTO LAB is English-first for new visitors. Users create a protected FREE account, confirm email, then terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, FREE launch information, feedback, Chart quota gate and direct guard. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -23,8 +23,8 @@
       "marker": "publicFreeAccessScript"
     },
     "v79/auth-gateway.js": {
-      "sha": "b00c3e0f0b0eaec1dd519e254662b756d8a4802c",
-      "marker": "invite_only_free"
+      "sha": "6a5a91115f66c58c6d049fc1681a9e6c1333dd0a",
+      "marker": "x_follower_free"
     },
     "v79/service-worker.js": {
       "sha": "7f6c70b28ca8a767ffe9f7fe79ed5a84bc776bb5",
