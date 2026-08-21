@@ -13,6 +13,7 @@ on:
       - 'tests/v79-public-user-e2e.spec.js'
       - 'tests/v79-email-access-smoke.spec.js'
       - 'tests/v79-backtest-v15-ui-smoke.spec.js'
+      - 'tests/v79-follower-access-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -34,6 +35,7 @@ on:
       - 'tests/v79-public-user-e2e.spec.js'
       - 'tests/v79-email-access-smoke.spec.js'
       - 'tests/v79-backtest-v15-ui-smoke.spec.js'
+      - 'tests/v79-follower-access-smoke.spec.js'
       - 'tests/v79-owner-launch-smoke.spec.js'
       - 'tests/v79-owner-mobile-navigation.spec.js'
       - 'tests/v79-public-launch-audit.spec.js'
@@ -130,6 +132,10 @@ jobs:
 
       - name: Validate news summary filters and three-pass ticker
         run: npx playwright test tests/v79-news-filter-cycle-smoke.spec.js --config=playwright.config.mjs
+        env: { CI: 'true' }
+
+      - name: Validate English-first follower access launch
+        run: npx playwright test tests/v79-follower-access-smoke.spec.js --config=playwright.config.mjs
         env: { CI: 'true' }
 
       - name: Run owner desktop launch path
