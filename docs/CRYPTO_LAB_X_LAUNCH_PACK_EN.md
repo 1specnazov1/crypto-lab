@@ -1,52 +1,51 @@
 # CRYPTO LAB FREE — X Launch Pack (English)
 
-## Primary launch post
+## Primary launch post — 274 characters
 
-🚀 CRYPTO LAB FREE is opening to verified @CryptoLabPulse followers.
+🚀 CRYPTO LAB FREE is live for verified @CryptoLabPulse followers.
 
-Scanner • Chart & Analytics • Smart Money • On-Chain • AI Analysis • Backtesting • Portfolio • Risk Calculator • Trade Journal.
+Scanner • Charts • Smart Money • On-Chain • AI • Backtesting • Portfolio • Risk Calculator • Trade Journal.
 
-Follow → create your FREE account → connect X → start.
+Follow → create a FREE account → connect X → start.
 
 https://1specnazov1.github.io/crypto-lab/v79/
 
-## First reply — FREE limits
+## First reply — FREE limits — 209 characters
 
-CRYPTO LAB FREE includes:
+FREE limits:
+Scanner ∞
+Chart & Analytics 100/day
+Smart Money ∞
+On-Chain ∞
+AI 5/day
+Classic Backtest 50/day
+Scanner EXACT 25/day
+Portfolio ∞
+Risk Calculator ∞
+Trade Journal ∞
 
-• Scanner — unlimited daily use
-• Chart & Analytics — 100 opens/day
-• Smart Money — unlimited daily use with technical rate protection
-• On-Chain — unlimited daily use with cache/rate protection
-• AI Analysis — 5 analyses/day
-• Classic Backtest — 50 runs/day
-• Scanner EXACT Replay — 25 runs/day, separate quota
-• Portfolio — unlimited
-• Risk Calculator — unlimited
-• Trade Journal — unlimited
+No payment during the FREE launch.
 
-No payment is required during the FREE launch stage.
+## Second reply — build with the community — 202 characters
 
-## Second reply — build with the community
+Help shape CRYPTO LAB.
 
-CRYPTO LAB is being improved continuously.
+Use “Suggest an improvement” inside the platform to send a product idea, bug report or workflow suggestion.
 
-Inside the platform, use **Suggest an improvement** to send a product idea, bug report or workflow suggestion. Useful proposals will be reviewed and may be included in future releases.
+Useful proposals are reviewed and may be included in future releases.
 
-## Third reply — access model
+## Third reply — access + risk — 265 characters
 
-Access is reserved for verified @CryptoLabPulse followers.
+Access is for verified @CryptoLabPulse followers.
 
-The platform does not trust a typed X username. A user signs in to CRYPTO LAB, connects X through read-only OAuth, and the backend verifies follower status through the X API.
+CRYPTO LAB does not trust a typed X username. Sign in, connect X with read-only OAuth, and the backend verifies follower status through the X API.
 
-## Risk note
+Market intelligence only — no guaranteed outcomes or auto-trading.
 
-CRYPTO LAB is a market-intelligence, analytics and decision-support platform. It does not guarantee trading outcomes and does not automatically execute trades on a user's exchange account.
-
-## Recommended link for all launch posts
+## Recommended launch link
 
 https://1specnazov1.github.io/crypto-lab/v79/
 
 ## Short profile / pinned-post description
 
-CRYPTO LAB FREE — crypto market intelligence for verified @CryptoLabPulse followers. Scanner, advanced charts, Smart Money, On-Chain, AI analysis, backtesting, portfolio tools, risk calculator and trade journal. Community feedback helps shape future releases.
+CRYPTO LAB FREE — crypto market intelligence for verified @CryptoLabPulse followers. Scanner, charts, Smart Money, On-Chain, AI analysis, backtesting, portfolio tools, risk calculator and trade journal. Community feedback helps shape future releases.
