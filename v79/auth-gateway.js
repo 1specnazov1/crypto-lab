@@ -8,6 +8,8 @@
     uk:{unavailable:'Реєстрація тимчасово недоступна.',captcha:'Підтвердьте, що ви не робот.',confirm:'Перевірте пошту, підтвердьте реєстрацію, потім увійдіть і підключіть X для перевірки підписки на @CryptoLabPulse.',reset:'Якщо акаунт існує, посилання відновлення буде надіслано на пошту.',email:'Введіть коректний email.',password:'Пароль: мінімум 10 символів, велика і мала літера, цифра.',working:'Обробка…',activate:'Створити FREE акаунт',follower:'Після підтвердження email доступ відкриється лише після перевірки підписки на @CryptoLabPulse через X.'},
     en:{unavailable:'Registration is temporarily unavailable.',captcha:'Complete the anti-bot check.',confirm:'Check your email, confirm registration, then sign in and connect X so we can verify that you follow @CryptoLabPulse.',reset:'If the account exists, a recovery link will be sent.',email:'Enter a valid email address.',password:'Password: at least 10 characters with upper case, lower case and a number.',working:'Processing…',activate:'Create FREE account',follower:'After email confirmation, CRYPTO LAB opens only after X verifies that you follow @CryptoLabPulse.'}
   };
+  function ensureEnglishFirst(){try{if(localStorage.getItem('cryptoLabLanguage'))return;localStorage.setItem('cryptoLabLanguage','en');document.documentElement.lang='en';if(typeof lang==='string')lang='en';const selector=document.getElementById('lang');if(selector){selector.value='en';selector.dispatchEvent(new Event('change',{bubbles:true}));}}catch{}}
+  ensureEnglishFirst();
   const originalFetch=window.fetch.bind(window);
   let registerConfig={enabled:false,site_key:null,captcha_action:'crypto_register'};
   let recoveryConfig={enabled:false,site_key:null,captcha_action:'crypto_recover'};
