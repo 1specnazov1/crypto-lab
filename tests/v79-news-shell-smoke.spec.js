@@ -11,6 +11,7 @@ async function stub(page){
   await page.addInitScript(()=>localStorage.setItem('sb-txhzxbizjpinowepfjkm-auth-token',JSON.stringify({access_token:'ticker-test-token'})));
   await page.route('https://**/*',async route=>{
     const raw=route.request().url(),u=new URL(raw);
+    if(raw.includes('/functions/v1/crypto-lab-v79-chart'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,feature:'chart',quota:{allowed:true,feature:'chart',plan:'FREE',limit:100,used:1,remaining:99},rate:{remaining:29,window_seconds:60}})});
     if(raw.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,server_time:new Date().toISOString(),latest_run:{finished_at:new Date().toISOString(),success:true,class_a_found:0,symbols_checked:20,timeframes:['5M']},scanner_job:{active:true},monitor_job:{active:false},signal_counts:{waiting:0,active:0,closed:397},signals:[],runs:[]})});
     if(raw.includes('/functions/v1/crypto-lab-v79-news')){
       const lang=u.searchParams.get('lang')||'en',localized=lang==='ru'?RU:lang==='uk'?UK:EN;
@@ -35,6 +36,7 @@ async function stub(page){
   });
 }
 
+async function waitForChart(page){await expect.poll(()=>page.frames().some(frame=>{try{return new URL(frame.url()).pathname.endsWith('/v79/chart.html')}catch{return false}}),{timeout:6000}).toBe(true);}
 async function aligned(page){
   return page.evaluate(()=>{const t=document.getElementById('marketNewsTicker')?.getBoundingClientRect(),w=document.querySelector('.work')?.getBoundingClientRect(),f=document.getElementById('frame')?.getBoundingClientRect();return{tickerBottom:t?.bottom||0,workTop:w?.top||0,frameTop:f?.top||0,frameHeight:f?.height||0,rows:getComputedStyle(document.querySelector('.main')).gridTemplateRows}});
 }
@@ -43,7 +45,7 @@ test('ticker never pushes chart or news modules down the viewport',async({page})
   await stub(page);await page.goto('/v79/app.html?ticker-shell=1',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#marketNewsTicker')).toHaveClass(/show/);
   let pos=await aligned(page);expect(Math.abs(pos.workTop-pos.tickerBottom)).toBeLessThanOrEqual(2);expect(pos.rows.split(' ').length).toBeGreaterThanOrEqual(3);
-  await page.locator('#nav button[data-route="analytics"]').click();await expect(page.locator('#frameView')).toBeVisible();pos=await aligned(page);expect(Math.abs(pos.frameTop-pos.tickerBottom)).toBeLessThanOrEqual(2);expect(pos.frameHeight).toBeGreaterThan(400);
+  await page.locator('#nav button[data-route="analytics"]').click();await expect(page.locator('#frameView')).toBeVisible();await waitForChart(page);pos=await aligned(page);expect(Math.abs(pos.frameTop-pos.tickerBottom)).toBeLessThanOrEqual(2);expect(pos.frameHeight).toBeGreaterThan(400);
   await page.locator('#nav button[data-route="news"]').click();await expect(page.frameLocator('#frame').locator('#title')).toBeVisible();pos=await aligned(page);expect(Math.abs(pos.frameTop-pos.tickerBottom)).toBeLessThanOrEqual(2);
 });
 
@@ -69,6 +71,7 @@ test('checkbox dismisses ticker and a new hot headline automatically restores it
 test('leaving a heavy module releases the hidden iframe runtime',async({page})=>{
   await stub(page);await page.goto('/v79/app.html?runtime-speed=1',{waitUntil:'domcontentloaded'});
   await page.locator('#nav button[data-route="analytics"]').click();
+  await waitForChart(page);
   await expect(page.frameLocator('#frame').locator('#chart')).toBeVisible();
   await page.locator('#nav button[data-route="home"]').click();
   await expect(page.locator('#homeView')).toBeVisible();
@@ -80,6 +83,7 @@ test('leaving a heavy module releases the hidden iframe runtime',async({page})=>
 test('4H chart uses verified Binance live consensus instead of stale closed candle close',async({page})=>{
   await stub(page);await page.goto('/v79/app.html?price-guard=1',{waitUntil:'domcontentloaded'});
   await page.locator('#nav button[data-route="analytics"]').click();
+  await waitForChart(page);
   const frame=page.frameLocator('#frame');
   await expect(frame.locator('#tf')).toBeVisible();
   await frame.locator('#tf').selectOption('4h');
