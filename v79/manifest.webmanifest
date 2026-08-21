@@ -1,7 +1,7 @@
 {
   "name": "CRYPTO LAB — Crypto Market Intelligence",
   "short_name": "CRYPTO LAB",
-  "description": "Real-time crypto market intelligence: market analytics, scanner, AI, portfolio, risk and market-moving news.",
+  "description": "CRYPTO LAB FREE for verified @CryptoLabPulse followers: crypto market intelligence, scanner, charts, Smart Money, On-Chain, AI, backtesting, portfolio, risk and news.",
   "id": "/crypto-lab/v79/",
   "start_url": "./index.html?source=pwa",
   "scope": "./",
@@ -9,17 +9,17 @@
   "background_color": "#0b0e11",
   "theme_color": "#0b0e11",
   "orientation": "any",
-  "lang": "ru",
+  "lang": "en",
   "categories": ["finance", "business", "utilities"],
   "icons": [
     {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ],
   "shortcuts": [
-    {"name":"Сканер","short_name":"Сканер","url":"./app.html?route=scanner"},
-    {"name":"AI-анализ","short_name":"AI","url":"./app.html?route=ai"},
-    {"name":"Журнал сделок","short_name":"Журнал","url":"./app.html?route=journal"},
-    {"name":"Бэктест","short_name":"Backtest","url":"./app.html?route=backtest"},
-    {"name":"Аккаунт","short_name":"Аккаунт","url":"./app.html?route=account"},
-    {"name":"Поддержка","short_name":"Поддержка","url":"./app.html?route=support"}
+    {"name":"Scanner","short_name":"Scanner","url":"./app.html?route=scanner"},
+    {"name":"AI Analysis","short_name":"AI","url":"./app.html?route=ai"},
+    {"name":"Trade Journal","short_name":"Journal","url":"./app.html?route=journal"},
+    {"name":"Backtest","short_name":"Backtest","url":"./app.html?route=backtest"},
+    {"name":"Account","short_name":"Account","url":"./app.html?route=account"},
+    {"name":"Support","short_name":"Support","url":"./app.html?route=support"}
   ]
 }
