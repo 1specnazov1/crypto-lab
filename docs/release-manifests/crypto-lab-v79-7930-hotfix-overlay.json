@@ -2,7 +2,7 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-access compatibility release upgraded to self-service follower launch. CRYPTO LAB is English-first for new visitors. Users create a protected FREE account, confirm email, then terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, the explicit X verification page, FREE launch information, feedback, Chart quota gate and direct guard. v78 is not replaced or modified.",
+  "reason": "Owner-authorized FREE invite-access compatibility release upgraded to self-service follower launch. CRYPTO LAB is English-first for new visitors. The first-visit gate now exposes Create FREE account as the primary onboarding action while retaining device-bound one-time email access as an optional secure sign-in path. Users create a protected FREE account, confirm email, then terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, the explicit X verification page, FREE launch information, feedback, Chart quota gate and direct guard. v78 is not replaced or modified.",
   "boundaries": {
     "v79_published_over_v78": false,
     "payment_activation_changed": false,
@@ -23,7 +23,7 @@
       "marker": "publicFreeAccessScript"
     },
     "v79/auth-gateway.js": {
-      "sha": "cb7ec6d6abea544a8716c53227ea5170b199ca9c",
+      "sha": "3cf2b397110136f42ba72532e9df2583a9c9a56a",
       "marker": "x_follower_free"
     },
     "v79/service-worker.js": {
