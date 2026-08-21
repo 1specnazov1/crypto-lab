@@ -39,7 +39,7 @@
     const marketIndex=ROUTES.findIndex(r=>r[0]==='market');if(marketIndex>=0)ROUTES.splice(marketIndex,1);
     for(const code of ['ru','uk','en']){const nav=T?.[code]?.nav;if(Array.isArray(nav)&&nav.length>=3)nav.splice(1,1)}
     const labels={ru:'График и аналитика',uk:'Графік та аналітика',en:'Chart & analytics'};for(const code of ['ru','uk','en'])if(Array.isArray(T?.[code]?.nav)&&T[code].nav.length>1)T[code].nav[1]=labels[code];
-    const baseFrameUrl=frameUrl;frameUrl=function quotaAwareFrameUrl(route,signal){const url=baseFrameUrl(route,signal);return route==='analytics'&&String(url).startsWith('./chart.html')?String(url).replace('./chart.html','./chart-gate.html'):url};
+    const baseFrameUrl=frameUrl;frameUrl=function quotaAwareFrameUrl(route,signal){const url=baseFrameUrl(route,signal);if(route!=='analytics'||!String(url).startsWith('./chart.html'))return url;const gated=String(url).replace('./chart.html','./chart-gate.html');return gated+(gated.includes('?')?'&':'?')+'quotaTarget=chart.html'};
     const baseTranslate=translate;translate=function mergedTranslate(){baseTranslate();document.querySelector('#nav [data-route="market"]')?.remove()};
     document.getElementById('frame')?.addEventListener('load',()=>setTimeout(enhanceFrame,0));translate();loadNewsExtension();loadHomeSmartMoney();
   } catch (e) { console.warn('route merge skipped',e); }
