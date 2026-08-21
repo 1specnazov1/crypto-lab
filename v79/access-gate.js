@@ -5,7 +5,8 @@
   const AUTH_KEY='sb-txhzxbizjpinowepfjkm-auth-token';
   const DEVICE_KEY='cryptoLabEmailAccessDeviceV1';
   const EMAIL_KEY='cryptoLabEmailAccessEmailV1';
-  if(location.hostname==='127.0.0.1'||location.hostname==='localhost')return;
+  const smoke=new URLSearchParams(location.search).get('access-gate-smoke')==='1';
+  if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&!smoke)return;
 
   const TEXT={
     ru:{title:'CRYPTO LAB FREE',sub:'Создайте FREE аккаунт. Если аккаунт уже есть, можно войти паролем или получить одноразовую ссылку на email.',signup:'Создать FREE аккаунт',label:'Email для одноразового входа',placeholder:'name@example.com',send:'Отправить одноразовую ссылку',login:'Войти с паролем',device:'Для одноразовой ссылки откройте письмо на этом же устройстве и в этом же браузере. Пересланная ссылка на другом устройстве не сработает.',privacy:'Email используется только для авторизации и работы аккаунта.',captcha:'Подтвердите, что вы не робот.',legal:'Для доступа по email необходимо принять актуальные документы:',terms:'Условия использования',risk:'Предупреждение о рисках',privacyDoc:'Политика конфиденциальности',legalBad:'Примите все актуальные документы.',bad:'Не удалось отправить ссылку. Попробуйте позже.',ok:'Ссылка отправлена на {email}. Откройте письмо на этом же устройстве и в этом же браузере.',working:'Отправка…'},
