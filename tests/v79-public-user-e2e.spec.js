@@ -31,9 +31,10 @@ async function stub(page){
 
 test('new FREE user can self-register, confirm-flow, login, recover and relogin before follower entitlement',async({page})=>{
  await stub(page);
- await page.goto('/v79/account.html',{waitUntil:'domcontentloaded'});
+ await page.goto('/v79/account.html?signup=1',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#signupTab')).toBeEnabled();
- await page.locator('#signupTab').click();
+ await expect(page.locator('#signupForm')).toBeVisible();
+ await expect(page.locator('#signupTab')).toHaveClass(/on/);
  await page.locator('#signupEmail').fill('new-user@example.invalid');
  await page.locator('#signupName').fill('New User');
  await page.locator('#signupPassword').fill('StrongPass123');
