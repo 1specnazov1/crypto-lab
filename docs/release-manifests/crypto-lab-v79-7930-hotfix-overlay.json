@@ -23,7 +23,7 @@
       "marker": "publicFreeAccessScript"
     },
     "v79/auth-gateway.js": {
-      "sha": "6a5a91115f66c58c6d049fc1681a9e6c1333dd0a",
+      "sha": "cb7ec6d6abea544a8716c53227ea5170b199ca9c",
       "marker": "x_follower_free"
     },
     "v79/service-worker.js": {
