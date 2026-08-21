@@ -9,7 +9,7 @@ async function quietExternal(page){
     if(url.startsWith(ENDPOINT))return route.fallback();
     if(url.includes('cdn.jsdelivr.net'))return route.fulfill({status:200,contentType:'application/javascript',body:`window.supabase={createClient(){return {functions:{invoke:async()=>({data:{ok:true},error:null})}}}};`});
     if(url.includes('/functions/v1/crypto-lab-v79-preview'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,server_time:new Date().toISOString(),latest_run:null,signal_counts:{},scanner_job:{active:false},monitor_job:{active:false},signals:[],runs:[]})});
-    if(url.includes('/functions/v1/crypto-lab-v79-access'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'email_access'})});
+    if(url.includes('/functions/v1/crypto-lab-v79-access'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'email_bound',request_enabled:true,site_key:'access-smoke',captcha_action:'crypto_access_request',documents:[]})});
     if(url.includes('/functions/v1/crypto-lab-v79-register'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false,registration_mode:'x_follower_free',documents:[]})});
     if(url.includes('/functions/v1/crypto-lab-v79-recover'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,enabled:false})});
     if(url.includes('api.binance.com')||url.includes('data-api.binance.vision'))return route.fulfill({status:503,contentType:'application/json',body:'{}'});
@@ -20,7 +20,7 @@ async function quietExternal(page){
 test('first launch defaults to English and exposes the exact FREE package',async({page})=>{
   await page.addInitScript(()=>localStorage.clear());
   await quietExternal(page);
-  await page.goto('/v79/app.html?english-first-smoke=1',{waitUntil:'domcontentloaded'});
+  await page.goto('/v79/app.html?english-first-smoke=1&access-gate-smoke=1',{waitUntil:'domcontentloaded'});
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem('cryptoLabLanguage'))).toBe('en');
   await expect(page.locator('#lang')).toHaveValue('en');
   const info=page.locator('#freeLaunchInfo');
