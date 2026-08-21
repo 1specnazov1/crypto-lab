@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const ROUTES = [
-  ['analytics', 'chart.html'],
+  ['analytics', 'chart-gate.html'],
   ['news', 'news.html'],
   ['scanner', 'scanner.html'],
   ['ai', 'ai.html'],
@@ -61,7 +61,7 @@ test('mobile owner sidebar scrolls and every required module remains reachable',
     await expect(button).toBeVisible();
     await button.click();
 
-    const state = await page.evaluate(({ routeName, fileName }) => {
+    const state = await page.evaluate(({ routeName }) => {
       const button = document.querySelector(`#nav button[data-route="${routeName}"]`);
       const frameView = document.getElementById('frameView');
       const frame = document.getElementById('frame');
@@ -71,7 +71,7 @@ test('mobile owner sidebar scrolls and every required module remains reachable',
         target: frame?.getAttribute('src') || '',
         sidebarOpen: Boolean(document.getElementById('side')?.classList.contains('open'))
       };
-    }, { routeName: route, fileName: file });
+    }, { routeName: route });
 
     expect(state.selected).toBeTruthy();
     expect(state.frameVisible).toBeTruthy();
