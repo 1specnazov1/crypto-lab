@@ -61,6 +61,13 @@ test('mobile owner sidebar scrolls and every required module remains reachable',
     await expect(button).toBeVisible();
     await button.click();
 
+    if (route === 'scanner') {
+      await expect(page).toHaveURL(/\/v79\/app\.html\?route=scanner$/);
+      await expect(page.locator('#cryptoAccessGate')).toBeVisible();
+      await openShell(page);
+      continue;
+    }
+
     const state = await page.evaluate(({ routeName }) => {
       const button = document.querySelector(`#nav button[data-route="${routeName}"]`);
       const frameView = document.getElementById('frameView');
