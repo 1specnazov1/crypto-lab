@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b0e11">
 <meta name="robots" content="noindex,nofollow">
-<title>CRYPTO LAB · Connect X</title>
+<title>CRYPTO LAB · Verify X Access</title>
 <style>
 :root{--bg:#0b0e11;--panel:#151a21;--panel2:#1e2329;--line:#2b3139;--text:#eaecef;--muted:#9aa5b3;--gold:#f0b90b;--ok:#0ecb81;--bad:#f6465d}*{box-sizing:border-box}html,body{min-height:100%}body{margin:0;background:radial-gradient(circle at 80% 10%,#f0b90b18,transparent 30%),var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:20px}.card{width:min(620px,100%);background:linear-gradient(145deg,#171c23,#101419);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 30px 90px #000b}.brand{font-weight:950;letter-spacing:.1em;color:var(--gold);margin-bottom:16px}.badge{display:inline-flex;padding:5px 9px;border:1px solid #f0b90b55;border-radius:999px;color:#ffe28a;background:#f0b90b10;font-size:10px;font-weight:900}.card h1{font-size:30px;margin:14px 0 10px}.card p{color:var(--muted);line-height:1.6}.note{padding:12px;border:1px solid var(--line);background:#0d1117;border-radius:10px;font-size:12px}.status{min-height:22px;margin:14px 0;color:#ffd878;font-weight:700}.actions{display:grid;gap:9px}.btn{min-height:48px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;text-decoration:none;font-weight:900;cursor:pointer;padding:10px 14px}.primary{background:var(--gold);border-color:var(--gold);color:#111}.secondary{background:var(--panel2);color:#fff}.btn:disabled{opacity:.55;cursor:not-allowed}.ok{color:#a7f3d0}.bad{color:#ffc4cd}
 </style>
@@ -14,12 +14,12 @@
 <main class="card">
   <div class="brand">CRYPTO LAB · X ACCESS</div>
   <span class="badge">READ-ONLY X AUTHORIZATION</span>
-  <h1>Connect X &amp; verify</h1>
+  <h1>Verify X Access</h1>
   <p>Connect your real X account so CRYPTO LAB can verify follower access. A typed username is never accepted as proof.</p>
   <div class="note">For the CRYPTO LAB owner/admin account, OAuth can still be tested even though the normal follower gate is bypassed. If the connected X account is @CryptoLabPulse itself, the backend recognizes it as the owner account and does not require a self-follow.</div>
   <div class="status" id="status">Preparing secure X verification…</div>
   <div class="actions">
-    <button class="btn primary" id="connect" type="button">Connect X &amp; verify</button>
+    <button class="btn primary" id="connect" type="button">Verify X Access</button>
     <a class="btn secondary" id="login" href="./account.html?login=1" hidden>Sign in to CRYPTO LAB</a>
     <a class="btn secondary" href="./app.html">Back to CRYPTO LAB</a>
   </div>
@@ -35,7 +35,7 @@
   const s=session();
   if(!localStorage.getItem('cryptoLabLanguage'))localStorage.setItem('cryptoLabLanguage','en');
   if(!s){status.textContent='Sign in to your CRYPTO LAB account first.';status.className='status bad';button.disabled=true;login.hidden=false;return;}
-  async function start(){button.disabled=true;button.textContent='Opening X…';status.textContent='Requesting secure read-only X authorization…';status.className='status';try{const r=await fetch(ENDPOINT,{method:'POST',headers:{Authorization:`Bearer ${s.access_token}`,apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify({action:'start'}),cache:'no-store'});const b=await r.json().catch(()=>({}));if(!r.ok||!b?.authorize_url)throw new Error(b?.error||`X verification could not start (${r.status})`);status.textContent='Redirecting to X…';status.className='status ok';location.href=b.authorize_url;}catch(e){status.textContent=e instanceof Error?e.message:'X verification could not start.';status.className='status bad';button.disabled=false;button.textContent='Retry Connect X & verify';}}
+  async function start(){button.disabled=true;button.textContent='Opening X…';status.textContent='Requesting secure read-only X authorization…';status.className='status';try{const r=await fetch(ENDPOINT,{method:'POST',headers:{Authorization:`Bearer ${s.access_token}`,apikey:APIKEY,'Content-Type':'application/json'},body:JSON.stringify({action:'start'}),cache:'no-store'});const b=await r.json().catch(()=>({}));if(!r.ok||!b?.authorize_url)throw new Error(b?.error||`X verification could not start (${r.status})`);status.textContent='Redirecting to X…';status.className='status ok';location.href=b.authorize_url;}catch(e){status.textContent=e instanceof Error?e.message:'X verification could not start.';status.className='status bad';button.disabled=false;button.textContent='Retry Verify X Access';}}
   button.addEventListener('click',start);
   if(new URLSearchParams(location.search).get('autostart')==='1')setTimeout(start,250);
 })();

@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD = '7930pwa3';
+  const BUILD = '7931public1';
   if (!ROUTES.some(route => route[0] === 'account')) ROUTES.push(['account', '⚙']);
   if (!T.ru.nav.includes('Аккаунт')) T.ru.nav.push('Аккаунт');
   if (!T.uk.nav.includes('Акаунт')) T.uk.nav.push('Акаунт');
@@ -9,6 +9,7 @@
   const originalFrameUrl = frameUrl;
   const originalOpen = open;
   const framed = new Set(['scanner', 'ai', 'backtest', 'journal', 'account']);
+  const requestedRouteAtLoad = new URLSearchParams(location.search).get('route');
   const journalKeys = ['symbol','direction','tf','entry','entryLow','entryHigh','stop','tp','tp2','tp3','sourceSignal','signalStatus','strength','signalTime'];
 
   frameUrl = function(route, signal) {
@@ -42,6 +43,10 @@
 
   open = function(route, signal) {
     if (!framed.has(route)) return originalOpen(route, signal);
+    if (route === 'scanner' && requestedRouteAtLoad !== 'scanner') {
+      location.href = './app.html?route=scanner';
+      return;
+    }
     current = route;
     $('nav').querySelectorAll('button').forEach(button => button.classList.toggle('on', button.dataset.route === route));
     $('side').classList.remove('open');
@@ -211,6 +216,6 @@
   const requestedRoute = new URLSearchParams(location.search).get('route');
   if (requestedRoute && ROUTES.some(route => route[0] === requestedRoute)) setTimeout(() => {
     open(requestedRoute);
-    history.replaceState(null, '', location.pathname);
+    if (requestedRoute !== 'scanner') history.replaceState(null, '', location.pathname);
   }, 0);
 })();

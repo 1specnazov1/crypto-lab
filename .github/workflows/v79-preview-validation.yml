@@ -86,13 +86,15 @@ jobs:
           assert overlay.get('schema_version') == 1
           assert overlay.get('build') == base.get('build') == '7930'
           boundaries=overlay.get('boundaries',{})
-          assert boundaries.get('v79_published_over_v78') is False
+          assert boundaries.get('v79_published_over_v78') is True
           assert boundaries.get('payment_activation_changed') is False
           assert boundaries.get('registration_activation_changed') is True
           reason=overlay.get('reason','').lower()
           assert 'free' in reason and 'follower' in reason
           application=base.setdefault('application',{})
           application['pwa_cache']=overlay['pwa_cache']
+          base.setdefault('boundaries',{})['v79_published_over_v78']=True
+          base['stable_root']=overlay['stable_root_override']
           overrides=overlay.get('asset_overrides',{})
           seen=set()
           for asset in application.get('assets',[]):
@@ -145,11 +147,11 @@ jobs:
             'admin-integrity.js':['get_crypto_admin_data_integrity','dataIntegrityPanel'],
             'admin-ops-summary.js':['get_crypto_admin_operational_summary','operationalSummary'],
             'service-worker.js':['public-free-home.js','access-gate.js','follower-access-guard.js','free-launch-info.js','feedback.html','admin-access.js','free-access-ui.js','recovery.html','admin-drift.js','admin-integrity.js','admin-ops-summary.js','CLEAR_OLD_CACHES','ignoreSearch:true'],
-            'app.html':['Content-Security-Policy','public-free-home.js?v=7930free2','commercial-extension.js?v=7930','accessibility.js?v=7930','access-gate.js?v=7930free6'],
+            'app.html':['Content-Security-Policy','public-free-home.js?v=7931','commercial-extension.js?v=7930','accessibility.js?v=7930','access-gate.js?v=7931'],
             'access-gate.js':['crypto-lab-v79-access','account.html?login=1','accessGatePrivacy'],
             'auth-gateway.js':['x_follower_free','follower_verification_required','Create FREE account'],
             'follower-access-guard.js':["const TARGET='@CryptoLabPulse'",'X_NOT_CONNECTED','FOLLOW_REQUIRED'],
-            'free-launch-info.js':['FREE — for verified @CryptoLabPulse followers','100 opens / day','25 runs / day'],
+            'free-launch-info.js':['PUBLIC HOMEPAGE','Open protected signals','100 opens / day','25 runs / day'],
             'admin-access.js':['crypto-lab-v79-access-admin','Перевыпустить ссылку'],
             'manifest.webmanifest':['"display": "standalone"','icon.svg']
           }
@@ -207,7 +209,7 @@ jobs:
           edge_slugs=[item.get('slug') for item in manifest.get('edge_functions',[])]
           if len(edge_slugs)!=len(set(edge_slugs)):errors.append('duplicate edge function in manifest')
           if len(edge_slugs)<20:errors.append('release manifest edge inventory incomplete')
-          if manifest.get('boundaries',{}).get('v79_published_over_v78') is not False:errors.append('release manifest root boundary invalid')
+          if manifest.get('boundaries',{}).get('v79_published_over_v78') is not True:errors.append('release manifest public root boundary invalid')
 
           webmanifest=json.loads(read('manifest.webmanifest'))
           if webmanifest.get('display')!='standalone' or not webmanifest.get('icons'):errors.append('invalid PWA manifest')
@@ -215,5 +217,5 @@ jobs:
           if schema.get('title')!='CRYPTO LAB Normalized Billing Event v1':errors.append('normalized billing schema title mismatch')
           if errors:
               print('\n'.join(f'ERROR: {item}' for item in errors));sys.exit(1)
-          print(f'v79 FREE follower-only release and drift gate passed for build {build}')
+          print(f'v79 public English homepage and protected-signals release gate passed for build {build}')
           PY

@@ -2,21 +2,25 @@
   "schema_version": 1,
   "base_manifest": "docs/release-manifests/crypto-lab-v79-7930.json",
   "build": "7930",
-  "reason": "Owner-authorized FREE invite-access compatibility release upgraded to self-service follower launch. CRYPTO LAB is English-first for new visitors, including the static terminal bootstrap before runtime translation. The first-visit gate exposes Create FREE account as the primary onboarding action while retaining device-bound one-time email access as an optional secure sign-in path. Users create a protected FREE account, confirm email, then terminal entitlement requires server-verified X OAuth identity and confirmed following of @CryptoLabPulse, with admin/owner bypass and encrypted server-side X authorization storage. FREE fair-use quotas are independent: AI 5/day, Chart & Analytics 100/day, Classic Backtest 50/day and Scanner EXACT 25/day; Scanner remains daily-unlimited. SMART MONEY and ON-CHAIN remain daily-unlimited with per-user technical rate protection, and ON-CHAIN retains short-lived cache protection. Product feedback is available as a dedicated product_idea support flow and useful proposals may be incorporated into future updates. Chart navigation and direct production chart URLs remain behind the authenticated quota gate. BASIC/PRO checkout, recurring billing, mainnet value execution and Telegram LIVE/AUTO remain disabled. PWA shell/network-first assets include follower access, the explicit X verification page, FREE launch information, feedback, Chart quota gate and direct guard. The /v79/ entry point carries English CRYPTO LAB FREE social metadata for X sharing. v78 is not replaced or modified.",
+  "reason": "Owner-authorized public-link correction for CRYPTO LAB FREE. The repository root now redirects the X audience to the English-first v79 public homepage and carries English Open Graph and X Card metadata. The public homepage opens without account or X authorization, including for visitors who previously stored another language. Account access and server-verified X follower authorization are requested only when a visitor opens the protected Scanner and Signals route. The protected X action is labeled Verify X Access. Existing encrypted server-side OAuth storage, follower verification, quotas, payment boundaries and Telegram LIVE/AUTO boundaries remain unchanged.",
   "boundaries": {
-    "v79_published_over_v78": false,
+    "v79_published_over_v78": true,
     "payment_activation_changed": false,
     "registration_activation_changed": true
   },
-  "pwa_cache": "crypto-lab-v79-7930-free32",
+  "pwa_cache": "crypto-lab-v79-7930-public1",
+  "stable_root_override": {
+    "sha": "e67e818788bb443a5f7c7377de1ce8945b22acb8",
+    "path": "index.html"
+  },
   "asset_overrides": {
     "v79/index.html": {
-      "sha": "3acb32d3a48a1fd7daeaf5d875a8b45314fa2d43",
-      "marker": "CRYPTO LAB FREE — Crypto Market Intelligence"
+      "sha": "c8dd6c1393ba06ba742097b0b780f6300197408b",
+      "marker": "CRYPTO LAB — Crypto Market Intelligence"
     },
     "v79/app.html": {
-      "sha": "8c6fb312535b090e3bd24a2af3af2fb3845c13ad",
-      "marker": "FREE FOLLOWER ACCESS"
+      "sha": "684c2a470f9a5397ac03d1d67679e9345c9b7e5b",
+      "marker": "access-gate.js?v=7931"
     },
     "v79/commercial-extension.js": {
       "sha": "d1f2ce942de3d82a643681fff2019446a4fe65d0",
@@ -27,8 +31,8 @@
       "marker": "x_follower_free"
     },
     "v79/service-worker.js": {
-      "sha": "124aa0e9c859b288367f74793c1c3e819fed9673",
-      "marker": "crypto-lab-v79-7930-free32"
+      "sha": "41dd2516d0be42a7e4e46f93f1bf73667d2f9837",
+      "marker": "crypto-lab-v79-7930-public1"
     }
   }
 }

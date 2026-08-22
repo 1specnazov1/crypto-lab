@@ -5,7 +5,10 @@
   const AUTH_KEY='sb-txhzxbizjpinowepfjkm-auth-token';
   const DEVICE_KEY='cryptoLabEmailAccessDeviceV1';
   const EMAIL_KEY='cryptoLabEmailAccessEmailV1';
-  const smoke=new URLSearchParams(location.search).get('access-gate-smoke')==='1';
+  const query=new URLSearchParams(location.search);
+  const smoke=query.get('access-gate-smoke')==='1';
+  const protectedSignalRoute=query.get('route')==='scanner';
+  if(!protectedSignalRoute&&!smoke)return;
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&!smoke)return;
 
   const TEXT={

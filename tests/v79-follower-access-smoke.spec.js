@@ -18,14 +18,16 @@ async function quietExternal(page){
   });
 }
 
-test('first launch defaults to English and exposes the exact FREE package',async({page})=>{
+test('public homepage defaults to English and stays open without authorization',async({page})=>{
   await page.addInitScript(()=>localStorage.clear());
   await quietExternal(page);
-  await page.goto('/v79/app.html?english-first-smoke=1&access-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  await page.goto('/v79/app.html?english-first-smoke=1',{waitUntil:'domcontentloaded'});
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem('cryptoLabLanguage'))).toBe('en');
   await expect(page.locator('#lang')).toHaveValue('en');
   const info=page.locator('#freeLaunchInfo');
-  await expect(info).toContainText('FREE — for verified @CryptoLabPulse followers');
+  await expect(info).toContainText('CRYPTO LAB FREE');
+  await expect(info).toContainText('PUBLIC HOMEPAGE');
+  await expect(info).toContainText('without signing in');
   await expect(info).toContainText('Chart & Analytics');
   await expect(info).toContainText('100 opens / day');
   await expect(info).toContainText('AI Analysis');
@@ -33,28 +35,40 @@ test('first launch defaults to English and exposes the exact FREE package',async
   await expect(info).toContainText('Scanner EXACT Replay');
   await expect(info).toContainText('25 runs / day');
   await expect(info).toContainText('Suggest an improvement');
-  await expect(page.locator('#accessGateSignup')).toHaveText('Create FREE account');
-  await page.locator('#accessGateSignup').click();
-  await expect(page).toHaveURL(/\/v79\/account\.html\?signup=1$/);
+  await expect(info).not.toContainText('Connect X');
+  await expect(page.locator('#cryptoAccessGate')).toHaveCount(0);
+  await expect(page.locator('#cryptoFollowerGuard')).toHaveCount(0);
 });
 
-test('signed-in non-verified user is blocked behind X follower verification',async({page})=>{
+test('protected signals route requires a CRYPTO LAB account',async({page})=>{
+  await page.addInitScript(()=>localStorage.clear());
+  await quietExternal(page);
+  await page.goto('/v79/app.html?route=scanner&access-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  const gate=page.locator('#cryptoAccessGate');
+  await expect(gate).toBeVisible();
+  await expect(gate).toContainText('CRYPTO LAB FREE');
+  await expect(gate).toContainText('Create a FREE account');
+});
+
+test('signed-in non-verified user sees X verification only inside protected signals',async({page})=>{
   await page.addInitScript(key=>{localStorage.clear();localStorage.setItem(key,JSON.stringify({access_token:'follower-smoke-token'}));},AUTH_KEY);
   await quietExternal(page);
   await page.route(ENDPOINT,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,allowed:false,code:'X_NOT_CONNECTED',connect_required:true,target_handle:'@CryptoLabPulse'})}));
-  await page.goto('/v79/feedback.html?follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  await page.goto('/v79/app.html?follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#cryptoFollowerGuard')).toHaveCount(0);
+  await page.goto('/v79/app.html?route=scanner&follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
   const gate=page.locator('#cryptoFollowerGuard');
   await expect(gate).toBeVisible();
-  await expect(gate).toContainText('Follower access required');
+  await expect(gate).toContainText('PROTECTED SIGNALS');
   await expect(gate).toContainText('verified followers of @CryptoLabPulse');
-  await expect(gate.locator('#xfgVerify')).toHaveText('Connect X & verify');
+  await expect(gate.locator('#xfgVerify')).toHaveText('Verify X Access');
 });
 
 test('server-verified X follower passes the launch gate',async({page})=>{
   await page.addInitScript(key=>{localStorage.clear();localStorage.setItem(key,JSON.stringify({access_token:'follower-smoke-token'}));},AUTH_KEY);
   await quietExternal(page);
   await page.route(ENDPOINT,route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,allowed:true,code:'FOLLOWER_VERIFIED',x_username:'verified_follower',target_handle:'@CryptoLabPulse',verified_at:new Date().toISOString()})}));
-  await page.goto('/v79/feedback.html?follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  await page.goto('/v79/app.html?route=scanner&follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
   await expect.poll(()=>page.locator('#cryptoFollowerGuard').count()).toBe(0);
   await expect.poll(()=>page.evaluate(()=>document.body.dataset.xFollowerAccess||'')).toBe('verified');
 });
@@ -70,7 +84,7 @@ test('expired Supabase access token refreshes before follower verification',asyn
     if(auth!=='Bearer fresh-follower-token')return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'Authentication required'})});
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,allowed:true,code:'FOLLOWER_VERIFIED',x_username:'CryptoLabPulse',target_handle:'@CryptoLabPulse',bypass:'admin'})});
   });
-  await page.goto('/v79/feedback.html?follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
+  await page.goto('/v79/app.html?route=scanner&follower-gate-smoke=1',{waitUntil:'domcontentloaded'});
   await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)||'{}').access_token,AUTH_KEY)).toBe('fresh-follower-token');
   await expect.poll(()=>page.locator('#cryptoFollowerGuard').count()).toBe(0);
   await expect.poll(()=>page.evaluate(()=>document.body.dataset.xFollowerAccess||'')).toBe('verified');

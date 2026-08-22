@@ -49,7 +49,7 @@ jobs:
           grep -F "./follower-access-guard.js" v79/service-worker.js
           grep -F "./access-verify.html" v79/service-worker.js
           grep -F "./access-verify.js" v79/service-worker.js
-          grep -F "crypto-lab-v79-7930-free32" v79/service-worker.js
+          grep -F "crypto-lab-v79-7930-public1" v79/service-worker.js
           grep -F "direct_supabase_signup_bypassed:true" v79/auth-gateway.js
           grep -F "x_follower_free" v79/auth-gateway.js
           grep -F "follower_verification_required" v79/auth-gateway.js
@@ -156,7 +156,7 @@ jobs:
 
       - name: Verify free auth and payment boundaries
         run: |
-          test "$(git hash-object index.html)" = '4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          test "$(git hash-object index.html)" = 'e67e818788bb443a5f7c7377de1ce8945b22acb8'
           python - <<'PY'
           import pathlib,re
           gateway=pathlib.Path('v79/auth-gateway.js').read_text(encoding='utf-8')
@@ -179,7 +179,7 @@ jobs:
           assert 'publicFreeAccessScript' in extension
           assert 'x_follower_free' in gateway
           assert '@CryptoLabPulse' in follower
-          assert 'crypto-lab-v79-7930-free32' in sw
+          assert 'crypto-lab-v79-7930-public1' in sw
           assert 'referrer' in recovery.lower() and 'no-referrer' in recovery.lower()
           assert 'referrer' in verify_page.lower() and 'no-referrer' in verify_page.lower()
           assert '<script src="./access-verify.js"></script>' in verify_page

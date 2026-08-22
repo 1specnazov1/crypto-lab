@@ -7,7 +7,13 @@
   const TARGET='@CryptoLabPulse';
   const TARGET_URL='https://x.com/CryptoLabPulse';
   const onApp=/\/app\.html$/.test(location.pathname)||/\/v79\/?$/.test(location.pathname);
-  const smoke=new URLSearchParams(location.search).get('follower-gate-smoke')==='1';
+  const query=new URLSearchParams(location.search);
+  const smoke=query.get('follower-gate-smoke')==='1';
+  const protectedSignalRoute=query.get('route')==='scanner'||/\/scanner\.html$/.test(location.pathname);
+  if(!protectedSignalRoute){
+    if(!localStorage.getItem('cryptoLabLanguage'))localStorage.setItem('cryptoLabLanguage','en');
+    return;
+  }
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&!smoke){
     if(!localStorage.getItem('cryptoLabLanguage'))localStorage.setItem('cryptoLabLanguage','en');
     return;
@@ -76,7 +82,7 @@
   function render(opts={}){
     ensureGate();
     const connected=opts.connected!==false,username=opts.username?`@${String(opts.username).replace(/^@/,'')}`:'',code=opts.code||'',status=opts.status||'',signed=!!session;
-    gate.innerHTML=`<div class="xfg-card"><div class="xfg-brand">CRYPTO LAB · FREE</div><h2>${signed?'Follower access required':'Sign in required'}</h2><p>${signed?`CRYPTO LAB is free for verified followers of <b>${TARGET}</b>. Connect your X account so the server can verify that you follow the account.`:'Your CRYPTO LAB session has expired or is unavailable. Sign in again; your verified X link will remain connected.'}</p>${username?`<p class="xfg-note">Connected X account: <b>${esc(username)}</b>${code==='FOLLOW_REQUIRED'?' · Follow @CryptoLabPulse, then recheck access.':''}</p>`:`<p class="xfg-note">${signed?'We never accept a typed username as proof. Verification uses X authorization and the X API. Your X authorization tokens are encrypted server-side.':'Signing in refreshes your Supabase session. You do not need to reconnect X if it was already verified.'}</p>`}<p class="xfg-status" id="xfgStatus">${esc(status)}</p><div class="xfg-actions">${signed?`<a class="xfg-follow" href="${TARGET_URL}" target="_blank" rel="noopener">Follow ${TARGET}</a><button class="xfg-verify" id="xfgVerify">${connected?'Recheck follower access':'Connect X & verify'}</button><button class="xfg-secondary" id="xfgAccount">CRYPTO LAB account</button>`:`<a class="xfg-verify xfg-secondary" href="./account.html?login=1" target="_top">Sign in to CRYPTO LAB</a>`}</div></div>`;
+    gate.innerHTML=`<div class="xfg-card"><div class="xfg-brand">CRYPTO LAB · PROTECTED SIGNALS</div><h2>${signed?'Verify signal access':'Sign in required'}</h2><p>${signed?`Protected CRYPTO LAB signals are available to verified followers of <b>${TARGET}</b>. Verify your X account to continue.`:'Sign in to your CRYPTO LAB account before opening protected signals.'}</p>${username?`<p class="xfg-note">Connected X account: <b>${esc(username)}</b>${code==='FOLLOW_REQUIRED'?' · Follow @CryptoLabPulse, then verify access again.':''}</p>`:`<p class="xfg-note">${signed?'Verification uses secure X authorization and the X API. Your X authorization tokens are encrypted server-side.':'The public CRYPTO LAB homepage remains available without authorization.'}</p>`}<p class="xfg-status" id="xfgStatus">${esc(status)}</p><div class="xfg-actions">${signed?`<a class="xfg-follow" href="${TARGET_URL}" target="_blank" rel="noopener">Follow ${TARGET}</a><button class="xfg-verify" id="xfgVerify">Verify X Access</button><button class="xfg-secondary" id="xfgAccount">CRYPTO LAB account</button>`:`<a class="xfg-verify xfg-secondary" href="./account.html?login=1" target="_top">Sign in to CRYPTO LAB</a>`}</div></div>`;
     if(session){document.getElementById('xfgVerify').onclick=()=>connected?check(true):start();document.getElementById('xfgAccount').onclick=()=>{location.href='./account.html?login=1'}}
   }
   async function call(body,retry=true){
@@ -95,8 +101,8 @@
       const {response,body}=await call({action:'status',force});
       if(response.status===401){session=null;return render({connected:false,status:'Session expired. Sign in again.'})}
       if(response.ok&&body?.allowed){gate?.remove();style.remove();document.body.dataset.xFollowerAccess=body.stale?'stale':'verified';return}
-      if(body?.code==='X_NOT_CONNECTED'||body?.connect_required)return render({connected:false,code:body?.code,status:'Connect X to verify follower access.'});
-      if(body?.code==='FOLLOW_REQUIRED')return render({connected:true,username:body?.x_username,code:body.code,status:`Follow ${TARGET}, then press Recheck follower access.`});
+      if(body?.code==='X_NOT_CONNECTED'||body?.connect_required)return render({connected:false,code:body?.code,status:'Verify your X account to open protected signals.'});
+      if(body?.code==='FOLLOW_REQUIRED')return render({connected:true,username:body?.x_username,code:body.code,status:`Follow ${TARGET}, then press Verify X Access.`});
       render({connected:!body?.connect_required,username:body?.x_username,code:body?.code,status:body?.error||'Follower verification is required.'});
     }catch{render({connected:true,status:'Follower verification is temporarily unavailable. Please retry.'})}
   }

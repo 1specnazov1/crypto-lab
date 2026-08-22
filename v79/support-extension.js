@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='7930x1';
+  const BUILD='7931public1';
   try{
     const saved=localStorage.getItem('cryptoLabLanguage');
     if(!['ru','uk','en'].includes(saved||'')){localStorage.setItem('cryptoLabLanguage','en');lang='en';}
