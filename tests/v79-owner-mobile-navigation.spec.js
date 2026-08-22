@@ -63,7 +63,10 @@ test('mobile owner sidebar scrolls and every required module remains reachable',
 
     if (route === 'scanner') {
       await expect(page).toHaveURL(/\/v79\/app\.html\?route=scanner$/);
-      await expect(page.locator('#cryptoAccessGate')).toBeVisible();
+      await expect(page.locator('#nav button[data-route="scanner"]')).toHaveClass(/on/);
+      await expect(page.locator('#frameView')).not.toHaveClass(/hide/);
+      await expect(page.locator('#frame')).toHaveAttribute('src', /scanner\.html/);
+      await expect(page.locator('#side')).not.toHaveClass(/open/);
       await openShell(page);
       continue;
     }
