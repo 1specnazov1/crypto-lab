@@ -25,14 +25,19 @@ jobs:
           import subprocess
           from pathlib import Path
           release=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930.json').read_text())
+          hotfix=json.loads(Path('docs/release-manifests/crypto-lab-v79-7930-hotfix-overlay.json').read_text())
           onchain=json.loads(Path('docs/release-manifests/crypto-lab-v79-onchain-payments.json').read_text())
           owner=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-network-decision.json').read_text())
           pricing=json.loads(Path('docs/release-manifests/crypto-lab-v79-owner-pricing-decision.json').read_text())
           assert release['build']=='7930' and release['project_ref']=='txhzxbizjpinowepfjkm'
           assert release['boundaries']['v79_published_over_v78'] is False
-          expected='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          assert release['stable_root']['sha']=='4a278c891d37b3760ec1ac988690ea9ad587b24e'
+          assert hotfix['base_manifest']=='docs/release-manifests/crypto-lab-v79-7930.json'
+          assert hotfix['build']=='7930'
+          assert hotfix['boundaries']['v79_published_over_v78'] is True
+          assert hotfix['stable_root_override']['path']=='index.html'
+          expected=hotfix['stable_root_override']['sha']
           assert subprocess.check_output(['git','hash-object','index.html'],text=True).strip()==expected
-          assert release['stable_root']['sha']==expected
           seen=set()
           for item in release['migrations']:
             key=(item.get('version'),item.get('name'))
